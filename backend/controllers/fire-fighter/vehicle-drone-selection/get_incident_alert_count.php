@@ -14,8 +14,13 @@ $timeout = 15;
 $pollInterval = 2;
 $startTime = time();
 
+// ✅ FIX: read station from request
+$station = $_GET['station'] ?? null;
+
+// last known count
 $lastCount = isset($_GET['lastCount']) ? (int)$_GET['lastCount'] : -1;
 
+// safety check
 if (!$station) {
     echo json_encode(["count" => 0]);
     exit;
@@ -27,13 +32,12 @@ error_log("Frontend Last Count: " . $lastCount);
 
 while (true) {
 
-    // 🔥 STATION-WISE COUNT
     $stmt = $conn->prepare("
         SELECT COUNT(*) AS count
         FROM incidents
         WHERE status = 'new'
           AND isNewAlert = 1
-          AND LOWER(stationName) = LOWER(?)
+          AND LOWER(TRIM(stationName)) = LOWER(TRIM(?))
     ");
 
     if (!$stmt) {
@@ -53,12 +57,14 @@ while (true) {
 
     error_log("LastCount: $lastCount | CurrentCount: $currentCount");
 
+    // return immediately on change
     if ($currentCount !== $lastCount) {
         error_log("Count changed. Returning response.");
         echo json_encode(['count' => $currentCount]);
         exit;
     }
 
+    // timeout fallback
     if ((time() - $startTime) >= $timeout) {
         error_log("Timeout reached. Returning current count.");
         echo json_encode(['count' => $currentCount]);

@@ -128,21 +128,25 @@ export default function DashboardHeader() {
 
 
   useEffect(() => {
-    let isActive = true;   
+    if (!stationName) return;
 
-    const poll = async (lastCount = 0) => {   
+    let isActive = true;
+
+    const poll = async (lastCount = 0) => {
       try {
         const res = await fetch(
-          `${API}/get_incident_alert_count.php?lastCount=${lastCount}`, 
+          `${API}/get_incident_alert_count.php?station=${encodeURIComponent(
+            stationName
+          )}&lastCount=${lastCount}`,
           { cache: "no-store" }
         );
 
         const data = await res.json();
-
-        if (!isActive) return;  
+        if (!isActive) return;
 
         setNotificationCount(data.count);
 
+        // long-poll again with updated count
         poll(data.count);
       } catch (err) {
         console.error("Polling error:", err);
@@ -150,11 +154,12 @@ export default function DashboardHeader() {
       }
     };
 
-    poll(0);  
+    poll(0);
+
     return () => {
-      isActive = false;  
+      isActive = false;
     };
-  }, []);
+  }, [stationName]);
 
   return (
     <AppBar
