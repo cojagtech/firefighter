@@ -2,7 +2,7 @@ import React from "react";
 import VTSLivePanel from "./VTSLivePanel";
 import DroneLivePanel from "./DroneLivePanel";
 import DroneCameraPanel from "./DroneCameraPanel";
-import DigitalTwinPanel from "./DigitalTwinPanel";
+importDetectionAlert from "./DigitalTwinPanel";
 
 export default function CommandPanelGrid({
   onMaximizeVTS,

@@ -7,7 +7,7 @@ import CommandToolbar from "./CommandToolbar";
 import VTSLivePanel from "./VTSLivePanel";
 import DroneLivePanel from "./DroneLivePanel";
 import DroneCameraPanel from "./DroneCameraPanel";
-import DigitalTwinPanel from "./DigitalTwinPanel";
+import DetectionAlert from "./DetectionAlert";
 import { Button } from "@mui/material";
 
 export default function LiveIncidentCommandScreen() {
@@ -106,7 +106,7 @@ export default function LiveIncidentCommandScreen() {
             {renderPanel("vts", VTSLivePanel)}
             {renderPanel("drone-location", DroneLivePanel)}
             {renderPanel("drone-camera", DroneCameraPanel)}
-            {renderPanel("3d-twin", DigitalTwinPanel)}
+            {renderPanel("3d-twin",DetectionAlert)}
           </div>
         )}
 
@@ -119,7 +119,7 @@ export default function LiveIncidentCommandScreen() {
               {focusedPanel === "drone-camera" &&
                 renderPanel("drone-camera", DroneCameraPanel)}
               {focusedPanel === "3d-twin" &&
-                renderPanel("3d-twin", DigitalTwinPanel)}
+                renderPanel("3d-twin",DetectionAlert)}
             </div>
 
             <div className="h-[40%] grid grid-cols-3 gap-2">
@@ -129,7 +129,7 @@ export default function LiveIncidentCommandScreen() {
               {focusedPanel !== "drone-camera" &&
                 renderPanel("drone-camera", DroneCameraPanel, true)}
               {focusedPanel !== "3d-twin" &&
-                renderPanel("3d-twin", DigitalTwinPanel, true)}
+                renderPanel("3d-twin",DetectionAlert, true)}
             </div>
           </div>
         )}
@@ -143,7 +143,7 @@ export default function LiveIncidentCommandScreen() {
               {focusedPanel === "drone-camera" &&
                 renderPanel("drone-camera", DroneCameraPanel)}
               {focusedPanel === "3d-twin" &&
-                renderPanel("3d-twin", DigitalTwinPanel)}
+                renderPanel("3d-twin",DetectionAlert)}
             </div>
 
             <div className="h-[25%] grid grid-cols-3 gap-2">
@@ -153,7 +153,7 @@ export default function LiveIncidentCommandScreen() {
               {focusedPanel !== "drone-camera" &&
                 renderPanel("drone-camera", DroneCameraPanel, true)}
               {focusedPanel !== "3d-twin" &&
-                renderPanel("3d-twin", DigitalTwinPanel, true)}
+                renderPanel("3d-twin",DetectionAlert, true)}
             </div>
 
             <div className="flex justify-center pt-2">

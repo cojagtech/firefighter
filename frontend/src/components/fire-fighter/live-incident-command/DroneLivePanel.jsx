@@ -75,9 +75,6 @@ export default function DroneLivePanel({
 
   useEffect(() => {
     if (!incident) return;
-
-    console.log("Incident Latitude:", incident.latitude);
-    console.log("Incident Longitude:", incident.longitude);
   }, [incident]);
 
 
@@ -141,7 +138,6 @@ export default function DroneLivePanel({
       try {
         const res = await fetch(API);
         const data = await res.json();
-        console.log("Drone GPS Logs:", data);
 
         if (!data?.latitude || !data?.longitude) return;
 
@@ -234,8 +230,6 @@ export default function DroneLivePanel({
     if (!incident) return;
 
     const { latitude, longitude } = incident;
-    console.log("Incident Latitude:", latitude);
-    console.log("Incident Longitude:", longitude);
 
     if (mapMode === "3d") {
       const interval = setInterval(() => {
@@ -246,7 +240,6 @@ export default function DroneLivePanel({
             200
           );
           clearInterval(interval); 
-          console.log("Fire hazard point added on 3D map");
         }
       }, 500);
 

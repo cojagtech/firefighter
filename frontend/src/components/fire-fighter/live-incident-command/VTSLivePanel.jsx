@@ -53,10 +53,6 @@ export default function VTSLivePanel({
             lat: parseFloat(data.station.latitude),
             lng: parseFloat(data.station.longitude),
           });
-
-          console.log("✅ Station Name:", data.station.name);
-          console.log("✅ Station Latitude:", data.station.latitude);
-          console.log("✅ Station Longitude:", data.station.longitude);
         } else {
           console.log("❌ Station coordinates not found");
         }
@@ -70,9 +66,6 @@ export default function VTSLivePanel({
 
   // ------------------ Log Incident Params ------------------
   useEffect(() => {
-    console.log("Incident ID:", incidentId);
-    console.log("Drone ID:", droneId);
-    console.log("Vehicle Device ID:", vehicleDeviceId);
   }, [incidentId, droneId, vehicleDeviceId]);
 
   // ------------------ 2D Leaflet Map ------------------

@@ -7,7 +7,7 @@ import { Chip } from "@mui/material";
 const ALERT_API = "http://13.127.119.7/get_last_alert.php";
 const FETCH_INTERVAL = 1 * 1000; 
 
-export default function DigitalTwinPanel({
+export default function DetectionAlert({
   onMaximize,
   isMaximized = false,
   onExit,
