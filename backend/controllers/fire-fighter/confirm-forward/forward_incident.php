@@ -4,10 +4,13 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
+require "../../../config/db.php";
+
+// Get JSON input
 $input = json_decode(file_get_contents("php://input"), true);
 
-$incidentId   = $input['incidentId']   ?? null;
-$newStation   = $input['stationName']  ?? null;
+$incidentId = $input['incidentId'] ?? null;
+$newStation = $input['stationName'] ?? null;
 
 if (!$incidentId || !$newStation) {
     echo json_encode([
@@ -17,44 +20,40 @@ if (!$incidentId || !$newStation) {
     exit;
 }
 
-$file = "incidents.json";
+// Prepare update query
+$stmt = $conn->prepare("
+    UPDATE incidents 
+    SET stationName = ?, 
+        status = 'new', 
+        isNewAlert = 1 
+    WHERE id = ?
+");
 
-if (!file_exists($file)) {
-    echo json_encode([
-        "success" => false,
-        "message" => "incidents.json not found"
-    ]);
-    exit;
-}
+$stmt->bind_param("ss", $newStation, $incidentId);
 
-$incidents = json_decode(file_get_contents($file), true);
-$found = false;
+if ($stmt->execute()) {
 
-foreach ($incidents as &$incident) {
-    if ($incident['id'] === $incidentId) {
-
-        $incident['coordinates']['stationName'] = $newStation;
-
-        $incident['status'] = "forwarded";
-        $incident['isNewAlert'] = true;
-
-        $found = true;
-        break;
+    if ($stmt->affected_rows > 0) {
+        echo json_encode([
+            "success" => true,
+            "message" => "Incident forwarded successfully",
+            "incidentId" => $incidentId,
+            "newStation" => $newStation
+        ]);
+    } else {
+        echo json_encode([
+            "success" => false,
+            "message" => "Incident not found"
+        ]);
     }
-}
 
-if (!$found) {
+} else {
     echo json_encode([
         "success" => false,
-        "message" => "Incident not found"
+        "message" => "Update failed"
     ]);
-    exit;
 }
-file_put_contents($file, json_encode($incidents, JSON_PRETTY_PRINT));
 
-echo json_encode([
-    "success" => true,
-    "message" => "Incident forwarded successfully",
-    "incidentId" => $incidentId,
-    "newStation" => $newStation
-]);
+$stmt->close();
+$conn->close();
+?>

@@ -79,8 +79,6 @@ export default function ConfirmLocationPage() {
     const lat = Number(incident.latitude ?? incident.coordinates?.lat);
     const lng = Number(incident.longitude ?? incident.coordinates?.lng);
 
-    console.log("Incident coords resolved:", lat, lng);
-
     if (Number.isFinite(lat) && Number.isFinite(lng)) {
       setCurrentLat(lat);
       setCurrentLng(lng);
