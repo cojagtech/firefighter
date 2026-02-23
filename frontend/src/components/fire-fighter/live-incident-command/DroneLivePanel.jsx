@@ -48,10 +48,10 @@ const droneIcon = new L.Icon({
   iconAnchor: [20, 20],
 });
 
-// const DRONE_CODE_TO_DB_ID = {
-//   "DRN-002": 101,
-//   "DRN-001": 102,
-// };
+const DRONE_CODE_TO_DB_ID = {
+  "DRN-002": 101,
+  "DRN-001": 102,
+};
 
 export default function DroneLivePanel({
   incident,
@@ -60,7 +60,7 @@ export default function DroneLivePanel({
   onExit,
 }) {
   const { droneId: droneCode } = useParams();
-  // const dbDroneId = DRONE_CODE_TO_DB_ID[droneCode];
+  const dbDroneId = DRONE_CODE_TO_DB_ID[droneCode];
 
   const mapContainerRef = useRef(null);
   const leafletMapRef = useRef(null);
@@ -130,13 +130,20 @@ export default function DroneLivePanel({
   }, [mapMode]);
 
   useEffect(() => {
-    if (!droneCode) return;
 
-    const API = `http://localhost/fire-fighter/backend/controllers/incidents/get_drone_location.php?droneCode=${droneCode}`;
+    // if (!droneCode) return;
+
+    // const API = `http://localhost/fire-fighter/backend/controllers/incidents/get_drone_location.php?droneCode=${droneCode}`;
+
+    if (!dbDroneId) return;
+
+    const DRONE_API = `http://13.127.119.7/fire-fighter/get_drone_location.php?droneId=${dbDroneId}`;
+    
+
 
     async function getDrone() {
       try {
-        const res = await fetch(API);
+        const res = await fetch(API); //Drone_API
         const data = await res.json();
 
         if (!data?.latitude || !data?.longitude) return;
