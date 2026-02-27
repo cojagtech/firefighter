@@ -137,13 +137,13 @@ export default function DroneLivePanel({
 
     if (!dbDroneId) return;
 
-    const DRONE_API = `http://13.127.119.7/fire-fighter/get_drone_location.php?droneId=${dbDroneId}`;
+    const DRONE_API = `http://65.2.78.112/fire-fighter/get_drone_location.php?droneId=${dbDroneId}`;
     
 
 
     async function getDrone() {
       try {
-        const res = await fetch(API); //Drone_API
+        const res = await fetch(DRONE_API); //Drone_API
         const data = await res.json();
 
         if (!data?.latitude || !data?.longitude) return;
