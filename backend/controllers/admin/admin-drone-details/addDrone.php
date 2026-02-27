@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 require "../../../helpers/logActivity.php";
 
 function fail(int $code = 400): void {

@@ -4,7 +4,7 @@ header("Access-Control-Allow-Headers: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Content-Type: application/json");
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 
 // Logged-in user's station (from React request)
 $station = $_GET['station'] ?? null;

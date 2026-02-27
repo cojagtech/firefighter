@@ -7,7 +7,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Content-Type: application/json");
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 require "../../../helpers/logActivity.php";
 
 $drone_code = $_POST['drone_code'] ?? null;

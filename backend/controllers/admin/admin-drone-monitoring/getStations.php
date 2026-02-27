@@ -4,7 +4,7 @@ header("Access-Control-Allow-Headers: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Content-Type: application/json");
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 
 // Fetch all stations from fire_stations table
 $sql = "SELECT station_name FROM fire_station ORDER BY station_name ASC";

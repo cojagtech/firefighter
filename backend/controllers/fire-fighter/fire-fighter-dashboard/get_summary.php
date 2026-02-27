@@ -4,7 +4,7 @@ header("Access-Control-Allow-Headers: *");
 header("Access-Control-Allow-Methods: GET, POST");
 header("Content-Type: application/json");
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 
 $station = isset($_GET['station']) ? mysqli_real_escape_string($conn, $_GET['station']) : null;
 

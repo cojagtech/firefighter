@@ -4,7 +4,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Headers: Content-Type");
 
-require "../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 
 if (!isset($_GET['droneCode'])) {
     echo json_encode([

@@ -2,7 +2,7 @@
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 
 $station = $_GET['station'] ?? null;
 

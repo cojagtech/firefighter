@@ -6,7 +6,8 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json; charset=utf-8");
 header("Cache-Control: no-cache, must-revalidate");
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
+
 
 set_time_limit(0);
 

@@ -7,7 +7,7 @@ header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 
 if (!$conn) {
     echo json_encode(["status" => false, "message" => "Database connection failed"]);

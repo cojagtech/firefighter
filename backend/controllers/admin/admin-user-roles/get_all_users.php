@@ -2,7 +2,7 @@
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 
-require_once("../../../config/db.php");
+require_once realpath(__DIR__ . "/../../../config/db.php");
 
 $sql = "SELECT id, fullName, role, station, status, deactivation_reason FROM users ORDER BY id DESC";
 $result = $conn->query($sql);

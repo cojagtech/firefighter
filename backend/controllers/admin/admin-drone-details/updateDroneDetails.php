@@ -10,7 +10,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Content-Type: application/json");
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 require "../../../helpers/logActivity.php";
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

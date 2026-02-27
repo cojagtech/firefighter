@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 require "../../../helpers/logActivity.php";
 
 /* ---------- INPUT ---------- */

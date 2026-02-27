@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     exit;
 }
 
-require "../../../config/db.php";
+require_once realpath(__DIR__ . "/../../../config/db.php");
 
 if (!isset($_SESSION['user'])) {
     echo json_encode(["success" => false, "message" => "Unauthorized"]);
