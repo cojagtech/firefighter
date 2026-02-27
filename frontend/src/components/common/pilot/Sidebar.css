@@ -1,0 +1,59 @@
+/* --- Theme Variables --- */
+.light {
+  --sidebar-bg: #ffffff; 
+    --item-default-color: #4b5563; 
+    --item-hover-bg: #f3f4f6; 
+    --item-hover-color: #111827; 
+    --item-active-bg: #e5e7eb; 
+    --item-active-color: #000000; 
+}
+
+/* --- dark Theme Overrides --- */
+.dark {
+     --sidebar-bg: #14171b;
+  --item-default-color: #9ca3af;
+  --item-hover-bg: #1f2937; 
+  --item-hover-color: #f9fafb;
+  --item-active-bg: #374151;
+  --item-active-color: #ffffff;
+}
+
+.sidebar-container {
+    width: 16.4rem; 
+    border-right: 1px solid #686b70; 
+    padding: 1.25rem;   
+    background-color: var(--sidebar-bg);
+}
+.sidebar-menu-item.active {
+  /* Using Variable */
+  background-color: var(--item-active-bg);
+  color: var(--item-active-color);
+}
+
+.sidebar-menu-item {
+    display: flex; 
+    align-items: center; 
+    gap: 0.75rem;           
+    padding: 0.75rem;        
+    margin-bottom: 0.75rem;  
+    border-radius: 0.5rem;   
+    transition: background 0.2s ease;
+     color: var(--item-default-color);
+}
+
+.sidebar-menu-item:hover {
+     background-color: var(--item-hover-bg);
+  color: var(--item-hover-color);
+}
+.sidebar-icon {
+  color: var(--item-default-color);
+  transition: color 0.2s ease;
+}
+
+.sidebar-menu-item:hover .sidebar-icon {
+  color: var(--item-hover-color);
+}
+
+.sidebar-menu-item.active .sidebar-icon {
+  color: var(--item-active-color);
+}

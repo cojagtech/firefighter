@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AdminLayout from "./layout/AdminLayout";
 import FireFighterLayout from "./layout/FireFighterLayout";
+import PilotLayout from "./layout/PilotLayout";
 
 ///common
 
@@ -19,10 +20,9 @@ import VehicleManagementPage from "./pages/admin/AdminVehicles";
 import DroneDetailsPage from "./pages/admin/DroneDetails";
 import SOPManagement from "./pages/admin/AdminSop";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import UserRoles from "./pages/admin/UserRole"
+import UserRoles from "./pages/admin/UserRole";
 import AdminLog from "./pages/admin/AdminLog";
 import StationContext from "./components/admin/admin-station/StationContext";
-
 
 // Fire Fighter Pages
 import ConfirmLocation from "./pages/fire-fighter/ConfirmLocation";
@@ -36,24 +36,32 @@ import ConfirmFowardIncidence from "./components/fire-fighter/confirm-forward/Co
 import Vehicle from "./pages/vehicle-driver/vehicle";
 
 // PILOT
-import Pilot from "./pages/pilot/pilot"
-
+import Pilot from "./components/pilot/DashboardContent";
 
 function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
-
-        <Toaster position="top-center" reverseOrder={false}/>
+        <Toaster position="top-center" reverseOrder={false} />
         <Routes>
-              <Route path="/" element={<RedirectIfLoggedIn><LoginForm/></RedirectIfLoggedIn>} />
+          <Route
+            path="/"
+            element={
+              <RedirectIfLoggedIn>
+                <LoginForm />
+              </RedirectIfLoggedIn>
+            }
+          />
           {/* Admin Side */}
           <Route
-            element={<ProtectedRoute>
-                     <RoleProtectedRoute allowedRoles={["Admin"]}>
-                       <AdminLayout />
-                     </RoleProtectedRoute>
-                    </ProtectedRoute>}>
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={["Admin"]}>
+                  <AdminLayout />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          >
             <Route path="/AdminDashboard" element={<AdminDashboard />} />
             <Route path="/live-monitoring" element={<AdminDroneMonitoring />} />
             <Route path="/vehicles" element={<VehicleManagementPage />} />
@@ -65,47 +73,67 @@ function App() {
           </Route>
 
           {/* Firefighter UI */}
-          <Route element={
-            <ProtectedRoute>
-              <RoleProtectedRoute allowedRoles={[
-                "Fire Station Command Control",
-                "Pilot",
-                "Vehicle Driver"
-              ]}>
-                <FireFighterLayout />
-              </RoleProtectedRoute>
-            </ProtectedRoute>
-          }>
+          <Route
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute
+                  allowedRoles={[
+                    "Fire Station Command Control",
+                    "Pilot",
+                    "Vehicle Driver",
+                  ]}
+                >
+                  <FireFighterLayout />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          >
             <Route path="/confirm-location/:id" element={<ConfirmLocation />} />
-            <Route path="/vehicle-drone-selection/:id" element={<VehicleDroneSelection />} />
-            <Route path="/fire-fighter-dashboard" element={<FireFighterPage/>} />
-            <Route path="/live-incident-command/:id/:droneId/:vehicleDeviceId" element={<LiveIncidentCommand/>} />
-            <Route path="/confirm-forward-incidence/:incidentId/:stationName" element={<ConfirmFowardIncidence />} />
-            <Route path="/map-toggle" element={<MapTogglePage/>} />
+            <Route
+              path="/vehicle-drone-selection/:id"
+              element={<VehicleDroneSelection />}
+            />
+            <Route
+              path="/fire-fighter-dashboard"
+              element={<FireFighterPage />}
+            />
+            <Route
+              path="/live-incident-command/:id/:droneId/:vehicleDeviceId"
+              element={<LiveIncidentCommand />}
+            />
+            <Route
+              path="/confirm-forward-incidence/:incidentId/:stationName"
+              element={<ConfirmFowardIncidence />}
+            />
+            <Route path="/map-toggle" element={<MapTogglePage />} />
           </Route>
 
           {/* ---------------- VEHICLE DRIVER ONLY ---------------- */}
-          <Route path="/vehicle-driver-dashboard" element={
-            <ProtectedRoute>
-              <RoleProtectedRoute allowedRoles={["Vehicle Driver"]}>
-                <Vehicle />
-              </RoleProtectedRoute>
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/vehicle-driver-dashboard"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={["Vehicle Driver"]}>
+                  <Vehicle />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
 
           {/* ---------------- PILOT ONLY ---------------- */}
-          <Route path="/pilot-dashboard" element={
-            <ProtectedRoute>
-              <RoleProtectedRoute allowedRoles={["Pilot"]}>
-                <Pilot />
-              </RoleProtectedRoute>
-            </ProtectedRoute>
-          } />
+          <Route
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={["Pilot"]}>
+                  <PilotLayout />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          >
 
-          {/* NO ACCESS */}
-          <Route path="/not-access-to-you" element={<NotAccessToYou />} />
-
-
+            {/* NO ACCESS */}
+            <Route path="/pilot-dashboard" element={<Pilot />} />
+          </Route>
         </Routes>
       </ThemeProvider>
     </BrowserRouter>

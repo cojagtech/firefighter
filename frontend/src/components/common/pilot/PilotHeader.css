@@ -1,0 +1,142 @@
+/* ============================================================
+   PILOT HEADER THEME
+============================================================ */
+
+.pilot-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  background-color: var(--header-bg);
+  border-bottom: 2px solid var(--header-border);
+}
+
+.pilot-header__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: var(--header-height);
+  padding: 0 var(--header-padding-x);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* LEFT */
+.pilot-header__logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pilot-header__logo-icon {
+  width: var(--logo-size);
+  height: var(--logo-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2563eb; /* pilot blue */
+  border-radius: 0.5rem;
+  color: white;
+}
+
+.pilot-header__logo-text {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* RIGHT */
+.pilot-header__right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* NOTIFICATION */
+.pilot-header__notification-button {
+  position: relative;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.pilot-header__notification-badge {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  background: var(--badge-bg);
+  color: white;
+  font-size: 0.75rem;
+  border-radius: 9999px;
+  padding: 0 0.4rem;
+}
+
+/* PROFILE */
+.pilot-header__profile-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.pilot-header__profile-avatar {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+}
+
+.pilot-header__profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.pilot-header__profile-name {
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.pilot-header__profile-role {
+  font-size: var(--text-sm);
+  opacity: 0.8;
+}
+
+/* DROPDOWN */
+.pilot-header__dropdown {
+  width: 14rem;
+  background: var(--dropdown-bg);
+  border-radius: 0.75rem;
+  border: 1px solid var(--placeholder-bg);
+}
+
+.pilot-header__dropdown-label {
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+}
+
+.pilot-header__dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+
+.pilot-header__dropdown-item:hover {
+  background: var(--dropdown-hover);
+}
+
+.pilot-header__dropdown-item.logout {
+  color: #ef4444;
+}
+
+.divider {
+  height: 1px;
+  background: var(--placeholder-bg);
+  margin: 0.5rem 0;
+}
+
+/* MOBILE */
+@media (max-width: 640px) {
+  .pilot-header__profile-info {
+    display: none;
+  }
+}
