@@ -1,9 +1,14 @@
 <?php
-// get_user.php (and check_mobile.php)
 require_once realpath(__DIR__ . "/../../../config/db.php");
 
+// Accept both JSON POST or query string
 $data = json_decode(file_get_contents("php://input"), true);
-$phone = $data["phone"] ?? "";
+$phone = $data['phone'] ?? $_GET['mobile'] ?? '';
+
+if (!$phone) {
+    echo json_encode(["error" => "No phone number provided"]);
+    exit;
+}
 
 $stmt = $conn->prepare("SELECT id FROM users WHERE phone = ?");
 $stmt->bind_param("s", $phone);

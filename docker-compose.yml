@@ -1,41 +1,37 @@
-version: "3.9"
+version: "3.8"
 
 services:
-  frontend:
-    build: ./frontend
-    container_name: fire-frontend
-    ports:
-      - "5173:5173"
-    env_file:
-      - ./frontend/.env
-    depends_on:
-      - backend
 
-  backend:
-    build: ./backend
-    container_name: fire-backend
-    ports:
-      - "8080:80"
-    environment:
-      DB_HOST: db
-      DB_USER: root
-      DB_PASSWORD: root
-      DB_NAME: fire-fighter   # ✅ KEEP HYPHEN
-    depends_on:
-      - db
-
-  db:
+  mysql:
     image: mysql:8.0
-    container_name: fire-db
+    container_name: ff_mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: fire-fighter   # ✅ KEEP HYPHEN
+      MYSQL_DATABASE: fire-fighter
     ports:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build: ./backend
+    container_name: ff_backend
+    restart: always
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - mysql
+
+  frontend:
+    build: ./frontend
+    container_name: ff_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
 
 volumes:
   db_data:
