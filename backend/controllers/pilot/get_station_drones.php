@@ -6,18 +6,31 @@ header("Content-Type: application/json");
 session_start();
 require_once "../../config/db.php";
 
+/**
+ * AUTH CHECK
+ */
 if (
     !isset($_SESSION['user']) ||
     $_SESSION['user']['role'] !== 'Pilot'
 ) {
-    echo json_encode(["success" => false, "message" => "Unauthorized"]);
+    echo json_encode([
+        "success" => false,
+        "message" => "Unauthorized"
+    ]);
     exit;
 }
 
 $station = $_SESSION['user']['station'];
 
+/**
+ * FETCH DRONES (FIXED SQL)
+ */
 $stmt = $conn->prepare("
-    SELECT id, drone_name, status
+    SELECT
+        id,
+        drone_code,
+        drone_name,
+        status
     FROM drones
     WHERE station = ?
     ORDER BY drone_name ASC

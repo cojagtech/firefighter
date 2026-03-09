@@ -2,6 +2,7 @@ import { useState } from "react";
 import SelectDroneDropDown from "./SelectDroneDropdown";
 import Header from "./Header";
 import QuickStats from "./QuickStats";
+import DroneInformationCard from "./DroneInformationCard";
 
 export default function DroneDashboard() {
   const [selectedDrone, setSelectedDrone] = useState(null);
@@ -16,6 +17,9 @@ export default function DroneDashboard() {
       <Header selectedDrone={selectedDrone} />
 
       <QuickStats selectedDrone={selectedDrone} />
+
+      <DroneInformationCard selectedDrone={selectedDrone} />
+      
     </div>
   );
 }

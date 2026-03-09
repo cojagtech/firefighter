@@ -31,9 +31,9 @@ export default function SelectDrone({ selectedDrone, setSelectedDrone }) {
   }, [setSelectedDrone]);
 
   return (
-    <div className="flex flex-col gap-1 w-[220px]">
+    <div className="flex flex-col gap-1 w-[200px]">
       <label className="text-md font-medium text-muted-foreground mb-2 block">
-        Select Drone:
+        Select Drone :
       </label>
 
       <div className="relative">

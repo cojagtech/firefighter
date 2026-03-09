@@ -29,13 +29,13 @@ export default function StatusBadge({
         }
       case "maintenance":
         return {
-          color: "bg-orange-600 text-white hover:bg-orange-700",
+          color: "bg-yellow-600 text-white hover:bg-yellow-700",
           icon: "Wrench",
-          text: label || "Maintenance"
+          text: label || "maintenance"
         }
       case "critical":
         return {
-          color: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          color: "bg-destructive text-white hover:bg-destructive/90",
           icon: "AlertTriangle",
           text: label || "Critical"
         }
@@ -56,6 +56,12 @@ export default function StatusBadge({
           color: "bg-muted text-muted-foreground hover:bg-muted/80",
           icon: "XCircle",
           text: label || "Offline"
+        }
+      case "standby":
+        return {
+          color: "bg-amber-600 text-white hover:bg-amber-700",
+          icon: "Shield",
+          text: label || "standby"
         }
       default:
         return {

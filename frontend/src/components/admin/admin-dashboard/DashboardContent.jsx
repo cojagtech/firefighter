@@ -14,6 +14,7 @@ export default function DashboardContent() {
     total_drones: 0,
     inactive_drones: 0,
     ready_drones: 0,
+    standby: 0,
   });
 
   const [activeDrones, setActiveDrones] = useState([]);
@@ -101,18 +102,25 @@ export default function DashboardContent() {
         color: "green",
       },
       {
-        id: "inactive",
-        title: "Maintenance ",
-        value: stats.inactive_drones,
-        description: "Need attention",
-        color: "red",
-      },
-      {
         id: "ready",
         title: "Active",
         value: stats.ready_drones,
         description: "Ready for deployment",
         color: "green",
+      },
+      {
+        id: "standby",
+        title: "StandBy",
+        value: stats.standby,
+        description: "Spare Drone",
+        color: "green",
+      },
+      {
+        id: "inactive",
+        title: "Maintenance ",
+        value: stats.inactive_drones,
+        description: "Need attention",
+        color: "red",
       },
     ],
     [stats]
@@ -123,7 +131,7 @@ export default function DashboardContent() {
     <div className="w-full p-6">
       <h1 className="text-2xl font-semibold mb-6">Admin Dashboard</h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {summaryCardsData.map((card) => (
           <DashboardSummaryCard key={card.id} card={card} />
         ))}

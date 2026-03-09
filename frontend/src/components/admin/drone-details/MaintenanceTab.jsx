@@ -4,15 +4,15 @@ import { Button } from "@/components/ui/button";
 
 
 export default function MaintenanceTab({ selectedDrone }) {
-  const getHealthStatusColor = (status) => status === "Optimal" ? "text-emerald-500" : "text-amber-500";
+  const getHealthStatusColor = (status) => status === "Optimal" ? "text-emerald-500" : status === "Require Service" ? "text-amber-500": "text-red-500" ;
   const getHealthStatusBg = (status) => {
     switch (status) {
       case "Optimal":
         return "bg-emerald-500/10";
       case "Degraded":
+        return "bg-red-500/20";
+      case "Require Service":
         return "bg-amber-500/10";
-      case "Requires Service":
-        return "bg-orange-500/10";
       default:
         return "bg-muted";
     }
@@ -30,7 +30,7 @@ export default function MaintenanceTab({ selectedDrone }) {
         <CardContent className="space-y-4">
           <div className={`bg-muted p-4 rounded-lg flex justify-between items-center ${getHealthStatusBg(selectedDrone?.health_status)}`}>
             <div><p className="font-medium">Health Status</p><p className={getHealthStatusColor(selectedDrone?.health_status)}>{selectedDrone?.health_status}</p></div>
-            <SafeIcon name={selectedDrone?.health_status === "Optimal" ? "CheckCircle2" : "AlertTriangle"} size={24} className={getHealthStatusColor(selectedDrone?.health_status)} />
+            <SafeIcon name={selectedDrone?.health_status === "Optimal" ? "CheckCircle2" : selectedDrone?.health_status === "Require Service" ? "AlertTriangle" : "X"} size={24} className={getHealthStatusColor(selectedDrone?.health_status)} />
           </div>
 
           <Info
