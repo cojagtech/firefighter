@@ -4,7 +4,7 @@ header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 
 session_start();
-require_once "../../config/db.php";
+require_once realpath(__DIR__ . "/../../config/db.php");
 
 /**
  * AUTH CHECK
