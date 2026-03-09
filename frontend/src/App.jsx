@@ -36,7 +36,8 @@ import ConfirmFowardIncidence from "./components/fire-fighter/confirm-forward/Co
 import Vehicle from "./pages/vehicle-driver/vehicle";
 
 // PILOT
-import Pilot from "./components/pilot/DashboardContent";
+import PilotDashboard from "./components/pilot/DashboardContent";
+import ScheduleMaintenance from "./components/pilot/ScheduleMaintenance";
 
 function App() {
   return (
@@ -132,7 +133,8 @@ function App() {
           >
 
             {/* NO ACCESS */}
-            <Route path="/pilot-dashboard" element={<Pilot />} />
+            <Route path="/pilot-dashboard" element={<PilotDashboard />} />
+            <Route path="/schedule-maintenance" element={<ScheduleMaintenance />} />
           </Route>
         </Routes>
       </ThemeProvider>

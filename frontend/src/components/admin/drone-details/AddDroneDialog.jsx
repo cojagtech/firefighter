@@ -151,14 +151,14 @@ export default function AddDroneDialog({ open, onOpenChange, stations, onSuccess
           <SelectField
             label="Status"
             value={drone.status}
-            options={["patrolling", "active_mission", "standby", "offline"]}
+            options={["Active", "StandBy", "Maintenance"]}
             onChange={(v) => updateField("status", v)}
           />
 
           <SelectField
             label="Health Status"
             value={drone.health_status}
-            options={["Optimal", "Degraded", "Requires Service"]}
+            options={["Optimal", "Degraded", "Require Service"]}
             onChange={(v) => updateField("health_status", v)}
           />
 

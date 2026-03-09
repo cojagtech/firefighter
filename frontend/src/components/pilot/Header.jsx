@@ -5,15 +5,10 @@ import StatusBadge from "@/components/common/StatusBadge";
 export default function Header({ selectedDrone }) {
   const getStatusVariant = (status) => {
     switch (status) {
-      case "patrolling":
-        return "available";
-      case "active_mission":
-        return "busy";
-      case "standby":
-        return "warning";
-      case "offline":
-      default:
-        return "offline";
+      case "Active": return "active";
+      case "StandBy": return "standby";
+      case "Maintenance": return "maintenance";
+      default: return "offline";
     }
   };
 

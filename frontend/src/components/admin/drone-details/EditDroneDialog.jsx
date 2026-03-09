@@ -85,7 +85,7 @@ export default function EditDroneDialog({ open, onOpenChange, drone, onSuccess }
             >
               <option value="Optimal">Optimal</option>
               <option value="Degraded">Degraded</option>
-              <option value="Requires Service">Requires Service</option>
+              <option value="Requires Service">Require Service</option>
             </select>
           </div>
 
@@ -110,10 +110,9 @@ export default function EditDroneDialog({ open, onOpenChange, drone, onSuccess }
               }
               className={inputClass}
             >
-              <option value="patrolling">Patrolling</option>
-              <option value="active_mission">Active Mission</option>
-              <option value="standby">Standby</option>
-              <option value="offline">Offline</option>
+              <option value="Active">Active</option>
+              <option value="StandBy">StandBy</option>
+              <option value="Maintenance">Maintenance</option>
             </select>
           </div>
         </div>
