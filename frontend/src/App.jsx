@@ -36,8 +36,9 @@ import ConfirmFowardIncidence from "./components/fire-fighter/confirm-forward/Co
 import Vehicle from "./pages/vehicle-driver/vehicle";
 
 // PILOT
-import PilotDashboard from "./components/pilot/DashboardContent";
-import ScheduleMaintenance from "./components/pilot/ScheduleMaintenance";
+import PilotDashboard from "./pages/pilot/PilotDashboard";
+import ScheduleMaintenance from "./pages/pilot/SheduleMaintenance";
+import PilotLiveIncidentCommand from "./pages/pilot/PilotLiveIncidentCommand";
 
 function App() {
   return (
@@ -79,9 +80,7 @@ function App() {
               <ProtectedRoute>
                 <RoleProtectedRoute
                   allowedRoles={[
-                    "Fire Station Command Control",
-                    "Pilot",
-                    "Vehicle Driver",
+                    "Fire Station Command Control"
                   ]}
                 >
                   <FireFighterLayout />
@@ -135,6 +134,7 @@ function App() {
             {/* NO ACCESS */}
             <Route path="/pilot-dashboard" element={<PilotDashboard />} />
             <Route path="/schedule-maintenance" element={<ScheduleMaintenance />} />
+            <Route path="/pilot-live-incident-command" element={<PilotLiveIncidentCommand />} />
           </Route>
         </Routes>
       </ThemeProvider>

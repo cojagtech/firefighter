@@ -5,7 +5,7 @@ import "./Sidebar.css";
 const Sidebar = () => {
   const menu = [
     { name: "Drones",icon: Plane,link: "/pilot-dashboard" },
-    { name: "Live Incident Command",icon: Radio,link: "/live-incident-command" },
+    { name: "Live Incident Command",icon: Radio,link: "/pilot-live-incident-command" },
     { name: "Schedule Maintenance",icon: CalendarClock,link: "/schedule-maintenance" },
   ];
 

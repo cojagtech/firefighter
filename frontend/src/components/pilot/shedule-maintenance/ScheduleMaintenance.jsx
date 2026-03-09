@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import SelectDroneDropDown from "./SelectDroneDropdown";
+import SelectDroneDropDown from "../pilot-dashboard/SelectDroneDropdown";
 import {
   Card,
   CardContent,
