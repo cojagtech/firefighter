@@ -48,7 +48,7 @@ if ($conn->connect_error) {
 // Prepare SQL statement
 $stmt = $conn->prepare("INSERT INTO drone_gps_logs (drone_code, latitude, longitude, speed) VALUES (?, ?, ?, ?)");
 
-$stmt->bind_param("sdddd", $gps_id, $latitude, $longitude, $speed);
+$stmt->bind_param("sddd", $gps_id, $latitude, $longitude, $speed);
 
 // Execute query
 if ($stmt->execute()) {
