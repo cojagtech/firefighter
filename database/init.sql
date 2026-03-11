@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 20, 2026 at 10:42 AM
+-- Generation Time: Mar 11, 2026 at 07:44 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -40,6 +40,32 @@ CREATE TABLE `activity_logs` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `activity_logs`
+--
+
+INSERT INTO `activity_logs` (`id`, `user_id`, `user_name`, `role`, `action`, `module`, `description`, `entity_id`, `ip_address`, `created_at`) VALUES
+(1, 1, 'Rahul Sharma', 'Admin', 'ASSIGN_PILOT', 'DRONE', 'Assigned pilot (Amit Verma) to drone DRN-002', 2, '::1', '2026-02-28 05:20:13'),
+(2, 2, 'Amit Verma', 'Pilot', 'REMOVE_PILOT', 'DRONE', 'Removed pilot (Amit Verma) from drone DRN-002', 2, '::1', '2026-02-28 05:28:29'),
+(3, 2, 'Amit Verma', 'Pilot', 'ASSIGN_PILOT', 'DRONE', 'Assigned pilot (Amit Verma) to drone DRN-002', 2, '::1', '2026-02-28 05:28:36'),
+(4, 1, 'Rahul Sharma', 'Admin', 'ADD_DRONE', 'DRONE', 'Added new drone PhantomX (DRN-010) at station Katraj Fire Station', NULL, '::1', '2026-03-04 08:53:02'),
+(5, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (flight_hours: 20 → 21, health_status: Optimal → Requires Service, firmware_version: v1.0.0 → V3.4.6, status: Maintenance → active_mission)', NULL, '::1', '2026-03-04 08:54:02'),
+(6, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (flight_hours: 21 → 20, health_status: Requires Service → Optimal, firmware_version: V3.4.6 → V3.4.5, status:  → active_mission)', NULL, '::1', '2026-03-04 08:56:12'),
+(7, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (health_status: Optimal → Requires Service, status:  → standby)', NULL, '::1', '2026-03-04 08:57:37'),
+(8, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (status: StandBy → standby)', NULL, '::1', '2026-03-04 09:00:41'),
+(9, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (status: StandBy → standby)', NULL, '::1', '2026-03-04 09:01:05'),
+(10, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (status: StandBy → patrolling)', NULL, '::1', '2026-03-04 09:01:13'),
+(11, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (status:  → active_mission)', NULL, '::1', '2026-03-04 09:03:35'),
+(12, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (status:  → standby)', NULL, '::1', '2026-03-04 09:03:59'),
+(13, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001', NULL, '::1', '2026-03-04 09:11:29'),
+(14, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (status: StandBy → Active)', NULL, '::1', '2026-03-04 09:12:52'),
+(15, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (status: Active → Maintenance)', NULL, '::1', '2026-03-04 09:13:03'),
+(16, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (status: Maintenance → StandBy)', NULL, '::1', '2026-03-04 09:13:14'),
+(17, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (status: StandBy → Active)', NULL, '::1', '2026-03-04 09:13:20'),
+(18, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (health_status: Requires Service → Optimal)', NULL, '::1', '2026-03-04 09:13:33'),
+(19, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (health_status: Optimal → Degraded)', NULL, '::1', '2026-03-04 09:13:41'),
+(20, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone DRN-001 (health_status: Degraded → Optimal)', NULL, '::1', '2026-03-04 09:13:49');
+
 -- --------------------------------------------------------
 
 --
@@ -51,7 +77,7 @@ CREATE TABLE `drones` (
   `drone_code` varchar(50) NOT NULL,
   `drone_name` varchar(150) NOT NULL,
   `ward` varchar(50) NOT NULL,
-  `status` enum('patrolling','active_mission','standby','offline') NOT NULL,
+  `status` enum('Active','StandBy','Maintenance') NOT NULL,
   `battery` int(11) NOT NULL,
   `flight_hours` float DEFAULT 0,
   `health_status` varchar(50) DEFAULT 'Optimal',
@@ -71,15 +97,15 @@ CREATE TABLE `drones` (
 --
 
 INSERT INTO `drones` (`id`, `drone_code`, `drone_name`, `ward`, `status`, `battery`, `flight_hours`, `health_status`, `firmware_version`, `is_ready`, `station`, `pilot_id`, `pilot_name`, `pilot_email`, `pilot_phone`, `pilot_role`, `pilot_status`) VALUES
-(1, 'DRN-001', 'DJI Mini 2', '', 'standby', 100, 20, 'Optimal', 'v1.0.0', 1, 'Katraj Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(2, 'DRN-002', 'AeroGuard S3', '', 'standby', 100, 13, 'Optimal', 'v1.0.0', 1, 'Katraj Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(3, 'DRN-003', 'FireScout', '', 'standby', 100, 37, 'Optimal', 'v3.6.3', 1, 'Warje Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(4, 'DRN-004', 'Falcon X2', '', 'standby', 100, 10, 'Optimal', 'v4.2.3', 1, 'Warje Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(5, 'DRN-005', 'air2s', '', 'standby', 100, 5, 'Optimal', 'v2.0.0', 1, 'Yerwada Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(6, 'DRN-006', 'phantomX', '', 'standby', 100, 0, 'Optimal', 'V.2.3.4', 1, 'Yerwada Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(7, 'DRN-007', 'DJI FPV', '', 'standby', 100, 2, 'Optimal', 'V.1.2.6', 1, 'Baner Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(8, 'DRN-008', 'Parrot Anafi', '', 'patrolling', 100, 18, 'Optimal', 'V.1.2.6', 1, 'Baner Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(9, 'DRN-009', 'Autel Robotics EVO Lite+', '', 'standby', 100, 15, 'Optimal', 'V.1.4.7', 1, 'Kothrud Station', NULL, NULL, NULL, NULL, NULL, 'available');
+(1, 'DRN-001', 'DJI Mini 2', '', 'Active', 100, 20, 'Optimal', 'V3.4.5', 1, 'Katraj Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(2, 'DRN-002', 'AeroGuard S3', '', 'Maintenance', 100, 13, 'Optimal', 'v1.0.0', 1, 'Katraj Fire Station', 2, 'Amit Verma', 'amit.verma@example.com', '9876501234', 'Pilot', 'assigned'),
+(3, 'DRN-003', 'FireScout', '', 'StandBy', 100, 37, 'Optimal', 'v3.6.3', 1, 'Warje Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(4, 'DRN-004', 'Falcon X2', '', 'StandBy', 100, 10, 'Optimal', 'v4.2.3', 1, 'Warje Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(5, 'DRN-005', 'air2s', '', 'Active', 100, 5, 'Optimal', 'v2.0.0', 1, 'Yerwada Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(6, 'DRN-006', 'phantomX', '', 'StandBy', 100, 0, 'Optimal', 'V.2.3.4', 1, 'Yerwada Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(7, 'DRN-007', 'DJI FPV', '', 'StandBy', 100, 2, 'Optimal', 'V.1.2.6', 1, 'Baner Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(8, 'DRN-008', 'Parrot Anafi', '', 'Active', 100, 18, 'Optimal', 'V.1.2.6', 1, 'Baner Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(9, 'DRN-009', 'Autel Robotics EVO Lite+', '', 'StandBy', 100, 15, 'Optimal', 'V.1.4.7', 1, 'Kothrud Station', NULL, NULL, NULL, NULL, NULL, 'available');
 
 -- --------------------------------------------------------
 
@@ -134,6 +160,29 @@ INSERT INTO `fire_station` (`id`, `station_name`, `station_code`, `latitude`, `l
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `gps_drone_records`
+--
+
+CREATE TABLE `gps_drone_records` (
+  `id` int(11) NOT NULL,
+  `drone_id` varchar(50) DEFAULT NULL,
+  `latitude` double DEFAULT NULL,
+  `longitude` double DEFAULT NULL,
+  `altitude` double DEFAULT NULL,
+  `speed` double DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `gps_drone_records`
+--
+
+INSERT INTO `gps_drone_records` (`id`, `drone_id`, `latitude`, `longitude`, `altitude`, `speed`, `created_at`) VALUES
+(1, 'DRONE1', 21.1458, 79.0882, 150, 12.5, '2026-03-07 12:20:41');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `incidents`
 --
 
@@ -154,9 +203,34 @@ CREATE TABLE `incidents` (
 --
 
 INSERT INTO `incidents` (`id`, `name`, `location`, `latitude`, `longitude`, `stationName`, `timeReported`, `status`, `isNewAlert`) VALUES
-('INC-20251120-003', 'Major Structural Fire - Downtown', 'False Street A-123, Commercial District', 34.0531, -118.245, 'Katraj Fire Station', '2026-01-06 10:35:00', 'new', 1),
+('INC-20251120-003', 'Major Structural Fire - Downtown', 'False Street A-123, Commercial District', 34.0531, -118.245, 'Katraj Fire Station', '2026-01-06 10:35:00', 'in_progress', 0),
 ('INC-20251122-001', 'Vehicle Accident & Fire', 'Paud Road, Near Signal, Kothrud', 18.5074, 73.8077, 'Baner Fire Station', '2025-11-22 15:25:00', 'new', 1),
 ('INC-20251122-002', 'Warehouse Fire - Industrial Zone', 'Plot No. 45, Industrial Area, Katraj', 18.4445, 73.8521, 'Yerwada Fire Station', '2026-01-02 14:10:00', 'new', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `maintenance_requests`
+--
+
+CREATE TABLE `maintenance_requests` (
+  `id` int(11) NOT NULL,
+  `drone_code` varchar(50) NOT NULL,
+  `drone_name` varchar(150) NOT NULL,
+  `station` varchar(150) NOT NULL,
+  `issue_description` text NOT NULL,
+  `scheduled_date` date NOT NULL,
+  `reported_by` varchar(150) NOT NULL,
+  `status` varchar(50) DEFAULT 'scheduled',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `maintenance_requests`
+--
+
+INSERT INTO `maintenance_requests` (`id`, `drone_code`, `drone_name`, `station`, `issue_description`, `scheduled_date`, `reported_by`, `status`, `created_at`) VALUES
+(4, 'DRN-002', 'AeroGuard S3', 'Katraj Fire Station', 'Battery Issue', '2026-03-06', 'Amit Verma', 'scheduled', '2026-03-05 11:11:48');
 
 -- --------------------------------------------------------
 
@@ -265,10 +339,25 @@ ALTER TABLE `fire_station`
   ADD UNIQUE KEY `unique_station_code` (`station_code`);
 
 --
+-- Indexes for table `gps_drone_records`
+--
+ALTER TABLE `gps_drone_records`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `incidents`
 --
 ALTER TABLE `incidents`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `maintenance_requests`
+--
+ALTER TABLE `maintenance_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_drone_code` (`drone_code`),
+  ADD KEY `idx_station` (`station`),
+  ADD KEY `idx_status` (`status`);
 
 --
 -- Indexes for table `users`
@@ -292,13 +381,13 @@ ALTER TABLE `vehicles`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `drones`
 --
 ALTER TABLE `drones`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
 
 --
 -- AUTO_INCREMENT for table `drone_gps_logs`
@@ -311,6 +400,18 @@ ALTER TABLE `drone_gps_logs`
 --
 ALTER TABLE `fire_station`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT for table `gps_drone_records`
+--
+ALTER TABLE `gps_drone_records`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `maintenance_requests`
+--
+ALTER TABLE `maintenance_requests`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`

@@ -1,12 +1,4 @@
 <?php
-// =====================
-// CORS CONFIG
-// =====================
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Content-Type: application/json");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -14,7 +6,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 session_start();
-require_once "../../config/db.php";
+require_once realpath(__DIR__ . "/../../config/db.php");
+
 
 // =====================
 // AUTH CHECK
