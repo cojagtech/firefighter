@@ -1,7 +1,4 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Credentials: true");
-header("Content-Type: application/json");
 
 session_start();
 require_once realpath(__DIR__ . "/../../config/db.php");
@@ -28,9 +25,13 @@ $station = $_SESSION['user']['station'];
 $stmt = $conn->prepare("
     SELECT
         id,
-        drone_code,
         drone_name,
-        status
+        drone_code,
+        status,
+        flight_hours,
+        health_status,
+        firmware_version,
+        station
     FROM drones
     WHERE station = ?
     ORDER BY drone_name ASC

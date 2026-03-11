@@ -1,10 +1,7 @@
 <?php
 session_start();
-header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Credentials: true");
 
-require_once "../../config/db.php";
+require_once realpath(__DIR__ . "/../../config/db.php");
 
 // ✅ Correct authorization check
 if (
