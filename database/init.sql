@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 11, 2026 at 07:44 AM
+-- Generation Time: Mar 12, 2026 at 07:53 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -131,6 +131,30 @@ INSERT INTO `drone_gps_logs` (`id`, `drone_code`, `latitude`, `longitude`, `spee
 (2, 'DRN-003', 18.4591, 73.8555, 45.5, '2026-02-18 06:59:57'),
 (3, 'DRN-005', 18.4545, 73.8603, 52.3, '2026-02-18 06:59:57'),
 (4, 'DRN-007', 18.4501, 73.851, 38.9, '2026-02-18 06:59:57');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `fire_detections`
+--
+
+CREATE TABLE `fire_detections` (
+  `id` int(11) NOT NULL,
+  `TIMESTAMP` bigint(20) DEFAULT NULL,
+  `alert_type` varchar(50) DEFAULT NULL,
+  `confidence` float DEFAULT NULL,
+  `fire_count` int(11) DEFAULT NULL,
+  `intensity_level` varchar(50) DEFAULT NULL,
+  `location` varchar(100) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `fire_detections`
+--
+
+INSERT INTO `fire_detections` (`id`, `TIMESTAMP`, `alert_type`, `confidence`, `fire_count`, `intensity_level`, `location`, `created_at`) VALUES
+(1, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-12 06:45:45');
 
 -- --------------------------------------------------------
 
@@ -332,6 +356,12 @@ ALTER TABLE `drone_gps_logs`
   ADD KEY `drone_code` (`drone_code`);
 
 --
+-- Indexes for table `fire_detections`
+--
+ALTER TABLE `fire_detections`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `fire_station`
 --
 ALTER TABLE `fire_station`
@@ -394,6 +424,12 @@ ALTER TABLE `drones`
 --
 ALTER TABLE `drone_gps_logs`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `fire_detections`
+--
+ALTER TABLE `fire_detections`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `fire_station`
