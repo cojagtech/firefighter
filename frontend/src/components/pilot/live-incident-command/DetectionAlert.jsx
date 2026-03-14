@@ -4,56 +4,74 @@ import React, { useEffect, useRef, useState } from "react";
 import SafeIcon from "@/components/common/SafeIcon";
 import { Chip } from "@mui/material";
 
-const ALERT_API = "http://13.127.119.7/get_last_alert.php";
-const FETCH_INTERVAL = 1 * 1000; 
+const ALERT_API =
+  "http://localhost/fire-fighter/backend/public/fire-fighter/live-incident-command/get_latest_detection.php";
 
-export default function DetectionAlert({
-  onMaximize,
-  isMaximized = false,
-  onExit,
-}) {
+const FETCH_INTERVAL = 1000; // 1 sec
+const FIRE_TIMEOUT = 5000; // 5 sec
+
+export default function DetectionAlert({ isMaximized = false }) {
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const lastSignatureRef = useRef(null);
-  const sameCountRef = useRef(0);
+  const lastIdRef = useRef(null);
+  const timeoutRef = useRef(null);
 
-  const fetchAlert = () => {
-    fetch(ALERT_API)
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.status !== "success") return;
+  // normalize API fields
+  const normalizeData = (data) => ({
+    id: data.id ?? data.ID,
+    confidence: data.confidence ?? data.CONFIDENCE,
+    fire_count: data.fire_count ?? data.FIRE_COUNT,
+    intensity_level: data.intensity_level ?? data.INTENSITY_LEVEL,
+    created_at: data.created_at ?? data.CREATED_AT,
+  });
 
-        const data = res.data;
+  const fetchAlert = async () => {
+    try {
+      const res = await fetch(ALERT_API + "?t=" + Date.now());
+      const json = await res.json();
 
-        const signature = `${data.timestamp}_${data.confidence}_${data.intensity_score}_${data.intensity_level}`;
+      if (!json || !json.data) {
+        setAlert(null);
+        return;
+      }
 
-        if (lastSignatureRef.current === signature) {
-          sameCountRef.current += 1;
+      const normalized = normalizeData(json.data);
 
-          if (sameCountRef.current >= 3) {
-            setAlert(null);
-            return;
-          }
-        } else {
-          lastSignatureRef.current = signature;
-          sameCountRef.current = 1;
-        }
+      // only show if new detection
+      if (lastIdRef.current !== Number(normalized.id)) {
+        lastIdRef.current = Number(normalized.id);
 
-        setAlert(data);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+        setAlert(normalized);
+
+        // auto remove fire after timeout
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          setAlert(null);
+        }, FIRE_TIMEOUT);
+      }
+
+    } catch (err) {
+      console.log("Fetch error:", err);
+      setAlert(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchAlert(); 
+    fetchAlert();
     const interval = setInterval(fetchAlert, FETCH_INTERVAL);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, []);
 
   return (
     <div className={`flex flex-col h-full ${isMaximized ? "p-6" : "p-4"}`}>
+
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <SafeIcon name="Box" className="h-5 w-5 text-[#dc2626]" />
@@ -73,7 +91,9 @@ export default function DetectionAlert({
         />
       </div>
 
-      <div className="flex-1 rounded-lg border border-dashed border-[#2E2E2E] bg-muted/20 flex items-center justify-center mb-4">
+      {/* Detection Panel */}
+      <div className="flex-1 rounded-lg border border-dashed border-[#2E2E2E] bg-muted/20 flex items-center justify-center">
+
         {loading && <span className="text-sm">Loading…</span>}
 
         {!loading && !alert && (
@@ -84,27 +104,26 @@ export default function DetectionAlert({
 
         {!loading && alert && (
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-500">
-              Fire Detected
+
+            <p className="text-base font-semibold text-red-500">🔥 Fire Detected</p>
+
+            <p className="text-xs text-white">
+              Confidence: {(Number(alert.confidence) * 100).toFixed(1)}%
             </p>
 
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p>
-                <span className="font-medium text-white">Confidence:</span>{" "}
-                {(Number(alert.confidence) * 100).toFixed(1)}%
-              </p>
-              <p>
-                <span className="font-medium text-white">Intensity Score:</span>{" "}
-                {alert.intensity_score}
-              </p>
-              <p>
-                <span className="font-medium text-white">Intensity Level:</span>{" "}
-                {alert.intensity_level}
-              </p>
-            </div>
+            <p className="text-xs text-white">
+              Fire Count: {alert.fire_count}
+            </p>
+
+            <p className="text-xs text-white">
+              {alert.intensity_level}
+            </p>
+
           </div>
         )}
+
       </div>
+
     </div>
   );
 }

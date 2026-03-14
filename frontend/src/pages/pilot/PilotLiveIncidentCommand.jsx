@@ -4,7 +4,6 @@ import LiveIncidentCommandScreen from '../../components/pilot/live-incident-comm
 const PilotLiveIncidentCommand = props => {
   return (
     <div>
-      hii
       <LiveIncidentCommandScreen />
     </div>
   )

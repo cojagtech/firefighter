@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import SafeIcon from "@/components/common/SafeIcon";
 import { Chip } from "@mui/material";
 
-const ALERT_API = "http://13.127.119.7/get_last_alert.php";
+const ALERT_API = "http://localhost/fire-fighter/backend/public/fire-fighter/live-incident-command/get_latest_detection.php";
 const FETCH_INTERVAL = 1 * 1000; 
 
 export default function DetectionAlert({
