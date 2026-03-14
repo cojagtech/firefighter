@@ -9,8 +9,11 @@ require_once realpath(__DIR__ . "/../../../config/db.php");
 $sql = "
   SELECT
     COUNT(*) AS total_drones,
-    SUM(status = 'maintenance') AS inactive_drones,
-    SUM(status != 'maintenance') AS ready_drones
+    SUM(status = 'Maintenance') AS inactive_drones,
+    SUM(status = 'Standby') AS standby,
+    SUM(status != 'Maintenance') AS ready_drones
+    
+
   FROM drones
 ";
 
@@ -27,5 +30,6 @@ $row = mysqli_fetch_assoc($result);
 echo json_encode([
     "total_drones"    => (int)$row['total_drones'],
     "inactive_drones" => (int)$row['inactive_drones'],
+    "standby"  => (int)$row['standby'],
     "ready_drones"    => (int)$row['ready_drones']
 ]);

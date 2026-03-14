@@ -6,150 +6,166 @@ import {
   Typography,
   Chip,
   Box,
-  Grid,
-  Radio,
+  Radio
 } from "@mui/material";
 
 import BusinessIcon from "@mui/icons-material/Business";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import FlightIcon from "@mui/icons-material/Flight";
+import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
+import AirIcon from "@mui/icons-material/Air";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-function calculateDistanceKm(lat1, lng1, lat2, lng2) {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) ** 2;
-
-  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-}
-
 export default function SuggestedStationsPanel({
+  incidentId,
   selectedStationName,
-  onSelectStation,
+  onSelectStation
 }) {
+
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  async function loadData() {
-    try {
-      const incidentRes = await fetch(
-        `${API_BASE}/fire-fighter/fire-fighter-dashboard/get_incidents.php`
-      );
-      const incidents = await incidentRes.json();
 
-      if (!incidents?.length) {
+    async function loadStations(){
+
+      try{
+
+        const res = await fetch(
+          `${API_BASE}/fire-fighter/getNearestStations.php?incident_id=${incidentId}`
+        );
+
+        const data = await res.json();
+
+        // console.log("Nearest stations:", data);
+
+        if(data?.nearest_stations){
+          setStations(data.nearest_stations);
+        }
+
+      }catch(err){
+        console.error(err);
+      }finally{
         setLoading(false);
-        return;
       }
 
-      const stationRes = await fetch(
-        `${API_BASE}/admin/station/get_stations.php`
-      );
-      const stationData = await stationRes.json();
-
-      const { lat, lng } = incidents[0].coordinates;
-
-      const result = stationData.stations
-        .map((s) => ({
-          name: s.name, 
-          distance: calculateDistanceKm(
-            lat,
-            lng,
-            Number(s.lat), 
-            Number(s.lng)
-          ),
-          vehicles: Math.floor(Math.random() * 20) + 1,
-          drones: Math.floor(Math.random() * 10) + 1,
-        }))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 3);
-
-      setStations(result);
-    } catch (err) {
-      console.error("Failed to load stations", err);
-    } finally {
-      setLoading(false);
     }
-  }
 
-  loadData();
-}, []);
+    if(incidentId) loadStations();
+
+  },[incidentId]);
 
 
-  const handleSelect = (name) => {
-    onSelectStation(selectedStationName === name ? null : name);
+  const handleSelect = (stationName)=>{
+    onSelectStation(
+      selectedStationName === stationName ? null : stationName
+    );
   };
 
   return (
+
     <Card>
+
       <CardHeader
         title={
           <Box display="flex" alignItems="center" gap={1}>
-            <BusinessIcon color="primary" />
-            <Typography variant="h6">Nearby Fire Stations</Typography>
+            <BusinessIcon color="primary"/>
+            <Typography variant="h6">
+              Nearest Fire Stations
+            </Typography>
           </Box>
         }
       />
 
       <CardContent>
+
         {loading ? (
-          <Typography align="center">Loading stations...</Typography>
-        ) : (
-          stations.map((station, index) => (
+
+          <Typography align="center">
+            Loading stations...
+          </Typography>
+
+        ) : stations.length ? (
+
+          stations.map((station)=>(
+
             <Box
-              key={station.name}
-              onClick={() => handleSelect(station.name)}
+              key={station.station_name}
+              onClick={()=>handleSelect(station.station_name)}
               sx={{
-                p: 1.5,
-                mb: 1.5,
-                borderRadius: 2,
-                cursor: "pointer",
-                border: "1px solid",
+                p:2,
+                mb:1.5,
+                borderRadius:2,
+                cursor:"pointer",
+                border:"1px solid",
                 borderColor:
-                  selectedStationName === station.name
-                    ? "primary.main"
-                    : "divider",
+                  selectedStationName===station.station_name
+                  ? "primary.main"
+                  : "divider",
                 bgcolor:
-                  selectedStationName === station.name
-                    ? "primary.light"
-                    : "action.hover",
+                  selectedStationName===station.station_name
+                  ? "primary.light"
+                  : "action.hover"
               }}
             >
-              <Box display="flex" justifyContent="space-between" mb={1}>
-                <Box display="flex" gap={1} alignItems="center">
+
+              {/* Station header */}
+              <Box display="flex" justifyContent="space-between">
+
+                <Box display="flex" alignItems="center" gap={1}>
+
                   <Radio
-                    checked={selectedStationName === station.name}
-                    onChange={() => handleSelect(station.name)}
+                    checked={selectedStationName===station.station_name}
                   />
-                  <Chip label={`#${index + 1}`} size="small" color="primary" />
-                  <Typography>{station.name}</Typography>
+
+                  <Typography fontWeight={500}>
+                    {station.station_name}
+                  </Typography>
+
                 </Box>
+
                 <Chip
-                  label={`${station.distance.toFixed(2)} km`}
+                  label={`${Number(station.distance_km).toFixed(2)} km`}
                   size="small"
                   variant="outlined"
                 />
+
               </Box>
 
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 6 }}>
-                  <LocalShippingIcon fontSize="small" /> {station.vehicles} vehicles
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                  <FlightIcon fontSize="small" /> {station.drones} drones
-                </Grid>
-              </Grid>
+              {/* Asset counts */}
+              <Box mt={1} display="flex" gap={3}>
+
+                <Box display="flex" alignItems="center" gap={0.5}>
+                  <LocalFireDepartmentIcon sx={{ fontSize:16, color:"#ff7043" }}/>
+                  <Typography variant="caption">
+                    Vehicles: {station.vehicle_count}
+                  </Typography>
+                </Box>
+
+                <Box display="flex" alignItems="center" gap={0.5}>
+                  <AirIcon sx={{ fontSize:16, color:"#64b5f6" }}/>
+                  <Typography variant="caption">
+                    Drones: {station.drone_count}
+                  </Typography>
+                </Box>
+
+              </Box>
+
             </Box>
+
           ))
+
+        ) : (
+
+          <Typography align="center">
+            No stations found
+          </Typography>
+
         )}
+
       </CardContent>
+
     </Card>
+
   );
+
 }

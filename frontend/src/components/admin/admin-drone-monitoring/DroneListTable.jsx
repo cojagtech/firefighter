@@ -28,11 +28,11 @@ export default function DroneListTable({ drones, onViewDetails }) {
   const getStatusType = (status) => {
     switch (status) {
       case 'Active':
-        return 'available';
+        return 'active';
       case 'Maintenance':
         return 'maintenance';
-      case 'Standby':
-        return 'warning';
+      case 'StandBy':
+        return 'standby';
       case 'Busy':
         return 'busy';
       default:

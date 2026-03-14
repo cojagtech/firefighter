@@ -25,12 +25,12 @@ export default function DroneMonitoringHeader({
       label: 'Maintenance',
       value: maintenanceDrones,
       icon: 'Wrench',
-      color: 'bg-orange-600/10 text-orange-600'
+      color: 'bg-yellow-600/10 text-yellow-600'
     },
     {
       label: 'Standby',
       value: standbyDrones,
-      icon: 'Clock',
+      icon: 'Shield',
       color: 'bg-amber-600/10 text-amber-600'
     }
   ]

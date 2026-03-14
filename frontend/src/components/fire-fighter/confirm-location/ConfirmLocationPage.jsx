@@ -225,6 +225,7 @@ export default function ConfirmLocationPage() {
               <NearbyAssetsPanel assets={assets} />
 
               <SuggestedStationsPanel
+                incidentId={incident.id}
                 selectedStationName={selectedStationName}
                 onSelectStation={setSelectedStationName}
               />

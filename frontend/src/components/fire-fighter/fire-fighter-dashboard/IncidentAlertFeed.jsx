@@ -10,7 +10,7 @@ import Chip from "@mui/material/Chip";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import SafeIcon from "@/components/common/SafeIcon";
-import Dialog from  "@mui/material/Dialog";
+import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
@@ -18,6 +18,7 @@ import DialogActions from "@mui/material/DialogActions";
 export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
   const [incidents, setIncidents] = useState([]);
   const [playedAlerts, setPlayedAlerts] = useState(new Set());
+  const [isMuted, setIsMuted] = useState(false);
 
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState(null);
@@ -58,23 +59,18 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
     if (!audioRef.current) {
       audioRef.current = new Audio("/sounds/alert.mp3");
       audioRef.current.volume = 1;
+      audioRef.current.loop = true;
     }
 
-    const newAlerts = incidents.filter(
-      (i) => i.isNewAlert && !playedRef.current.has(i.id)
-    );
+    const newAlerts = incidents.filter((i) => i.isNewAlert);
 
-    if (newAlerts.length > 0) {
+    if (newAlerts.length > 0 && !isMuted) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch((err) => {
-        console.log("Audio blocked by browser:", err);
-      });
-
-      newAlerts.forEach((incident) => {
-        playedRef.current.add(incident.id);
-      });
+      audioRef.current.play().catch(() => {});
+    } else {
+      audioRef.current.pause(); // ✅ stop siren
+      audioRef.current.currentTime = 0;
     }
-
   }, [incidents]);
 
   useEffect(() => {
@@ -84,8 +80,6 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
     };
     document.addEventListener("click", unlock);
   }, []);
-
-
 
   const StatusTag = ({ status }) => {
     const palette = {
@@ -122,7 +116,17 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
     navigate(`/confirm-location/${id}`);
   };
 
+  const toggleSiren = () => {
+    if (!audioRef.current) return;
 
+    if (isMuted) {
+      audioRef.current.play().catch(() => {});
+    } else {
+      audioRef.current.pause();
+    }
+
+    setIsMuted(!isMuted);
+  };
 
   const viewDetails = (id) => {
     const incident = incidents.find((i) => i.id === id);
@@ -215,22 +219,22 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
           width: "8px",
         },
         "&::-webkit-scrollbar-track": {
-          background: "#0f1011",   // dark track
+          background: "#0f1011", // dark track
         },
         "&::-webkit-scrollbar-thumb": {
-          background: "#1c1d1f",   // dark thumb
+          background: "#1c1d1f", // dark thumb
           borderRadius: "8px",
           border: "2px solid #0f1011",
         },
         "&::-webkit-scrollbar-thumb:hover": {
-          background: "#2a2c30",   // slightly lighter on hover
+          background: "#2a2c30", // slightly lighter on hover
         },
 
         /* Firefox Support */
         scrollbarWidth: "thin",
         scrollbarColor: "#1c1d1f #0f1011",
       }}
->
+    >
       {incidents.map((inc) => {
         const isNew = inc.isNewAlert;
 
@@ -254,11 +258,29 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
                     <p className="font-medium text-white">{inc.name}</p>
                     <p className="text-xs text-gray-400">{inc.id}</p>
                   </div>
+
                   <div className="flex items-center gap-2">
                     <StatusTag status={inc.status} />
+
                     {isNew && (
                       <span className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
                     )}
+
+                    {/* MUTE / UNMUTE BUTTON */}
+                    <Button
+                      size="small"
+                      onClick={toggleSiren}
+                      sx={{
+                        minWidth: "32px",
+                        color: isMuted ? "#9ca3af" : "#ff4d4d",
+                      }}
+                    >
+                      <SafeIcon
+                        name={isMuted ? "VolumeX" : "Volume2"}
+                        className="h-4 w-4"
+                      />
+                    </Button>
+
                     <span className="text-[10px] text-gray-400">
                       {formatTime(inc.timeReported)}
                     </span>
