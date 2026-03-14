@@ -4,8 +4,10 @@ import React, { useEffect, useRef, useState } from "react";
 import SafeIcon from "@/components/common/SafeIcon";
 import { Chip } from "@mui/material";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 const ALERT_API =
-  "http://localhost/fire-fighter/backend/public/fire-fighter/live-incident-command/get_latest_detection.php";
+  `${API_BASE}/fire-fighter/live-incident-command/get_latest_detection.php`;
 
 const FETCH_INTERVAL = 1000; // 1 sec
 const FIRE_TIMEOUT = 5000; // 5 sec
