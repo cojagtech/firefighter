@@ -9,15 +9,15 @@ import StatusBadge from "@/components/common/StatusBadge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css"; 
+import "leaflet/dist/leaflet.css";
 import { toast } from "react-hot-toast";
 
-import PilotList from "./PilotList"; 
+import PilotList from "./PilotList";
 
 const API = `${import.meta.env.VITE_API_BASE_URL}/admin/admin-drone-details`;
 
 const droneIcon = new L.Icon({
-  iconUrl: "/assets/images/drone.png", 
+  iconUrl: "/assets/images/drone.png",
   iconSize: [36, 36],
   iconAnchor: [18, 18],
   popupAnchor: [0, -18],
@@ -38,16 +38,11 @@ function FlyToLocation({ gpsLocation }) {
 
 const getStatusVariant = (status) => {
   switch (status) {
-    case "patrolling":
-      return "available";
-    case "active_mission":
-      return "busy";
-    case "standby":
-      return "warning";
-    case "offline":
-      return "offline";
-    default:
-      return "offline";
+    case "patrolling": return "available";
+    case "active_mission": return "busy";
+    case "standby": return "warning";
+    case "offline": return "offline";
+    default: return "offline";
   }
 };
 
@@ -56,26 +51,45 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
   const [selectedPilot, setSelectedPilot] = useState(null);
   const [reassignOpen, setReassignOpen] = useState(false);
 
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // Base dialog style
+  const dialogStyle = {
+    backgroundColor: isDark ? "#0D0F12" : "#ffffff",
+    borderColor: isDark ? "#2E2E2E" : "#e2e8f0",
+    color: isDark ? "#FAFAFA" : "#000000",
+    // 👇 Override shadcn CSS variables so hover:bg-accent uses correct color
+    "--background": isDark ? "13 15 18" : "255 255 255",
+    "--foreground": isDark ? "250 250 250" : "0 0 0",
+    "--accent": isDark ? "30 30 30" : "241 245 249",
+    "--accent-foreground": isDark ? "250 250 250" : "0 0 0",
+    "--border": isDark ? "46 46 46" : "226 232 240",
+    "--muted": isDark ? "20 20 20" : "248 250 252",
+    "--muted-foreground": isDark ? "161 161 170" : "100 116 139",
+  };
 
   const defaultPune = { lat: 18.5204, lng: 73.8567 };
 
-  const fetchDroneDetails = (code) => {
-    fetch(`${API}/getDroneDetails.php?drone_code=${code}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status !== false) {
-          setselectedDrone(data);
-        }
-      });
-  };
-
+  // ✅ All backend logic unchanged
   const removePilot = () => {
     if (!selectedDrone) return;
-
     const formData = new FormData();
     formData.append("drone_code", selectedDrone.drone_code);
     formData.append("pilot_id", selectedDrone.pilot_id);
-
     fetch(`${API}/removePilotFromDrone.php`, {
       method: "POST",
       credentials: "include",
@@ -94,7 +108,6 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
 
   useEffect(() => {
     if (!selectedDrone?.drone_code) return;
-
     const fetchGps = () => {
       fetch(`${API}/get_drone_locations.php?drone_code=${selectedDrone.drone_code}`)
         .then((res) => res.json())
@@ -107,7 +120,6 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
         })
         .catch(() => console.error("GPS Fetch Error"));
     };
-
     fetchGps();
     const interval = setInterval(fetchGps, 5000);
     return () => clearInterval(interval);
@@ -115,7 +127,6 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
 
   const reassignPilot = () => {
     if (!selectedPilot || !selectedDrone?.pilot_id) return;
-
     const formData = new FormData();
     formData.append("drone_code", selectedDrone.drone_code);
     formData.append("pilot_id", selectedPilot.id);
@@ -124,7 +135,6 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
     formData.append("pilot_phone", selectedPilot.phone);
     formData.append("pilot_role", selectedPilot.designation);
     formData.append("old_pilot_id", selectedDrone.pilot_id);
-
     fetch(`${API}/reassignPilotToDrone.php`, {
       method: "POST",
       credentials: "include",
@@ -134,9 +144,8 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
       .then((data) => {
         if (data.success) {
           toast.success("Pilot reassigned successfully");
-
-          setReassignOpen(false); 
-          setSelectedPilot(null); 
+          setReassignOpen(false);
+          setSelectedPilot(null);
           refreshDrone();
         } else {
           toast.error(data.error || "Failed to reassign pilot");
@@ -144,10 +153,8 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
       });
   };
 
-
   const assignPilot = () => {
     if (!selectedPilot) return;
-
     const formData = new FormData();
     formData.append("drone_code", selectedDrone.drone_code);
     formData.append("pilot_id", selectedPilot.id);
@@ -156,13 +163,16 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
     formData.append("pilot_phone", selectedPilot.phone);
     formData.append("pilot_role", selectedPilot.designation);
     formData.append("old_pilot_id", selectedDrone?.pilot_id || "");
-
-    fetch(`${API}/assignPilotToDrone.php`, { method: "POST", credentials: "include", body: formData })
+    fetch(`${API}/assignPilotToDrone.php`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           toast.success("Pilot assigned successful!");
-          refreshDrone(); 
+          refreshDrone();
         } else {
           toast.error(data.error || "Failed to assign pilot");
         }
@@ -172,6 +182,8 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
+
+        {/* Drone Information */}
         <Card>
           <CardHeader><CardTitle className="text-lg">Drone Information</CardTitle></CardHeader>
           <CardContent className="space-y-3">
@@ -188,9 +200,7 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
               <span className="font-medium">{selectedDrone?.firmware_version || "N/A"}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">
-                Current Status
-              </span>
+              <span className="text-muted-foreground">Current Status</span>
               <StatusBadge
                 status={getStatusVariant(selectedDrone?.status)}
                 label={selectedDrone?.status}
@@ -200,6 +210,7 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
           </CardContent>
         </Card>
 
+        {/* Assigned Pilot */}
         <Card>
           <CardHeader><CardTitle className="text-lg">Assigned Pilot</CardTitle></CardHeader>
           <CardContent>
@@ -215,39 +226,33 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
                   </div>
                 </div>
 
-                <Info
-                  label="Email"
-                  value={selectedDrone.pilot_email}
-                  isSmall
-                />
-                <Info
-                  label="Phone"
-                  value={selectedDrone.pilot_phone}
-                  isSmall
-                /> 
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-muted-foreground text-sm">
-                    Pilot Status
-                  </span>
+                <Info label="Email" value={selectedDrone.pilot_email} isSmall />
+                <Info label="Phone" value={selectedDrone.pilot_phone} isSmall />
 
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-medium bg-[#dc2626] text-[#FAFAFA] border border-[#dc2626] ${selectedDrone.pilot_status}`}
-                  >
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-muted-foreground text-sm">Pilot Status</span>
+                  <span className="px-2 py-1 rounded-md text-xs font-medium bg-red-600 text-white border border-red-600">
                     {selectedDrone.pilot_status}
                   </span>
                 </div>
 
                 <div className="flex gap-3">
+                  {/* Reassign Dialog */}
                   <Dialog open={reassignOpen} onOpenChange={setReassignOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full"> 
+                      <Button variant="outline" className="w-full">
                         Reassign Pilot
                       </Button>
                     </DialogTrigger>
-
-                    <DialogContent className="max-w-md bg-[#0D0F12] border border-[#2E2E2E] text-[#FAFAFA]">
+                    <DialogContent
+                      className="max-w-md border [&_*]:text-inherit"
+                      style={dialogStyle}
+                    >
                       <DialogHeader>
-                        <DialogTitle className="text-lg font-semibold">
+                        <DialogTitle
+                          className="text-lg font-semibold"
+                          style={{ color: isDark ? "#FAFAFA" : "#000000" }}
+                        >
                           Select Pilot ({selectedDrone?.station})
                         </DialogTitle>
                       </DialogHeader>
@@ -277,7 +282,6 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
                     Remove Pilot
                   </Button>
                 </div>
-                
               </div>
             ) : (
               <div className="text-center py-2">
@@ -287,22 +291,29 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
                   className="mx-auto text-muted-foreground"
                 />
                 <p className="text-sm text-muted-foreground mb-4">No pilot assigned</p>
+
+                {/* Assign Dialog */}
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" className="w-full">Assign Pilot</Button>
                   </DialogTrigger>
-                  <DialogContent className="bg-[#0D0F12] text-white border-zinc-800">
+                  <DialogContent
+                    className="border [&_*]:text-inherit"
+                    style={dialogStyle}
+                  >
                     <DialogHeader>
-                      <DialogTitle>Select Pilot ({selectedDrone?.station})</DialogTitle>
+                      <DialogTitle style={{ color: isDark ? "#FAFAFA" : "#000000" }}>
+                        Select Pilot ({selectedDrone?.station})
+                      </DialogTitle>
                     </DialogHeader>
-                    <PilotList 
-                      station={selectedDrone?.station} 
-                      selectedPilot={selectedPilot} 
-                      setSelectedPilot={setSelectedPilot} 
+                    <PilotList
+                      station={selectedDrone?.station}
+                      selectedPilot={selectedPilot}
+                      setSelectedPilot={setSelectedPilot}
                     />
-                    <Button 
-                      className="w-full mt-4 bg-red-600 hover:bg-red-700" 
-                      disabled={!selectedPilot} 
+                    <Button
+                      className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white"
+                      disabled={!selectedPilot}
                       onClick={assignPilot}
                     >
                       Confirm Assignment
@@ -315,10 +326,14 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
         </Card>
       </div>
 
-      <Card className="aspect-video rounded-lg border border-neutral-700 relative z-10">
-        <MapContainer 
-          center={[defaultPune.lat, defaultPune.lng]} 
-          zoom={13} 
+      {/* Map */}
+      <Card
+        className="aspect-video rounded-lg relative z-10"
+        style={{ border: `1px solid ${isDark ? "#404040" : "#e2e8f0"}` }}
+      >
+        <MapContainer
+          center={[defaultPune.lat, defaultPune.lng]}
+          zoom={13}
           style={{ height: "100%", width: "100%" }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -337,9 +352,8 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
           )}
         </MapContainer>
       </Card>
-
     </div>
-  );  
+  );
 
   function Info({ label, value, isSmall }) {
     return (
@@ -351,5 +365,4 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
       </div>
     );
   }
-
 }

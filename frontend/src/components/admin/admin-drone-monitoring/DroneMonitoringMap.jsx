@@ -2,8 +2,24 @@ import { useEffect, useState, useRef } from "react";
 import L from "leaflet";
 
 export default function DroneMonitoringMap({ drones }) {
-  const [mapMode, setMapMode] = useState("2d");  
+  const [mapMode, setMapMode] = useState("2d");
   const mapRef = useRef(null);
+
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   function loadLeafletMap() {
     const div = document.getElementById("monitorMap2D");
@@ -70,33 +86,20 @@ export default function DroneMonitoringMap({ drones }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h2 className="text-xl font-semibold mt-2 text-white">Drone Monitoring</h2>
-          <p className="text-sm text-gray-400 mb-2">Live drone locations</p>
-        </div>
-
-        <div className="flex gap-2">
-          {/* <button 
-            onClick={() => setMapMode("2d")}
-            className={`px-3 py-1 rounded bg-blue-600`}
-          >2D Map</button> */}
-
-          {/*
-          <button 
-            onClick={() => setMapMode("3d")}
-            className={`px-3 py-1 rounded ${mapMode==="3d"?"bg-blue-600":"bg-gray-700"}`}
-          >3D Map</button>
-          */}
+          <h2 className="text-xl font-semibold mt-2 text-foreground">
+            Drone Monitoring
+          </h2>
+          <p className="text-sm text-muted-foreground mb-2">
+            Live drone locations
+          </p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-700 bg-[#14171b] overflow-hidden">
-        <div id="monitorMap2D" style={{height:"350px"}}></div>
-
-        {/* 
-        <div id="map-container"
-          style={{display: mapMode==="3d"?"block":"none", height:"500px"}}
-        ></div>
-        */}
+      <div
+        className="rounded-xl border border-border overflow-hidden"
+        style={{ backgroundColor: isDark ? "#14171b" : "#f1f5f9" }}
+      >
+        <div id="monitorMap2D" style={{ height: "350px" }}></div>
       </div>
     </div>
   );

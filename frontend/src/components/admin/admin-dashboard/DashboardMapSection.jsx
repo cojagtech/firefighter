@@ -259,30 +259,29 @@ function DashboardMapSection({
               Live Monitoring
             </CardTitle>
           </div>
+<div className="flex gap-2">
+  <button
+    onClick={() => setMapMode("2d")}
+    className={`px-3 py-1 rounded-md text-sm transition-colors ${
+      mapMode === "2d"
+        ? "bg-red-600 text-white"
+        : "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+    }`}
+  >
+    2D Map
+  </button>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => setMapMode("2d")}
-              className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                mapMode === "2d"
-                  ? "bg-[#dc2626] text-white"
-                  : "bg-gray-800 text-gray-300"
-              }`}
-            >
-              2D Map
-            </button>
-
-            <button
-              onClick={() => setMapMode("3d")}
-              className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                mapMode === "3d"
-                  ? "bg-[#dc2626] text-white"
-                  : "bg-gray-800 text-gray-300"
-              }`}
-            >
-              3D Map
-            </button>
-          </div>
+  <button
+    onClick={() => setMapMode("3d")}
+    className={`px-3 py-1 rounded-md text-sm transition-colors ${
+      mapMode === "3d"
+        ? "bg-red-600 text-white"
+        : "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+    }`}
+  >
+    3D Map
+  </button>
+</div>
         </CardHeader>
 
         <CardContent className="pb-0 overflow-hidden">

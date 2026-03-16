@@ -29,6 +29,27 @@ export default function DroneMonitoringContent() {
   const [stationSearch, setStationSearch] = useState("");
   const dropdownRef = useRef(null);
 
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const dropdownBg = isDark ? "#141414" : "#ffffff";
+  const dropdownColor = isDark ? "#ffffff" : "#000000";
+  const dropdownStyle = { backgroundColor: dropdownBg, color: dropdownColor };
+
+  // ✅ All backend logic unchanged below
   const loadDrones = useCallback(async (isAutoRefresh = false) => {
     try {
       const res = await fetch(`${API}/get_drone_locations.php`);
@@ -57,13 +78,10 @@ export default function DroneMonitoringContent() {
     const initData = async () => {
       await Promise.all([loadDrones(false), loadStations()]);
     };
-
     initData();
-
     const interval = setInterval(() => {
       loadDrones(true);
     }, 5000);
-
     return () => clearInterval(interval);
   }, [loadDrones, loadStations]);
 
@@ -80,7 +98,6 @@ export default function DroneMonitoringContent() {
   const normalizeStatus = (status) => {
     if (!status) return "unknown";
     const s = status.toLowerCase();
-
     if (["active", "patrolling", "active_mission"].includes(s)) return "active";
     if (["offline", "maintenance"].includes(s)) return "maintenance";
     if (s === "standby") return "standby";
@@ -122,32 +139,43 @@ export default function DroneMonitoringContent() {
   const prettyLabel = (text = "") =>
     text.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+  const tabs = [
+    { value: "all", label: `All (${filteredDrones.length})`, drones: filteredDrones },
+    { value: "active", label: `Active (${activeDrones.length})`, drones: activeDrones },
+    { value: "maintenance", label: `Maintenance (${maintenanceDrones.length})`, drones: maintenanceDrones },
+    { value: "standby", label: `Standby (${standbyDrones.length})`, drones: standbyDrones },
+  ];
+
   return (
     <div className="space-y-6 p-6">
 
       {/* Station Dropdown */}
       <div className="flex justify-start">
         <div className="w-64 relative" ref={dropdownRef}>
-          <label className="text-sm font-medium">Station</label>
+          <label className="text-sm font-medium text-foreground">Station</label>
 
           <div
             onClick={() => setStationOpen(!stationOpen)}
-            className="w-full p-2 rounded bg-[#141414] text-white border border-[#2E2E2E] cursor-pointer flex justify-between"
+            className="w-full p-2 rounded border border-border cursor-pointer flex justify-between items-center bg-background text-foreground"
           >
             <span>
               {selectedStation === "all" ? "All Stations" : selectedStation}
             </span>
-            <span>▼</span>
+            <span className="text-muted-foreground text-xs">▼</span>
           </div>
 
           {stationOpen && (
-            <div className="absolute z-50 mt-1 w-full bg-[#141414] border border-[#2E2E2E] rounded shadow-lg">
+            <div
+              className="absolute z-50 mt-1 w-full border border-border rounded shadow-lg"
+              style={dropdownStyle}
+            >
               <input
                 type="text"
                 placeholder="Search station..."
                 value={stationSearch}
                 onChange={(e) => setStationSearch(e.target.value)}
-                className="w-full px-3 py-2 bg-[#141414] text-white border-b border-[#2E2E2E] outline-none rounded-t"
+                style={dropdownStyle}
+                className="w-full px-3 py-2 border-b border-border outline-none rounded-t placeholder:text-gray-400"
               />
 
               <div className="max-h-40 overflow-y-auto custom-scrollbar">
@@ -157,7 +185,8 @@ export default function DroneMonitoringContent() {
                     setStationOpen(false);
                     setStationSearch("");
                   }}
-                  className="px-4 py-2 hover:bg-[#2E2E2E] cursor-pointer"
+                  style={dropdownStyle}
+                  className="px-4 py-2 cursor-pointer hover:opacity-75"
                 >
                   All Stations
                 </div>
@@ -170,7 +199,8 @@ export default function DroneMonitoringContent() {
                       setStationOpen(false);
                       setStationSearch("");
                     }}
-                    className="px-4 py-2 hover:bg-[#2E2E2E] cursor-pointer"
+                    style={dropdownStyle}
+                    className="px-4 py-2 cursor-pointer hover:opacity-75"
                   >
                     {station}
                   </div>
@@ -191,7 +221,7 @@ export default function DroneMonitoringContent() {
       {/* Map + Status Section */}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
-          <Card className="border border-white/10">
+          <Card className="border border-border">
             <CardContent>
               {viewMode === "map" ? (
                 <DroneMonitoringMap drones={filteredDrones} />
@@ -213,27 +243,39 @@ export default function DroneMonitoringContent() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between">
-                <span>Total</span>
+                <span className="text-foreground">Total</span>
                 <Badge>{filteredDrones.length}</Badge>
               </div>
               <div className="flex justify-between">
-                <span>Active</span>
-                <StatusBadge status="available" label={activeDrones.length.toString()} showIcon={false} />
+                <span className="text-foreground">Active</span>
+                <StatusBadge
+                  status="available"
+                  label={activeDrones.length.toString()}
+                  showIcon={false}
+                />
               </div>
               <div className="flex justify-between">
-                <span>Maintenance</span>
-                <StatusBadge status="maintenance" label={maintenanceDrones.length.toString()} showIcon={false} />
+                <span className="text-foreground">Maintenance</span>
+                <StatusBadge
+                  status="maintenance"
+                  label={maintenanceDrones.length.toString()}
+                  showIcon={false}
+                />
               </div>
               <div className="flex justify-between">
-                <span>Standby</span>
-                <StatusBadge status="warning" label={standbyDrones.length.toString()} showIcon={false} />
+                <span className="text-foreground">Standby</span>
+                <StatusBadge
+                  status="warning"
+                  label={standbyDrones.length.toString()}
+                  showIcon={false}
+                />
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* ✅ TABLE SECTION RESTORED */}
+      {/* Table Section */}
       <Card>
         <CardHeader>
           <CardTitle>Drone Fleet Details</CardTitle>
@@ -241,28 +283,31 @@ export default function DroneMonitoringContent() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="all">
-            <TabsList className="grid grid-cols-4">
-              <TabsTrigger value="all">All ({filteredDrones.length})</TabsTrigger>
-              <TabsTrigger value="active">Active ({activeDrones.length})</TabsTrigger>
-              <TabsTrigger value="maintenance">Maintenance ({maintenanceDrones.length})</TabsTrigger>
-              <TabsTrigger value="standby">Standby ({standbyDrones.length})</TabsTrigger>
+            <TabsList
+              className="grid grid-cols-4"
+              style={{ backgroundColor: isDark ? "#1a1a1a" : "#f3f4f6" }}
+            >
+              {tabs.map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  style={{ color: isDark ? "#ffffff" : "#000000" }}
+                  className="data-[state=active]:!bg-red-500 data-[state=active]:!text-white data-[state=active]:!shadow-none"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
-            <TabsContent value="all">
-              <DroneListTable drones={filteredDrones} getUIStatus={getUIStatus} prettyLabel={prettyLabel} />
-            </TabsContent>
-
-            <TabsContent value="active">
-              <DroneListTable drones={activeDrones} getUIStatus={getUIStatus} prettyLabel={prettyLabel} />
-            </TabsContent>
-
-            <TabsContent value="maintenance">
-              <DroneListTable drones={maintenanceDrones} getUIStatus={getUIStatus} prettyLabel={prettyLabel} />
-            </TabsContent>
-
-            <TabsContent value="standby">
-              <DroneListTable drones={standbyDrones} getUIStatus={getUIStatus} prettyLabel={prettyLabel} />
-            </TabsContent>
+            {tabs.map((tab) => (
+              <TabsContent key={tab.value} value={tab.value}>
+                <DroneListTable
+                  drones={tab.drones}
+                  getUIStatus={getUIStatus}
+                  prettyLabel={prettyLabel}
+                />
+              </TabsContent>
+            ))}
           </Tabs>
         </CardContent>
       </Card>

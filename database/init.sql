@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 12, 2026 at 07:53 AM
+-- Generation Time: Mar 06, 2026 at 08:18 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -135,30 +135,6 @@ INSERT INTO `drone_gps_logs` (`id`, `drone_code`, `latitude`, `longitude`, `spee
 -- --------------------------------------------------------
 
 --
--- Table structure for table `fire_detections`
---
-
-CREATE TABLE `fire_detections` (
-  `id` int(11) NOT NULL,
-  `TIMESTAMP` bigint(20) DEFAULT NULL,
-  `alert_type` varchar(50) DEFAULT NULL,
-  `confidence` float DEFAULT NULL,
-  `fire_count` int(11) DEFAULT NULL,
-  `intensity_level` varchar(50) DEFAULT NULL,
-  `location` varchar(100) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `fire_detections`
---
-
-INSERT INTO `fire_detections` (`id`, `TIMESTAMP`, `alert_type`, `confidence`, `fire_count`, `intensity_level`, `location`, `created_at`) VALUES
-(1, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-12 06:45:45');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `fire_station`
 --
 
@@ -184,29 +160,6 @@ INSERT INTO `fire_station` (`id`, `station_name`, `station_code`, `latitude`, `l
 -- --------------------------------------------------------
 
 --
--- Table structure for table `gps_drone_records`
---
-
-CREATE TABLE `gps_drone_records` (
-  `id` int(11) NOT NULL,
-  `drone_id` varchar(50) DEFAULT NULL,
-  `latitude` double DEFAULT NULL,
-  `longitude` double DEFAULT NULL,
-  `altitude` double DEFAULT NULL,
-  `speed` double DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `gps_drone_records`
---
-
-INSERT INTO `gps_drone_records` (`id`, `drone_id`, `latitude`, `longitude`, `altitude`, `speed`, `created_at`) VALUES
-(1, 'DRONE1', 21.1458, 79.0882, 150, 12.5, '2026-03-07 12:20:41');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `incidents`
 --
 
@@ -227,7 +180,7 @@ CREATE TABLE `incidents` (
 --
 
 INSERT INTO `incidents` (`id`, `name`, `location`, `latitude`, `longitude`, `stationName`, `timeReported`, `status`, `isNewAlert`) VALUES
-('INC-20251120-003', 'Major Structural Fire - Downtown', 'False Street A-123, Commercial District', 34.0531, -118.245, 'Katraj Fire Station', '2026-01-06 10:35:00', 'in_progress', 0),
+('INC-20251120-003', 'Major Structural Fire - Downtown', 'False Street A-123, Commercial District', 34.0531, -118.245, 'Katraj Fire Station', '2026-01-06 10:35:00', 'new', 1),
 ('INC-20251122-001', 'Vehicle Accident & Fire', 'Paud Road, Near Signal, Kothrud', 18.5074, 73.8077, 'Baner Fire Station', '2025-11-22 15:25:00', 'new', 1),
 ('INC-20251122-002', 'Warehouse Fire - Industrial Zone', 'Plot No. 45, Industrial Area, Katraj', 18.4445, 73.8521, 'Yerwada Fire Station', '2026-01-02 14:10:00', 'new', 1);
 
@@ -356,23 +309,11 @@ ALTER TABLE `drone_gps_logs`
   ADD KEY `drone_code` (`drone_code`);
 
 --
--- Indexes for table `fire_detections`
---
-ALTER TABLE `fire_detections`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `fire_station`
 --
 ALTER TABLE `fire_station`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_station_code` (`station_code`);
-
---
--- Indexes for table `gps_drone_records`
---
-ALTER TABLE `gps_drone_records`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `incidents`
@@ -426,22 +367,10 @@ ALTER TABLE `drone_gps_logs`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT for table `fire_detections`
---
-ALTER TABLE `fire_detections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
 -- AUTO_INCREMENT for table `fire_station`
 --
 ALTER TABLE `fire_station`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
-
---
--- AUTO_INCREMENT for table `gps_drone_records`
---
-ALTER TABLE `gps_drone_records`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `maintenance_requests`

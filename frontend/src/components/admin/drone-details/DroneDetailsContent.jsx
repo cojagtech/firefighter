@@ -12,16 +12,15 @@ import MaintenanceTab from "./MaintenanceTab";
 import AddDroneDialog from "./AddDroneDialog";
 import EditDroneDialog from "./EditDroneDialog";
 
-
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const API = `${API_BASE}/admin/admin-drone-details`;
 
 const LAST_STATION_KEY = "last_selected_station";
 const LAST_DRONE_KEY_PREFIX = "last_selected_drone_";
-const getDroneKey = (station) =>
-  `${LAST_DRONE_KEY_PREFIX}${station}`;
+const getDroneKey = (station) => `${LAST_DRONE_KEY_PREFIX}${station}`;
 
 export default function DroneDetailsContent() {
+
   const [stations, setStations] = useState([]);
   const [drones, setDrones] = useState([]);
   const [selectedStation, setSelectedStation] = useState("");
@@ -37,14 +36,15 @@ export default function DroneDetailsContent() {
 
   const filteredStations = searchMode
     ? stations.filter((s) =>
-      s.name.toLowerCase().includes(stationSearch.toLowerCase())
-    )
+        s.name.toLowerCase().includes(stationSearch.toLowerCase())
+      )
     : stations;
 
   useEffect(() => {
     fetch(`${API_BASE}/admin/station/get_stations.php`)
       .then((res) => res.json())
       .then((data) => {
+
         const stationList = Array.isArray(data)
           ? data
           : data.stations || [];
@@ -53,8 +53,7 @@ export default function DroneDetailsContent() {
 
         setStations(stationList);
 
-        const lastStation =
-          localStorage.getItem(LAST_STATION_KEY);
+        const lastStation = localStorage.getItem(LAST_STATION_KEY);
 
         const stationToSelect = stationList.find(
           (s) => s.name === lastStation
@@ -64,10 +63,12 @@ export default function DroneDetailsContent() {
 
         setSelectedStation(stationToSelect);
         fetchDronesByStation(stationToSelect);
+
       });
   }, []);
 
   useEffect(() => {
+
     const close = () => {
       setStationOpen(false);
       setSearchMode(false);
@@ -76,13 +77,15 @@ export default function DroneDetailsContent() {
 
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
+
   }, []);
 
-
   const fetchDronesByStation = (stationName) => {
+
     fetch(`${API}/getDronesByStation.php?station=${stationName}`)
       .then((res) => res.json())
       .then((data) => {
+
         setDrones(data || []);
 
         if (!data?.length) {
@@ -90,9 +93,7 @@ export default function DroneDetailsContent() {
           return;
         }
 
-        const lastDrone = localStorage.getItem(
-          getDroneKey(stationName)
-        );
+        const lastDrone = localStorage.getItem(getDroneKey(stationName));
 
         const droneToSelect = data.find(
           (d) => d.drone_code === lastDrone
@@ -101,34 +102,41 @@ export default function DroneDetailsContent() {
           : data[0].drone_code;
 
         fetchDroneDetails(droneToSelect, stationName);
+
       });
+
   };
 
   const fetchDroneDetails = (code, station = selectedStation) => {
+
     fetch(`${API}/getDroneDetails.php?drone_code=${code}`)
       .then((res) => res.json())
       .then((data) => {
+
         if (data.status === false) return;
 
         setSelectedDrone(data);
 
         if (station && data.drone_code) {
-          localStorage.setItem(
-            getDroneKey(station),
-            data.drone_code
-          );
+          localStorage.setItem(getDroneKey(station), data.drone_code);
         }
+
       });
+
   };
 
   return (
+
     <div className="space-y-6 p-6">
 
+      {/* Station + Drone Select */}
+
       <div className="flex gap-6 items-end" onClick={(e) => e.stopPropagation()}>
-        <div
-          className="relative w-60"
-          onClick={(e) => e.stopPropagation()}
-        >
+
+        {/* Station Select */}
+
+        <div className="relative w-60" onClick={(e) => e.stopPropagation()}>
+
           <label className="text-md font-medium text-muted-foreground mb-2 block">
             Select Station:
           </label>
@@ -136,105 +144,131 @@ export default function DroneDetailsContent() {
           <div
             onClick={() => setStationOpen((p) => !p)}
             className="h-9 w-full flex items-center px-3 rounded-md
-                       bg-[#0D0F12] border border-[#2E2E2E] cursor-pointer"
+                       bg-background border border-border cursor-pointer"
           >
+
             <div className="flex-1">
+
               {searchMode ? (
+
                 <input
                   autoFocus
                   value={stationSearch}
-                  onChange={(e) =>
-                    setStationSearch(e.target.value)
-                  }
+                  onChange={(e) => setStationSearch(e.target.value)}
                   placeholder="Search station..."
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-transparent text-sm text-[#FAFAFA]
-                             outline-none w-full"
+                  className="bg-transparent text-sm text-foreground outline-none w-full"
                 />
+
               ) : (
-                <span className="text-sm text-[#FAFAFA] truncate">
+
+                <span className="text-sm text-foreground truncate">
                   {selectedStation || "Select station"}
                 </span>
+
               )}
+
             </div>
 
             <FiSearch
               size={16}
-              className="text-muted-foreground hover:text-white ml-2"
+              className="text-muted-foreground hover:text-foreground ml-2"
               onClick={(e) => {
                 e.stopPropagation();
                 setSearchMode(true);
                 setStationOpen(true);
               }}
             />
+
           </div>
 
+          {/* Dropdown */}
+
           {stationOpen && (
+
             <div
               className="absolute z-50 mt-1 w-full rounded-md
-                         bg-[#0D0F12] border border-[#2E2E2E]
-                         shadow-lg max-h-[100px]
-                         overflow-y-auto dark-scrollbar"
+                         bg-white border border-gray-300
+                         shadow-lg max-h-[150px]
+                         overflow-y-auto"
             >
+
               {filteredStations.length ? (
+
                 filteredStations.map((s) => (
+
                   <div
                     key={s.id}
                     onClick={() => {
+
                       setSelectedStation(s.name);
                       fetchDronesByStation(s.name);
-                      localStorage.setItem(
-                        LAST_STATION_KEY,
-                        s.name
-                      );
+                      localStorage.setItem(LAST_STATION_KEY, s.name);
+
                       setStationOpen(false);
                       setSearchMode(false);
                       setStationSearch("");
+
                     }}
                     className={`px-3 py-2 text-sm cursor-pointer
-                      hover:bg-[#1A1D23]
-                      ${selectedStation === s.name
-                        ? "bg-[#1A1D23]"
-                        : ""
-                      }`}
+                                hover:bg-gray-100
+                                ${
+                                  selectedStation === s.name
+                                    ? "bg-gray-100 font-medium"
+                                    : ""
+                                }`}
                   >
                     {s.name}
                   </div>
+
                 ))
+
               ) : (
+
                 <div className="px-3 py-2 text-sm text-muted-foreground">
                   No stations found
                 </div>
+
               )}
+
             </div>
+
           )}
+
         </div>
 
+        {/* Drone Select */}
+
         <div className="flex flex-col">
+
           <label className="text-md font-medium text-muted-foreground mb-2">
             Select Drone:
           </label>
+
           <select
-            className="h-9 w-50 text-sm text-[#FAFAFA]
-                       px-3 rounded-md bg-[#0D0F12]
-                       border border-[#2E2E2E]"
+            className="h-9 w-50 text-sm text-foreground
+                       px-3 rounded-md bg-background
+                       border border-border"
             value={selectedDrone?.drone_code || ""}
             onChange={(e) => {
               const droneCode = e.target.value;
               fetchDroneDetails(droneCode);
             }}
           >
+
             {drones.map((d) => (
-              <option
-                key={d.drone_code}
-                value={d.drone_code}
-              >
+              <option key={d.drone_code} value={d.drone_code}>
                 {d.drone_name}
               </option>
             ))}
+
           </select>
+
         </div>
+
       </div>
+
+      {/* Header */}
 
       <DroneHeader
         selectedDrone={selectedDrone}
@@ -244,24 +278,44 @@ export default function DroneDetailsContent() {
 
       <QuickStats selectedDrone={selectedDrone} />
 
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full"
-      >
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="history">Flight History</TabsTrigger>
-          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+      {/* Tabs */}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+
+        <TabsList className="grid grid-cols-3 w-full bg-muted p-1 rounded-md">
+
+          <TabsTrigger
+            value="overview"
+            className="data-[state=active]:bg-red-500 data-[state=active]:text-white"
+          >
+            Overview
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="history"
+            className="data-[state=active]:bg-red-500 data-[state=active]:text-white"
+          >
+            Flight History
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="maintenance"
+            className="data-[state=active]:bg-red-500 data-[state=active]:text-white"
+          >
+            Maintenance
+          </TabsTrigger>
+
         </TabsList>
 
         <TabsContent value="overview">
+
           <OverviewTab
             selectedDrone={selectedDrone}
             refreshDrone={() =>
               fetchDroneDetails(selectedDrone?.drone_code)
             }
           />
+
         </TabsContent>
 
         <TabsContent value="history">
@@ -271,18 +325,18 @@ export default function DroneDetailsContent() {
         <TabsContent value="maintenance">
           <MaintenanceTab selectedDrone={selectedDrone} />
         </TabsContent>
+
       </Tabs>
 
       <AddDroneDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         stations={stations}
-        onSuccess={() =>
-          fetchDronesByStation(selectedStation)
-        }
+        onSuccess={() => fetchDronesByStation(selectedStation)}
       />
 
       {selectedDrone && (
+
         <EditDroneDialog
           open={showEditDialog}
           onOpenChange={setShowEditDialog}
@@ -291,7 +345,11 @@ export default function DroneDetailsContent() {
             fetchDroneDetails(selectedDrone.drone_code)
           }
         />
+
       )}
+
     </div>
+
   );
+
 }
