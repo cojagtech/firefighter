@@ -35,6 +35,22 @@ export default function AddVehicleModal({
     status: "available",
   });
 
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   const resetForm = () => {
     setError("");
     setFormData({
@@ -54,12 +70,10 @@ export default function AddVehicleModal({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if ((name === "name" || name === "type") && !isAlphaSpace(value)) {
       setError("Vehicle Name & Type must contain only letters");
       return;
     }
-
     if (
       (name === "registrationNumber" || name === "deviceId") &&
       !isAlphaNumeric(value)
@@ -67,30 +81,24 @@ export default function AddVehicleModal({
       setError("Registration & Device ID must be alphanumeric");
       return;
     }
-
     setError("");
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
     if (saving) return;
-
     const { name, type, registrationNumber, deviceId, station } = formData;
-
     if (!name || !type || !registrationNumber || !deviceId || !station) {
       setError("Please fill all required fields");
       return;
     }
-
     setSaving(true);
     try {
       const res = await onSubmit(formData);
-
       if (!res?.success) {
         setError(res?.message || "Failed to add vehicle");
         return;
       }
-
       toast.success(res.message || "Vehicle added successfully");
       resetForm();
       onClose();
@@ -101,21 +109,43 @@ export default function AddVehicleModal({
     }
   };
 
+  // Theme-aware MUI styles
+  const inputBg = isDark ? "#151619" : "#ffffff";
+  const inputColor = isDark ? "#e3e3e3" : "#111827";
+  const borderColor = isDark ? "#2a2b2e" : "#e2e8f0";
+  const labelColor = isDark ? "#9ea2a7" : "#6b7280";
+  const iconColor = isDark ? "#9ea2a7" : "#6b7280";
+
   const inputStyle = {
     "& .MuiOutlinedInput-root": {
-      background: "#151619",
-      color: "#e3e3e3",
+      background: inputBg,
+      color: inputColor,
       borderRadius: "10px",
-      "& fieldset": { borderColor: "#2a2b2e" },
+      "& fieldset": { borderColor: borderColor },
       "&:hover fieldset": { borderColor: "#ef4444" },
       "&.Mui-focused fieldset": {
         borderColor: "#ef4444",
         boxShadow: "0 0 6px rgba(239,68,68,.6)",
       },
     },
-    "& label": { color: "#9ea2a7" },
+    "& label": { color: labelColor },
     "& label.Mui-focused": { color: "#ef4444" },
-    "& .MuiSvgIcon-root": { color: "#9ea2a7" },
+    "& .MuiSvgIcon-root": { color: iconColor },
+    "& .MuiInputBase-input": { color: inputColor },
+  };
+
+  const dropdownPaperStyle = {
+    background: isDark ? "#1a1b1f" : "#ffffff",
+    color: isDark ? "#ffffff" : "#000000",
+    border: `1px solid ${isDark ? "#2a2b2e" : "#e2e8f0"}`,
+    "& .MuiMenuItem-root": {
+      "&:hover": {
+        background: isDark ? "#2a2b2e" : "#f3f4f6",
+      },
+      "&.Mui-selected": {
+        background: isDark ? "#2a2b2e" : "#f3f4f6",
+      },
+    },
   };
 
   const stationOptions = Array.isArray(stations) ? stations : [];
@@ -131,14 +161,23 @@ export default function AddVehicleModal({
       maxWidth="sm"
       PaperProps={{
         sx: {
-          background: "#111214",
-          border: "1px solid #1d1e21",
-          color: "#e5e7eb",
+          background: isDark ? "#111214" : "#ffffff",
+          border: `1px solid ${isDark ? "#1d1e21" : "#e2e8f0"}`,
+          color: isDark ? "#e5e7eb" : "#111827",
           borderRadius: "14px",
+          boxShadow: isDark
+            ? "0 0 18px rgba(0,0,0,.6)"
+            : "0 0 18px rgba(0,0,0,.1)",
         },
       }}
     >
-      <DialogTitle sx={{ color: "#fff", fontWeight: 600 }}>
+      <DialogTitle
+        sx={{
+          color: isDark ? "#ffffff" : "#000000",
+          fontWeight: 600,
+          borderBottom: `1px solid ${isDark ? "#25262a" : "#e2e8f0"}`,
+        }}
+      >
         Add New Vehicle
       </DialogTitle>
 
@@ -192,26 +231,27 @@ export default function AddVehicleModal({
             value={
               stationOptions.find(
                 (st) =>
-                  (typeof st === "string" ? st : st.name) ===
-                  formData.station
+                  (typeof st === "string" ? st : st.name) === formData.station
               ) || null
             }
             onChange={(event, newValue) => {
               const selected =
-                typeof newValue === "string"
-                  ? newValue
-                  : newValue?.name || "";
-
-              setFormData((prev) => ({
-                ...prev,
-                station: selected,
-              }));
+                typeof newValue === "string" ? newValue : newValue?.name || "";
+              setFormData((prev) => ({ ...prev, station: selected }));
             }}
             ListboxProps={{
               sx: {
                 maxHeight: 48 * 3,
-                background: "#1a1b1f",
-                color: "#fff",
+                background: isDark ? "#1a1b1f" : "#ffffff",
+                color: isDark ? "#ffffff" : "#000000",
+                "& .MuiAutocomplete-option": {
+                  "&:hover": {
+                    background: isDark ? "#2a2b2e" : "#f3f4f6",
+                  },
+                  "&.Mui-focused": {
+                    background: isDark ? "#2a2b2e" : "#f3f4f6",
+                  },
+                },
               },
             }}
             renderInput={(params) => (
@@ -226,7 +266,7 @@ export default function AddVehicleModal({
                   startAdornment: (
                     <>
                       <InputAdornment position="start">
-                        <SearchIcon sx={{ color: "#9ea2a7" }} />
+                        <SearchIcon sx={{ color: iconColor }} />
                       </InputAdornment>
                       {params.InputProps.startAdornment}
                     </>
@@ -244,6 +284,13 @@ export default function AddVehicleModal({
             onChange={handleChange}
             sx={inputStyle}
             fullWidth
+            SelectProps={{
+              MenuProps: {
+                PaperProps: {
+                  sx: dropdownPaperStyle,
+                },
+              },
+            }}
           >
             <MenuItem value="active">Active</MenuItem>
             <MenuItem value="busy">Busy</MenuItem>
@@ -253,13 +300,18 @@ export default function AddVehicleModal({
         </div>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2 }}>
+      <DialogActions
+        sx={{
+          p: 2,
+          borderTop: `1px solid ${isDark ? "#25262a" : "#e2e8f0"}`,
+        }}
+      >
         <Button
           onClick={() => {
             resetForm();
             onClose();
           }}
-          sx={{ color: "#9ea2a7" }}
+          sx={{ color: isDark ? "#9ea2a7" : "#6b7280" }}
         >
           Cancel
         </Button>
@@ -268,7 +320,15 @@ export default function AddVehicleModal({
           onClick={handleSave}
           disabled={saving || !!error}
           variant="contained"
-          sx={{ background: "#ef4444" }}
+          sx={{
+            background: "#ef4444",
+            color: "#ffffff",
+            "&:hover": { background: "#dc2626" },
+            "&.Mui-disabled": {
+              background: isDark ? "#444" : "#e5e7eb",
+              color: isDark ? "#777" : "#9ca3af",
+            },
+          }}
         >
           {saving ? "Saving..." : "Save"}
         </Button>
