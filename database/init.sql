@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 06, 2026 at 08:18 AM
+-- Generation Time: Mar 17, 2026 at 12:57 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -98,7 +98,7 @@ CREATE TABLE `drones` (
 
 INSERT INTO `drones` (`id`, `drone_code`, `drone_name`, `ward`, `status`, `battery`, `flight_hours`, `health_status`, `firmware_version`, `is_ready`, `station`, `pilot_id`, `pilot_name`, `pilot_email`, `pilot_phone`, `pilot_role`, `pilot_status`) VALUES
 (1, 'DRN-001', 'DJI Mini 2', '', 'Active', 100, 20, 'Optimal', 'V3.4.5', 1, 'Katraj Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(2, 'DRN-002', 'AeroGuard S3', '', 'Maintenance', 100, 13, 'Optimal', 'v1.0.0', 1, 'Katraj Fire Station', 2, 'Amit Verma', 'amit.verma@example.com', '9876501234', 'Pilot', 'assigned'),
+(2, 'DRN-002', 'AeroGuard S3', '', 'Maintenance', 100, 13, 'Optimal', 'v1.0.0', 1, 'Katraj Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
 (3, 'DRN-003', 'FireScout', '', 'StandBy', 100, 37, 'Optimal', 'v3.6.3', 1, 'Warje Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
 (4, 'DRN-004', 'Falcon X2', '', 'StandBy', 100, 10, 'Optimal', 'v4.2.3', 1, 'Warje Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
 (5, 'DRN-005', 'air2s', '', 'Active', 100, 5, 'Optimal', 'v2.0.0', 1, 'Yerwada Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
@@ -128,9 +128,57 @@ CREATE TABLE `drone_gps_logs` (
 
 INSERT INTO `drone_gps_logs` (`id`, `drone_code`, `latitude`, `longitude`, `speed`, `timestamp`) VALUES
 (1, 'DRN-001', 18.454593, 73.855582, 42, '2025-12-02 07:10:03'),
-(2, 'DRN-003', 18.4591, 73.8555, 45.5, '2026-02-18 06:59:57'),
+(2, 'DRN-002', 18.4591, 73.8555, 45.5, '2026-02-18 06:59:57'),
 (3, 'DRN-005', 18.4545, 73.8603, 52.3, '2026-02-18 06:59:57'),
 (4, 'DRN-007', 18.4501, 73.851, 38.9, '2026-02-18 06:59:57');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `fire_detections`
+--
+
+CREATE TABLE `fire_detections` (
+  `id` int(11) NOT NULL,
+  `TIMESTAMP` bigint(20) DEFAULT NULL,
+  `alert_type` varchar(50) DEFAULT NULL,
+  `confidence` float DEFAULT NULL,
+  `fire_count` int(11) DEFAULT NULL,
+  `intensity_level` varchar(50) DEFAULT NULL,
+  `location` varchar(100) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `fire_detections`
+--
+
+INSERT INTO `fire_detections` (`id`, `TIMESTAMP`, `alert_type`, `confidence`, `fire_count`, `intensity_level`, `location`, `created_at`) VALUES
+(1, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-12 06:45:45'),
+(2, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:08:42'),
+(3, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:15:59'),
+(4, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:16:58'),
+(5, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:20:23'),
+(6, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:24:41'),
+(7, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:25:10'),
+(8, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:28:49'),
+(9, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:29:50'),
+(10, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:30:02'),
+(11, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:30:08'),
+(12, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:30:13'),
+(13, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:30:46'),
+(14, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:30:56'),
+(15, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:31:03'),
+(16, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:33:37'),
+(17, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:33:41'),
+(18, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:35:30'),
+(19, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:37:25'),
+(20, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:37:32'),
+(21, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:37:49'),
+(22, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:38:28'),
+(23, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:39:39'),
+(24, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:39:45'),
+(25, 1741785600000, 'fire_detection', 0.8, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:39:58');
 
 -- --------------------------------------------------------
 
@@ -180,7 +228,7 @@ CREATE TABLE `incidents` (
 --
 
 INSERT INTO `incidents` (`id`, `name`, `location`, `latitude`, `longitude`, `stationName`, `timeReported`, `status`, `isNewAlert`) VALUES
-('INC-20251120-003', 'Major Structural Fire - Downtown', 'False Street A-123, Commercial District', 34.0531, -118.245, 'Katraj Fire Station', '2026-01-06 10:35:00', 'new', 1),
+('INC-20251120-003', 'Major Structural Fire - Downtown', 'False Street A-123, Commercial District', 18.454324432525688, 73.85854325144334, 'Katraj Fire Station', '2026-01-06 10:35:00', 'in_progress', 0),
 ('INC-20251122-001', 'Vehicle Accident & Fire', 'Paud Road, Near Signal, Kothrud', 18.5074, 73.8077, 'Baner Fire Station', '2025-11-22 15:25:00', 'new', 1),
 ('INC-20251122-002', 'Warehouse Fire - Industrial Zone', 'Plot No. 45, Industrial Area, Katraj', 18.4445, 73.8521, 'Yerwada Fire Station', '2026-01-02 14:10:00', 'new', 1);
 
@@ -309,6 +357,12 @@ ALTER TABLE `drone_gps_logs`
   ADD KEY `drone_code` (`drone_code`);
 
 --
+-- Indexes for table `fire_detections`
+--
+ALTER TABLE `fire_detections`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `fire_station`
 --
 ALTER TABLE `fire_station`
@@ -365,6 +419,12 @@ ALTER TABLE `drones`
 --
 ALTER TABLE `drone_gps_logs`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `fire_detections`
+--
+ALTER TABLE `fire_detections`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `fire_station`
