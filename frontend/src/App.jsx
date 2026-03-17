@@ -134,6 +134,9 @@ function App() {
             {/* NO ACCESS */}
             <Route path="/pilot-dashboard" element={<PilotDashboard />} />
             <Route path="/schedule-maintenance" element={<ScheduleMaintenance />} />
+            <Route path="/pilot-live-incident-command/:droneId" element={<PilotLiveIncidentCommand />} />
+
+            {/* optional fallback without param */}
             <Route path="/pilot-live-incident-command" element={<PilotLiveIncidentCommand />} />
           </Route>
         </Routes>

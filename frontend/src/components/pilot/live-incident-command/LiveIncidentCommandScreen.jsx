@@ -7,21 +7,37 @@ import DroneLivePanel from "./DroneLivePanel";
 import DroneCameraPanel from "./DroneCameraPanel";
 import DetectionAlert from "./DetectionAlert";
 import { Button } from "@mui/material";
+import { useParams, useNavigate } from "react-router-dom";
 
 export default function LiveIncidentCommandScreen() {
 
-  const incident = {
-    id: "demo-incident",
-    name: "Demo Incident"
-  };
+  const { droneId } = useParams();
+  const navigate = useNavigate();
+
+  const [selectedDrone, setSelectedDrone] = useState("");
 
   const selectedVehicles = [];
-  const selectedDrones = [];
 
   const [layout, setLayout] = useState("split");
   const [activePanel, setActivePanel] = useState(null);
   const [focusedPanel, setFocusedPanel] = useState("drone-location");
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // ✅ URL → state sync
+  useEffect(() => {
+    if (droneId) {
+      setSelectedDrone(droneId);
+    }
+  }, [droneId]);
+
+  // ✅ state → URL sync (MAIN FIX)
+  useEffect(() => {
+    if (selectedDrone && !droneId) {
+      navigate(`/pilot-live-incident-command/${selectedDrone}`, {
+        replace: true,
+      });
+    }
+  }, [selectedDrone, droneId]);
 
   const maximizePanel = (panelKey) => {
     setActivePanel(panelKey);
@@ -63,14 +79,14 @@ export default function LiveIncidentCommandScreen() {
 
   const renderPanel = (key, Component, clickable = false) => (
     <div
-      className={`rounded-lg h-full min-h-0 overflow-hidden bg-[#1F1F1F] ${clickable ? "cursor-pointer hover:ring-2 hover:ring-red-500" : ""
-        }`}
+      className={`rounded-lg h-full min-h-0 overflow-hidden bg-[#1F1F1F] ${
+        clickable ? "cursor-pointer hover:ring-2 hover:ring-red-500" : ""
+      }`}
       onClick={clickable ? () => handleFocusChange(key) : undefined}
     >
       <Component
-        incident={incident}
         selectedVehicles={selectedVehicles}
-        selectedDrones={selectedDrones}
+        selectedDrone={selectedDrone}
         onMaximize={() => maximizePanel(key)}
         isMaximized={layout === "full" && activePanel === key}
         onExit={minimizePanel}
@@ -80,42 +96,29 @@ export default function LiveIncidentCommandScreen() {
 
   return (
     <div className="h-screen flex flex-col bg-background">
+
       <CommandToolbar
         layout={layout}
         onLayoutChange={changeLayout}
         onFullscreen={enterBrowserFullscreen}
         onExitFullscreen={exitBrowserFullscreen}
         isFullscreen={isFullscreen}
-        incidentId={incident.id}
-        incidentName={incident.name}
+        selectedDrone={selectedDrone}
+        onDroneChange={setSelectedDrone}
       />
 
       <div className="flex-1 p-4 bg-[#0A0A0A]">
 
         {layout === "split" && (
           <div className="grid grid-cols-2 grid-rows-2 gap-4 h-[50%]">
-
-            {/* Drone Live */}
-            <div className="row-span-1">
-              {renderPanel("drone-location", DroneLivePanel)}
-            </div>
-
-            {/* Drone Camera - full height */}
-            <div className="row-span-1">
-              {renderPanel("drone-camera", DroneCameraPanel)}
-            </div>
-
-            {/* AI Detection */}
-            <div className="row-span-1">
-              {renderPanel("3d-twin", DetectionAlert)}
-            </div>
-
+            <div>{renderPanel("drone-location", DroneLivePanel)}</div>
+            <div>{renderPanel("drone-camera", DroneCameraPanel)}</div>
+            <div>{renderPanel("3d-twin", DetectionAlert)}</div>
           </div>
         )}
 
         {layout === "focus" && (
           <div className="flex flex-col gap-3 h-full">
-
             <div className="h-[60%]">
               {focusedPanel === "drone-location" && renderPanel("drone-location", DroneLivePanel)}
               {focusedPanel === "drone-camera" && renderPanel("drone-camera", DroneCameraPanel)}
@@ -123,22 +126,15 @@ export default function LiveIncidentCommandScreen() {
             </div>
 
             <div className="h-[35%] grid grid-cols-2 gap-2">
-              {focusedPanel !== "drone-location" &&
-                renderPanel("drone-location", DroneLivePanel, true)}
-
-              {focusedPanel !== "drone-camera" &&
-                renderPanel("drone-camera", DroneCameraPanel, true)}
-
-              {focusedPanel !== "3d-twin" &&
-                renderPanel("3d-twin", DetectionAlert, true)}
+              {focusedPanel !== "drone-location" && renderPanel("drone-location", DroneLivePanel, true)}
+              {focusedPanel !== "drone-camera" && renderPanel("drone-camera", DroneCameraPanel, true)}
+              {focusedPanel !== "3d-twin" && renderPanel("3d-twin", DetectionAlert, true)}
             </div>
-
           </div>
         )}
 
         {layout === "full" && (
           <div className="flex flex-col gap-4 h-full">
-
             <div className="h-[75%]">
               {focusedPanel === "drone-location" && renderPanel("drone-location", DroneLivePanel)}
               {focusedPanel === "drone-camera" && renderPanel("drone-camera", DroneCameraPanel)}
@@ -146,14 +142,9 @@ export default function LiveIncidentCommandScreen() {
             </div>
 
             <div className="h-[25%] grid grid-cols-2 gap-2">
-              {focusedPanel !== "drone-location" &&
-                renderPanel("drone-location", DroneLivePanel, true)}
-
-              {focusedPanel !== "drone-camera" &&
-                renderPanel("drone-camera", DroneCameraPanel, true)}
-
-              {focusedPanel !== "3d-twin" &&
-                renderPanel("3d-twin", DetectionAlert, true)}
+              {focusedPanel !== "drone-location" && renderPanel("drone-location", DroneLivePanel, true)}
+              {focusedPanel !== "drone-camera" && renderPanel("drone-camera", DroneCameraPanel, true)}
+              {focusedPanel !== "3d-twin" && renderPanel("3d-twin", DetectionAlert, true)}
             </div>
 
             <div className="flex justify-center pt-2">
@@ -165,7 +156,6 @@ export default function LiveIncidentCommandScreen() {
                 Exit Full View
               </Button>
             </div>
-
           </div>
         )}
 
