@@ -38,12 +38,15 @@ export default function DroneMonitoringHeader({
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
-        <Card key={stat.label} className="border border-white/10 hover:border-red-400 hover:shadow-[0_0_10px_rgba(255,0,0,0.35)] transition-all duration-300">
+        <Card
+          key={stat.label}
+          className="border border-border hover:border-red-400 hover:shadow-[0_0_10px_rgba(255,0,0,0.35)] transition-all duration-300"
+        >
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <p className="text-3xl font-bold mt-1">{stat.value}</p>
+                <p className="text-3xl font-bold mt-1 text-foreground">{stat.value}</p>
               </div>
               <div className={`p-3 rounded-lg ${stat.color}`}>
                 <SafeIcon name={stat.icon} size={24} />

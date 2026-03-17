@@ -94,26 +94,6 @@ export default function DroneListTable({ drones, onViewDetails }) {
                 />
               </TableCell>
 
-              {/* <TableCell>
-                <div className="flex items-center gap-2">
-                  <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${
-                        (drone.battery || 0) > 70
-                          ? 'bg-emerald-600'
-                          : (drone.battery || 0) > 40
-                          ? 'bg-amber-600'
-                          : 'bg-destructive'
-                      }`}
-                      style={{ width: `${drone.battery || 0}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium w-10">
-                    {drone.battery || 0}%
-                  </span>
-                </div>
-              </TableCell> */}
-
               <TableCell className="text-sm">
                 {drone.flight_hours
                   ? `${Number(drone.flight_hours).toFixed(1)}h`
@@ -137,18 +117,6 @@ export default function DroneListTable({ drones, onViewDetails }) {
               <TableCell className="text-sm text-muted-foreground">
                 {drone.firmware_version || "—"}
               </TableCell>
-
-              {/* <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onViewDetails(drone)}
-                  className="hover:bg-muted"
-                >
-                  <SafeIcon name="Eye" size={16} className="mr-1" />
-                  View
-                </Button>
-              </TableCell> */}
 
             </TableRow>
           ))}

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import StatsCards from "./StatsCards";
 import StationsMap from "./StationsMap";
 import AddStationModal from "./AddStationModal";
@@ -19,9 +19,24 @@ export default function StationManagement() {
 
   const mapRef = useRef(null);
 
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   const handleViewOnMap = (station) => {
     setSelectedStation(station);
-
     setTimeout(() => {
       mapRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -31,17 +46,31 @@ export default function StationManagement() {
   };
 
   return (
-    <div className="p-6 bg-[#0b0e11] min-h-screen text-white">
-
+    <div
+      className="p-6 min-h-screen"
+      style={{
+        backgroundColor: isDark ? "#0b0e11" : "rgb(243 244 246)",
+        color: isDark ? "#ffffff" : "#000000",
+      }}
+    >
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Station Management</h1>
-          <p className="text-white/60">Manage & monitor stations</p>
+          <h1 className="text-3xl font-bold" style={{ color: isDark ? "#ffffff" : "#000000" }}>
+            Station Management
+          </h1>
+          <p style={{ color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)" }}>
+            Manage & monitor stations
+          </p>
         </div>
 
         <button
           onClick={() => setOpen(true)}
-          className="px-5 py-2 rounded-lg border border-white/20 hover:bg-red-600 transition"
+          style={{
+            border: `1px solid ${isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)"}`,
+            color: isDark ? "#ffffff" : "#000000",
+            backgroundColor: "transparent",
+          }}
+          className="px-5 py-2 rounded-lg hover:bg-red-600 hover:!text-white hover:!border-red-600 transition"
         >
           + Add New Station
         </button>
@@ -58,7 +87,7 @@ export default function StationManagement() {
       <div className="mt-6">
         <StationList
           filters={filters}
-          onViewMap={handleViewOnMap}  
+          onViewMap={handleViewOnMap}
           onEditStation={setEditStation}
           refreshTrigger={refreshTrigger}
         />

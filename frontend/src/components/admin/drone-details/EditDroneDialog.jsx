@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
@@ -13,8 +13,49 @@ export default function EditDroneDialog({ open, onOpenChange, drone, onSuccess }
     status: "",
   });
 
-  const inputClass = "w-full mt-1 h-9 rounded-md bg-[#0D0F12] border border-[#2E2E2E] px-3 text-sm " +
-  "hover:border-[#dc2626] focus:outline-none focus:ring-0 focus:border-[#dc2626]";
+  const [healthOpen, setHealthOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
+  const healthRef = useRef(null);
+  const statusRef = useRef(null);
+
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const dropdownBg = isDark ? "#0D0F12" : "#ffffff";
+  const dropdownColor = isDark ? "#FAFAFA" : "#000000";
+  const dropdownBorder = isDark ? "#2E2E2E" : "#e2e8f0";
+  const inputStyle = {
+    backgroundColor: isDark ? "#0D0F12" : "#ffffff",
+    color: isDark ? "#FAFAFA" : "#000000",
+    border: `1px solid ${isDark ? "#2E2E2E" : "#e2e8f0"}`,
+  };
+  const dropdownStyle = {
+    backgroundColor: dropdownBg,
+    color: dropdownColor,
+    border: `1px solid ${dropdownBorder}`,
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (healthRef.current && !healthRef.current.contains(e.target)) setHealthOpen(false);
+      if (statusRef.current && !statusRef.current.contains(e.target)) setStatusOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (drone) {
@@ -37,7 +78,7 @@ export default function EditDroneDialog({ open, onOpenChange, drone, onSuccess }
 
     fetch(`${API}/updateDroneDetails.php`, {
       method: "POST",
-      credentials: "include", 
+      credentials: "include",
       body: formData,
     })
       .then((res) => res.json())
@@ -55,10 +96,23 @@ export default function EditDroneDialog({ open, onOpenChange, drone, onSuccess }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-[#0D0F12] border border-[#2E2E2E] text-[#FAFAFA]">
-        <DialogHeader><DialogTitle>Edit Drone: {drone?.drone_name}</DialogTitle></DialogHeader>
-        
+      <DialogContent
+        className="max-w-md border"
+        style={{
+          backgroundColor: isDark ? "#0D0F12" : "#ffffff",
+          borderColor: isDark ? "#2E2E2E" : "#e2e8f0",
+          color: isDark ? "#FAFAFA" : "#000000",
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle style={{ color: isDark ? "#FAFAFA" : "#000000" }}>
+            Edit Drone: {drone?.drone_name}
+          </DialogTitle>
+        </DialogHeader>
+
         <div className="space-y-4 py-2">
+
+          {/* Flight Hours */}
           <div>
             <label className="text-sm text-muted-foreground">Flight Hours</label>
             <input
@@ -70,25 +124,51 @@ export default function EditDroneDialog({ open, onOpenChange, drone, onSuccess }
               onChange={(e) =>
                 setEditData({ ...editData, flight_hours: e.target.value })
               }
-              className={inputClass}
+              style={inputStyle}
+              className="w-full mt-1 h-9 rounded-md px-3 text-sm focus:outline-none focus:ring-0 focus:border-red-600 hover:border-red-600"
             />
           </div>
 
-          <div>
+          {/* Health - Custom Dropdown */}
+          <div className="relative" ref={healthRef}>
             <label className="text-sm text-muted-foreground">Health</label>
-            <select
-              value={editData.health_status}
-              onChange={(e) =>
-                setEditData({ ...editData, health_status: e.target.value })
-              }
-              className={inputClass}
+            <div
+              onClick={() => setHealthOpen((p) => !p)}
+              style={inputStyle}
+              className="w-full mt-1 h-9 rounded-md px-3 text-sm flex items-center justify-between cursor-pointer hover:border-red-600"
             >
-              <option value="Optimal">Optimal</option>
-              <option value="Degraded">Degraded</option>
-              <option value="Requires Service">Require Service</option>
-            </select>
+              <span>{editData.health_status || "Select Health"}</span>
+              <span className="text-xs opacity-60">▼</span>
+            </div>
+            {healthOpen && (
+              <div
+                className="absolute z-50 mt-1 w-full rounded-md shadow-lg overflow-hidden"
+                style={dropdownStyle}
+              >
+                {["Optimal", "Degraded", "Requires Service"].map((opt) => (
+                  <div
+                    key={opt}
+                    onClick={() => {
+                      setEditData({ ...editData, health_status: opt });
+                      setHealthOpen(false);
+                    }}
+                    style={{
+                      backgroundColor:
+                        editData.health_status === opt
+                          ? isDark ? "#1A1D23" : "#f1f5f9"
+                          : dropdownBg,
+                      color: dropdownColor,
+                    }}
+                    className="px-3 py-2 text-sm cursor-pointer hover:opacity-75"
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
+          {/* Firmware Version */}
           <div>
             <label className="text-sm text-muted-foreground">Firmware Version</label>
             <input
@@ -97,50 +177,59 @@ export default function EditDroneDialog({ open, onOpenChange, drone, onSuccess }
               onChange={(e) =>
                 setEditData({ ...editData, firmware_version: e.target.value })
               }
-              className={inputClass}
+              style={inputStyle}
+              className="w-full mt-1 h-9 rounded-md px-3 text-sm focus:outline-none focus:ring-0 focus:border-red-600 hover:border-red-600"
             />
           </div>
 
-          <div>
+          {/* Status - Custom Dropdown */}
+          <div className="relative" ref={statusRef}>
             <label className="text-sm text-muted-foreground">Status</label>
-            <select
-              value={editData.status}
-              onChange={(e) =>
-                setEditData({ ...editData, status: e.target.value })
-              }
-              className={inputClass}
+            <div
+              onClick={() => setStatusOpen((p) => !p)}
+              style={inputStyle}
+              className="w-full mt-1 h-9 rounded-md px-3 text-sm flex items-center justify-between cursor-pointer hover:border-red-600"
             >
-              <option value="Active">Active</option>
-              <option value="StandBy">StandBy</option>
-              <option value="Maintenance">Maintenance</option>
-            </select>
+              <span>{editData.status || "Select Status"}</span>
+              <span className="text-xs opacity-60">▼</span>
+            </div>
+            {statusOpen && (
+              <div
+                className="absolute z-50 mt-1 w-full rounded-md shadow-lg overflow-hidden"
+                style={dropdownStyle}
+              >
+                {["Active", "StandBy", "Maintenance"].map((opt) => (
+                  <div
+                    key={opt}
+                    onClick={() => {
+                      setEditData({ ...editData, status: opt });
+                      setStatusOpen(false);
+                    }}
+                    style={{
+                      backgroundColor:
+                        editData.status === opt
+                          ? isDark ? "#1A1D23" : "#f1f5f9"
+                          : dropdownBg,
+                      color: dropdownColor,
+                    }}
+                    className="px-3 py-2 text-sm cursor-pointer hover:opacity-75"
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+
         </div>
 
-
-        <Button className="w-full bg-[#dc2626] hover:bg-[#b81f1f]" onClick={handleUpdate}>
+        <Button
+          className="w-full bg-red-600 hover:bg-red-700 text-white"
+          onClick={handleUpdate}
+        >
           Save Changes
         </Button>
       </DialogContent>
     </Dialog>
   );
-
-  function InputField({ label, value, onChange, type = "text", step }) {
-    return (
-      <div>
-        <label className="text-sm text-muted-foreground">{label}</label>
-        <input
-          type={type}
-          min="0"
-          max="100"
-          step="1"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full mt-1 h-9 rounded-md bg-[#0D0F12] border border-[#2E2E2E]
-          px-3 hover:border-[#dc2626] focus:outline-none focus:border-[#dc2626]"
-        />
-      </div>
-    );
-  }
-
 }

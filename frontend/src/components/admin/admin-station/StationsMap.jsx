@@ -19,6 +19,22 @@ function ChangeMapCenter({ station }) {
 export default function StationsMap({ selectedStation }) {
   const [stations, setStations] = useState([]);
 
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     fetchStations();
   }, []);
@@ -27,7 +43,6 @@ export default function StationsMap({ selectedStation }) {
     try {
       const res = await fetch(`${API}/get_stations.php`);
       const data = await res.json();
-
       if (data.status) {
         setStations(data.stations);
       }
@@ -37,8 +52,21 @@ export default function StationsMap({ selectedStation }) {
   };
 
   return (
-    <div className="bg-[#111418] p-4 rounded-xl border border-white/10">
-      <MapContainer center={[18.5204, 73.8567]} zoom={12} className="h-[350px] rounded-lg">
+    <div
+      className="p-4 rounded-xl"
+      style={{
+        backgroundColor: isDark ? "#111418" : "#ffffff",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0"}`,
+      }}
+    >
+      <MapContainer
+        center={[18.5204, 73.8567]}
+        zoom={12}
+        className="h-[350px] rounded-lg"
+        style={{
+          border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0"}`,
+        }}
+      >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {selectedStation && <ChangeMapCenter station={selectedStation} />}
