@@ -19,7 +19,6 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import FlightIcon from "@mui/icons-material/Flight";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
-
 import VehicleSelectionCard from "./VehicleSelectionCard";
 import DroneSelectionCard from "./DroneSelectionCard";
 import SelectionSummary from "./SelectionSummary";
@@ -28,28 +27,6 @@ import { ThemeProvider, CssBaseline, createTheme } from "@mui/material";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const API = `${API_BASE}/fire-fighter/vehicle-drone-selection`;
-
-const darkIncidentTheme = createTheme({
-  palette: {
-    mode: "dark",
-    background: { default: "#0F0F10", paper: "#131314" },
-    primary: { main: "#E53935" },
-    text: { primary: "#EDEDED", secondary: "#9A9A9A" },
-    divider: "#2A2A2A",
-  },
-  components: {
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          backgroundColor: "#171717",
-          borderRadius: 14,
-          border: "1px solid #2F2F2F",
-        },
-      },
-    },
-  },
-});
-
 
 const safeNumber = (v) =>
   v === null || v === undefined || v === "" ? null : Number(v);
@@ -60,7 +37,7 @@ const normalizeVehicleRow = (v = {}) => ({
   name: v.name ?? "Unnamed Vehicle",
   type: v.type ?? "—",
   station: v.station,
-  device_id: v.device_id, 
+  device_id: v.device_id,
   vehicle_status:
     v.vehicle_status ?? v.vehicle_availability_status ?? v.status ?? "unknown",
   distanceKm: safeNumber(v.distanceKm),
@@ -85,15 +62,55 @@ export default function VehicleDroneSelectionPage() {
   const { state } = useLocation();
 
   const incident = state?.incident;
-
   const incidentId =
-    incident?.id ??
-    incident?.incident_id ??
-    incident?.incidentId ??
-    null;
+    incident?.id ?? incident?.incident_id ?? incident?.incidentId ?? null;
 
   const session = JSON.parse(sessionStorage.getItem("fireOpsSession") || "{}");
   const userStation = session.station;
+
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // Dynamic MUI theme
+  const incidentTheme = createTheme({
+    palette: {
+      mode: isDark ? "dark" : "light",
+      background: {
+        default: isDark ? "#0F0F10" : "#f8fafc",
+        paper: isDark ? "#131314" : "#ffffff",
+      },
+      primary: { main: "#E53935" },
+      text: {
+        primary: isDark ? "#EDEDED" : "#111827",
+        secondary: isDark ? "#9A9A9A" : "#6b7280",
+      },
+      divider: isDark ? "#2A2A2A" : "#e2e8f0",
+    },
+    components: {
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDark ? "#171717" : "#ffffff",
+            borderRadius: 14,
+            border: `1px solid ${isDark ? "#2F2F2F" : "#e2e8f0"}`,
+          },
+        },
+      },
+    },
+  });
 
   useEffect(() => {
     if (!incident) navigate("/fire-fighter-dashboard");
@@ -116,6 +133,7 @@ export default function VehicleDroneSelectionPage() {
     message: "",
   });
 
+  // ✅ All backend logic unchanged
   useEffect(() => {
     if (!userStation) return;
     let mounted = true;
@@ -179,7 +197,7 @@ export default function VehicleDroneSelectionPage() {
     selectedDroneObjects.length > 0 && selectedVehicleObjects.length > 0;
 
   return (
-    <ThemeProvider theme={darkIncidentTheme}>
+    <ThemeProvider theme={incidentTheme}>
       <CssBaseline />
       <Box sx={{ minHeight: "100vh", p: 4 }}>
         <Box maxWidth="1280px" mx="auto">
@@ -209,7 +227,6 @@ export default function VehicleDroneSelectionPage() {
 
           <Box sx={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 4 }}>
             <Stack spacing={4}>
-
               <AssetSection
                 icon={<LocalShippingIcon color="primary" />}
                 title="Available Vehicles"
@@ -275,42 +292,26 @@ export default function VehicleDroneSelectionPage() {
               canActivate={canActivate}
               onActivate={async () => {
                 if (!incidentId) {
-                  setSnack({
-                    open: true,
-                    severity: "error",
-                    message: "Invalid Incident ID",
-                  });
+                  setSnack({ open: true, severity: "error", message: "Invalid Incident ID" });
                   return;
                 }
 
                 const selectedDrone = selectedDroneObjects[0];
                 const selectedVehicle = selectedVehicleObjects[0];
-
                 const droneId = selectedDrone?.drone_id;
                 const vehicleDeviceId = selectedVehicle?.device_id;
 
                 if (!droneId || !vehicleDeviceId) {
-                  setSnack({
-                    open: true,
-                    severity: "error",
-                    message: "Select both drone and vehicle",
-                  });
+                  setSnack({ open: true, severity: "error", message: "Select both drone and vehicle" });
                   return;
                 }
 
                 try {
-                  const res = await fetch(
-                    `${API}/update_incident_status.php`,
-                    {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        incidentId,
-                        droneId,
-                        vehicleDeviceId,
-                      }),
-                    }
-                  );
+                  const res = await fetch(`${API}/update_incident_status.php`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ incidentId, droneId, vehicleDeviceId }),
+                  });
 
                   const data = await res.json();
                   if (!data.success) throw new Error(data.message);
@@ -319,11 +320,7 @@ export default function VehicleDroneSelectionPage() {
                     `/live-incident-command/${incidentId}/${droneId}/${vehicleDeviceId}`,
                     {
                       state: {
-                        incident: {
-                          ...incident,
-                          status: "in_progress",
-                          isNewAlert: 0,
-                        },
+                        incident: { ...incident, status: "in_progress", isNewAlert: 0 },
                         selectedVehicles: selectedVehicleObjects,
                         selectedDrones: selectedDroneObjects,
                         droneId,
@@ -333,11 +330,7 @@ export default function VehicleDroneSelectionPage() {
                   );
                 } catch (err) {
                   console.error(err);
-                  setSnack({
-                    open: true,
-                    severity: "error",
-                    message: "Activation failed",
-                  });
+                  setSnack({ open: true, severity: "error", message: "Activation failed" });
                 }
               }}
               onBack={() => navigate(-1)}

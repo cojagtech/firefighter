@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import SafeIcon from "@/components/common/SafeIcon";
@@ -8,18 +9,38 @@ export default function StatusCard({
   icon,
   variant = "default",
   trend,
-  onClick,       
+  onClick,
 }) {
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   const getVariantStyles = () => {
     switch (variant) {
       case "danger":
-        return "border border-white/10 hover:border-red-400 hover:shadow-[0_0_10px_rgba(255,0,0,0.35)] transition-all duration-300";
+        return `border hover:border-red-400 hover:shadow-[0_0_10px_rgba(255,0,0,0.35)] transition-all duration-300 ${
+          isDark ? "border-white/10" : "border-red-200"
+        }`;
       case "warning":
         return "border-yellow-400/40 bg-yellow-500/10 shadow-[0_0_15px_-2px_rgba(255,200,0,0.25)]";
       case "success":
         return "border-green-500/40 bg-green-500/10 shadow-[0_0_15px_-2px_rgba(0,255,0,0.25)]";
       default:
-        return "border-[#2A2B2E] bg-[#17181A]";
+        return isDark
+          ? "border-[#2A2B2E] bg-[#17181A]"
+          : "border-[#e2e8f0] bg-white";
     }
   };
 
@@ -28,7 +49,7 @@ export default function StatusCard({
       case "danger": return "bg-red-500/20";
       case "warning": return "bg-yellow-400/20";
       case "success": return "bg-green-500/20";
-      default: return "bg-[#242528]";
+      default: return isDark ? "bg-[#242528]" : "bg-gray-100";
     }
   };
 
@@ -37,14 +58,14 @@ export default function StatusCard({
       case "danger": return "text-red-400";
       case "warning": return "text-yellow-300";
       case "success": return "text-green-400";
-      default: return "text-gray-300";
+      default: return isDark ? "text-gray-300" : "text-gray-600";
     }
   };
 
   return (
     <Card
-      onClick={onClick}               
-      role="button"                     
+      onClick={onClick}
+      role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if ((e.key === "Enter" || e.key === " ") && onClick) {
@@ -52,21 +73,30 @@ export default function StatusCard({
         }
       }}
       className={`
-        cursor-pointer                 
-        ${getVariantStyles()} text-gray-200 
-        rounded-xl border transition-all duration-200 
-        hover:scale-[1.03] hover:border-gray-500/40
+        cursor-pointer
+        ${getVariantStyles()}
+        rounded-xl border transition-all duration-200
+        hover:scale-[1.03] hover:border-red-400
       `}
       style={{ backgroundColor: "transparent" }}
     >
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
-
           <div className="space-y-1">
-            <p className="text-xs tracking-wide text-gray-400">{title}</p>
+            <p
+              className="text-xs tracking-wide"
+              style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+            >
+              {title}
+            </p>
 
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold text-white">{value}</p>
+              <p
+                className="text-3xl font-bold"
+                style={{ color: isDark ? "#ffffff" : "#111827" }}
+              >
+                {value}
+              </p>
 
               {trend && (
                 <span

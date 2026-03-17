@@ -32,26 +32,20 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const API = `${API_BASE}/fire-fighter/vehicle-drone-selection`;
 
 export default function DashboardHeader() {
-  /* ----------------------------- STATE ----------------------------- */
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [notificationCount, setNotificationCount] = useState(0);
   const [menuAnchor, setMenuAnchor] = useState(null);
 
-  /* ----------------------------- CONTEXT --------------------------- */
   const { isDark, toggleTheme } = useTheme();
   const { name, role, initials } = useUserInfo();
 
-  /* ----------------------------- SESSION --------------------------- */
   const sessionData = sessionStorage.getItem("fireOpsSession");
-  const stationName = sessionData
-    ? JSON.parse(sessionData).station
-    : null;
+  const stationName = sessionData ? JSON.parse(sessionData).station : null;
 
   const warningShownRef = useRef(false);
-
-
   const DEV_BYPASS = import.meta.env.VITE_DEV_BYPASS_SHIFT === "true";
 
+  // ✅ All backend logic unchanged
   useEffect(() => {
     const sessionData = sessionStorage.getItem("fireOpsSession");
     let expiryTime = null;
@@ -67,11 +61,7 @@ export default function DashboardHeader() {
 
     const updateTimer = () => {
       const now = Date.now();
-      const secondsLeft = Math.max(
-        0,
-        Math.floor((expiryTime - now) / 1000)
-      );
-
+      const secondsLeft = Math.max(0, Math.floor((expiryTime - now) / 1000));
       setTimeRemaining(secondsLeft);
 
       if (secondsLeft === 300 && !warningShownRef.current) {
@@ -98,7 +88,6 @@ export default function DashboardHeader() {
     }
   }, [DEV_BYPASS]);
 
-  /* ------------------------- UTILITIES ----------------------------- */
   const formatTime = (sec) => {
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
@@ -117,7 +106,6 @@ export default function DashboardHeader() {
       logoutUser();
       return;
     }
-
     if (timeRemaining > 0) {
       toast.error(`Shift Active! Cannot logout`, { icon: "🔒" });
       setMenuAnchor(null);
@@ -126,27 +114,19 @@ export default function DashboardHeader() {
     }
   };
 
-
   useEffect(() => {
     if (!stationName) return;
-
     let isActive = true;
 
     const poll = async (lastCount = 0) => {
       try {
         const res = await fetch(
-          `${API}/get_incident_alert_count.php?station=${encodeURIComponent(
-            stationName
-          )}&lastCount=${lastCount}`,
+          `${API}/get_incident_alert_count.php?station=${encodeURIComponent(stationName)}&lastCount=${lastCount}`,
           { cache: "no-store" }
         );
-
         const data = await res.json();
         if (!isActive) return;
-
         setNotificationCount(data.count);
-
-        // long-poll again with updated count
         poll(data.count);
       } catch (err) {
         console.error("Polling error:", err);
@@ -155,23 +135,38 @@ export default function DashboardHeader() {
     };
 
     poll(0);
-
-    return () => {
-      isActive = false;
-    };
+    return () => { isActive = false; };
   }, [stationName]);
+
+  // Theme-aware styles
+  const headerBg = isDark ? "#0d0d0d" : "#ffffff";
+  const headerBorder = isDark ? "#1f1f1f" : "#e2e8f0";
+  const textColor = isDark ? "#ffffff" : "#000000";
+  const subtitleColor = isDark ? "#bbbbbb" : "#6b7280";
+  const chipBg = isDark ? "#1f1f1f" : "#f3f4f6";
+  const chipBorder = isDark ? "#333" : "#e2e8f0";
+  const avatarBg = isDark ? "#333" : "#e5e7eb";
+  const avatarColor = isDark ? "#ffffff" : "#000000";
+  const menuBg = isDark ? "#1a1a1a" : "#ffffff";
+  const menuColor = isDark ? "#ffffff" : "#000000";
+  const menuHoverBg = isDark ? "#2a2a2a" : "#f3f4f6";
+  const dividerColor = isDark ? "#333" : "#e2e8f0";
 
   return (
     <AppBar
       position="sticky"
       sx={{
-        background: "#0d0d0d",
-        borderBottom: "1px solid #1f1f1f",
-        color: "white",
+        background: headerBg,
+        borderBottom: `1px solid ${headerBorder}`,
+        color: textColor,
+        boxShadow: isDark
+          ? "0 2px 8px rgba(0,0,0,0.6)"
+          : "0 2px 8px rgba(0,0,0,0.08)",
       }}
       elevation={3}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        {/* Left — Logo */}
         <Box display="flex" alignItems="center" gap={2}>
           <Avatar sx={{ bgcolor: "#b71c1c", border: "2px solid #ff5252" }}>
             <WhatshotIcon />
@@ -180,12 +175,13 @@ export default function DashboardHeader() {
             <Typography variant="h6" fontWeight="bold" sx={{ color: "#ff5252" }}>
               FireOps Command
             </Typography>
-            <Typography fontSize={12} sx={{ color: "#bbbbbb" }}>
+            <Typography fontSize={12} sx={{ color: subtitleColor }}>
               Emergency Operations Dashboard
             </Typography>
           </Box>
         </Box>
 
+        {/* Right — Actions */}
         <Box display="flex" alignItems="center" gap={2}>
           {DEV_BYPASS && (
             <Chip
@@ -197,18 +193,18 @@ export default function DashboardHeader() {
           )}
 
           <Chip
-            icon={<AccessTimeIcon sx={{ color: "white" }} />}
+            icon={<AccessTimeIcon sx={{ color: textColor }} />}
             label={formatTime(timeRemaining)}
             color={getTimerColor()}
             sx={{
               fontWeight: "bold",
-              background: "#1f1f1f",
-              color: "white",
-              border: "1px solid #333",
+              background: chipBg,
+              color: textColor,
+              border: `1px solid ${chipBorder}`,
             }}
           />
 
-          <IconButton sx={{ color: "white" }}>
+          <IconButton sx={{ color: textColor }}>
             <Badge
               badgeContent={notificationCount}
               color="error"
@@ -218,6 +214,7 @@ export default function DashboardHeader() {
             </Badge>
           </IconButton>
 
+          {/* User Menu Trigger */}
           <Box
             onClick={(e) => setMenuAnchor(e.currentTarget)}
             sx={{
@@ -227,33 +224,53 @@ export default function DashboardHeader() {
               gap: 1,
             }}
           >
-            <Avatar sx={{ bgcolor: "#333" }}>{initials}</Avatar>
+            <Avatar sx={{ bgcolor: avatarBg, color: avatarColor }}>
+              {initials}
+            </Avatar>
             <Box>
-              <Typography sx={{ fontWeight: "bold" }}>{name}</Typography>
-              <Typography sx={{ fontSize: 12, color: "#bbbbbb" }}>
+              <Typography sx={{ fontWeight: "bold", color: textColor }}>
+                {name}
+              </Typography>
+              <Typography sx={{ fontSize: 12, color: subtitleColor }}>
                 {role}
               </Typography>
             </Box>
-            <ExpandMoreIcon />
+            <ExpandMoreIcon sx={{ color: textColor }} />
           </Box>
 
+          {/* Dropdown Menu */}
           <Menu
             anchorEl={menuAnchor}
             open={Boolean(menuAnchor)}
             onClose={() => setMenuAnchor(null)}
             PaperProps={{
               sx: {
-                background: "#1a1a1a",
-                color: "white",
+                background: menuBg,
+                color: menuColor,
                 width: 220,
+                border: `1px solid ${headerBorder}`,
+                boxShadow: isDark
+                  ? "0 4px 12px rgba(0,0,0,0.5)"
+                  : "0 4px 12px rgba(0,0,0,0.1)",
               },
             }}
           >
-            <MenuItem>
-              <AccountCircleIcon sx={{ mr: 1 }} /> Profile
+            <MenuItem
+              sx={{
+                color: menuColor,
+                "&:hover": { background: menuHoverBg },
+              }}
+            >
+              <AccountCircleIcon sx={{ mr: 1, color: menuColor }} /> Profile
             </MenuItem>
 
-            <MenuItem onClick={toggleTheme}>
+            <MenuItem
+              onClick={toggleTheme}
+              sx={{
+                color: menuColor,
+                "&:hover": { background: menuHoverBg },
+              }}
+            >
               <SafeIcon
                 name={isDark ? "Sun" : "Moon"}
                 size={16}
@@ -262,20 +279,23 @@ export default function DashboardHeader() {
               {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             </MenuItem>
 
-            <MenuItem>
-              <SettingsIcon sx={{ mr: 1 }} /> Settings
+            <MenuItem
+              sx={{
+                color: menuColor,
+                "&:hover": { background: menuHoverBg },
+              }}
+            >
+              <SettingsIcon sx={{ mr: 1, color: menuColor }} /> Settings
             </MenuItem>
 
-            <Divider sx={{ my: 1, borderColor: "#333" }} />
+            <Divider sx={{ my: 1, borderColor: dividerColor }} />
 
             <MenuItem
               onClick={handleLogoutAttempt}
               sx={{
                 color: timeRemaining > 0 && !DEV_BYPASS ? "#777" : "red",
-                cursor:
-                  timeRemaining > 0 && !DEV_BYPASS
-                    ? "not-allowed"
-                    : "pointer",
+                cursor: timeRemaining > 0 && !DEV_BYPASS ? "not-allowed" : "pointer",
+                "&:hover": { background: menuHoverBg },
               }}
             >
               {timeRemaining > 0 && !DEV_BYPASS ? (

@@ -17,31 +17,60 @@ import DialogActions from "@mui/material/DialogActions";
 
 export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
   const [incidents, setIncidents] = useState([]);
-  const [playedAlerts, setPlayedAlerts] = useState(new Set());
   const [isMuted, setIsMuted] = useState(false);
-
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState(null);
 
-  const DARK = {
-    base: "#121314",
-    card: "#17181A",
-    border: "#222427",
-    hover: "#1f2023",
-    text: "#e6e6e6",
-    muted: "#8f8f8f",
-  };
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const DARK = isDark
+    ? {
+        base: "#121314",
+        card: "#17181A",
+        border: "#222427",
+        hover: "#1f2023",
+        text: "#e6e6e6",
+        muted: "#8f8f8f",
+        dialogBg: "#141516",
+        dialogBorder: "#2a2c30",
+        sectionBg: "#18191b",
+        sectionBorder: "#24262a",
+      }
+    : {
+        base: "#f8fafc",
+        card: "#ffffff",
+        border: "#e2e8f0",
+        hover: "#f1f5f9",
+        text: "#111827",
+        muted: "#6b7280",
+        dialogBg: "#ffffff",
+        dialogBorder: "#e2e8f0",
+        sectionBg: "#f8fafc",
+        sectionBorder: "#e2e8f0",
+      };
 
   const navigate = useNavigate();
-
   const audioRef = useRef(null);
-  const playedRef = useRef(new Set());
 
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
         const res = await fetch(
-          `${IncidentAPI_BASE}/get_incidents.php?station=${encodeURIComponent(station)}`,
+          `${IncidentAPI_BASE}/get_incidents.php?station=${encodeURIComponent(station)}`
         );
         const data = await res.json();
         setIncidents(data);
@@ -68,7 +97,7 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch(() => {});
     } else {
-      audioRef.current.pause(); // ✅ stop siren
+      audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
   }, [incidents]);
@@ -118,13 +147,11 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
 
   const toggleSiren = () => {
     if (!audioRef.current) return;
-
     if (isMuted) {
       audioRef.current.play().catch(() => {});
     } else {
       audioRef.current.pause();
     }
-
     setIsMuted(!isMuted);
   };
 
@@ -145,41 +172,29 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
     <Box
       sx={{
         gridColumn: full ? "1 / -1" : "auto",
-        background: "#18191b",
-        border: "1px solid #24262a",
+        background: DARK.sectionBg,
+        border: `1px solid ${DARK.sectionBorder}`,
         borderRadius: "10px",
         p: 2.5,
-        mt: 1, // ✅ slight internal separation
+        mt: 1,
       }}
     >
       <div
         className="text-red-400 mb-2 tracking-wide"
-        style={{
-          fontSize: "0.77rem", // ⬆️ ~10% from 0.7rem
-          fontWeight: 600,
-        }}
+        style={{ fontSize: "0.77rem", fontWeight: 600 }}
       >
         {title.toUpperCase()}
       </div>
-
       <div className="space-y-2.5">{children}</div>
     </Box>
   );
 
   const Row = ({ label, value, mono, children }) => (
     <div className="flex justify-between items-start gap-3">
+      <div style={{ fontSize: "0.9rem", color: DARK.muted }}>{label}</div>
       <div
-        className="text-gray-400"
-        style={{ fontSize: "0.9rem" }} // ⬆️ labels
-      >
-        {label}
-      </div>
-
-      <div
-        className={`text-right ${
-          mono ? "font-mono text-gray-200" : "text-white"
-        }`}
-        style={{ fontSize: "0.95rem" }} // ⬆️ values
+        className={`text-right ${mono ? "font-mono" : ""}`}
+        style={{ fontSize: "0.95rem", color: DARK.text }}
       >
         {children || value}
       </div>
@@ -196,12 +211,13 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
         }}
       >
         <CardContent className="py-10 text-center">
-          <SafeIcon
-            name="CheckCircle"
-            className="h-12 w-12 text-green-400 mx-auto"
-          />
-          <p className="text-lg font-semibold">No Active Incidents</p>
-          <p className="text-sm text-gray-400">No new alerts currently</p>
+          <SafeIcon name="CheckCircle" className="h-12 w-12 text-green-400 mx-auto" />
+          <p className="text-lg font-semibold" style={{ color: DARK.text }}>
+            No Active Incidents
+          </p>
+          <p className="text-sm" style={{ color: DARK.muted }}>
+            No new alerts currently
+          </p>
         </CardContent>
       </Card>
     );
@@ -213,26 +229,18 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
         maxHeight: "300px",
         overflowY: "auto",
         pr: 1,
-
-        /* 🔥 THEMED SCROLLBAR */
-        "&::-webkit-scrollbar": {
-          width: "8px",
-        },
-        "&::-webkit-scrollbar-track": {
-          background: "#0f1011", // dark track
-        },
+        "&::-webkit-scrollbar": { width: "8px" },
+        "&::-webkit-scrollbar-track": { background: isDark ? "#0f1011" : "#f1f5f9" },
         "&::-webkit-scrollbar-thumb": {
-          background: "#1c1d1f", // dark thumb
+          background: isDark ? "#1c1d1f" : "#cbd5e1",
           borderRadius: "8px",
-          border: "2px solid #0f1011",
+          border: `2px solid ${isDark ? "#0f1011" : "#f1f5f9"}`,
         },
         "&::-webkit-scrollbar-thumb:hover": {
-          background: "#2a2c30", // slightly lighter on hover
+          background: isDark ? "#2a2c30" : "#94a3b8",
         },
-
-        /* Firefox Support */
         scrollbarWidth: "thin",
-        scrollbarColor: "#1c1d1f #0f1011",
+        scrollbarColor: isDark ? "#1c1d1f #0f1011" : "#cbd5e1 #f1f5f9",
       }}
     >
       {incidents.map((inc) => {
@@ -255,18 +263,19 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
               title={
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-medium text-white">{inc.name}</p>
-                    <p className="text-xs text-gray-400">{inc.id}</p>
+                    <p className="font-medium" style={{ color: DARK.text }}>
+                      {inc.name}
+                    </p>
+                    <p className="text-xs" style={{ color: DARK.muted }}>
+                      {inc.id}
+                    </p>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <StatusTag status={inc.status} />
-
                     {isNew && (
                       <span className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
                     )}
-
-                    {/* MUTE / UNMUTE BUTTON */}
                     <Button
                       size="small"
                       onClick={toggleSiren}
@@ -280,8 +289,7 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
                         className="h-4 w-4"
                       />
                     </Button>
-
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-[10px]" style={{ color: DARK.muted }}>
                       {formatTime(inc.timeReported)}
                     </span>
                   </div>
@@ -292,14 +300,13 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
             <CardContent className="text-sm space-y-1.5">
               <div className="flex gap-2">
                 <SafeIcon name="MapPin" className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-400">Location:</span>
-                <span className="text-white">{inc.location}</span>
+                <span style={{ color: DARK.muted }}>Location:</span>
+                <span style={{ color: DARK.text }}>{inc.location}</span>
               </div>
-
               <div className="flex gap-2">
                 <SafeIcon name="Crosshair" className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-400">Coordinates:</span>
-                <span className="font-mono text-[11px] text-gray-200">
+                <span style={{ color: DARK.muted }}>Coordinates:</span>
+                <span className="font-mono text-[11px]" style={{ color: DARK.text }}>
                   {inc.coordinates.lat}, {inc.coordinates.lng}
                 </span>
               </div>
@@ -310,7 +317,7 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
                 <Button
                   fullWidth
                   size="small"
-                  onClick={() => acknowledge(inc.id)} // will redirect now
+                  onClick={() => acknowledge(inc.id)}
                   sx={{
                     background: "#ff4444",
                     color: "#fff",
@@ -322,7 +329,6 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
                   Acknowledge
                 </Button>
               )}
-
               <Button
                 fullWidth
                 size="small"
@@ -341,8 +347,9 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
         );
       })}
 
-      <Divider className="border-[#232427]" />
+      <Divider sx={{ borderColor: DARK.border }} />
 
+      {/* Dialog */}
       <Dialog
         open={openDialog}
         onClose={closeDialog}
@@ -350,10 +357,11 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
         maxWidth="md"
         PaperProps={{
           sx: {
-            background: "#141516",
+            background: DARK.dialogBg,
             borderRadius: "12px",
-            border: "1px solid #2a2c30",
+            border: `1px solid ${DARK.dialogBorder}`,
             boxShadow: "0 0 30px rgba(255,0,0,0.15)",
+            color: DARK.text,
           },
         }}
       >
@@ -362,32 +370,25 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderBottom: "1px solid #2a2c30",
+            borderBottom: `1px solid ${DARK.dialogBorder}`,
             px: 3,
             py: 2.5,
           }}
         >
           <div>
-            <div className="text-lg font-semibold text-white">
+            <div className="text-lg font-semibold" style={{ color: DARK.text }}>
               Incident Details
             </div>
-            <div className="text-xs text-gray-400">{selectedIncident?.id}</div>
+            <div className="text-xs" style={{ color: DARK.muted }}>
+              {selectedIncident?.id}
+            </div>
           </div>
-
           {selectedIncident && <StatusTag status={selectedIncident.status} />}
         </DialogTitle>
 
-        {/* CONTENT */}
         <DialogContent sx={{ px: 3, py: 3 }}>
           {selectedIncident && (
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 1.5,
-              }}
-            >
-              {/* LEFT */}
+            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}>
               <Section title="Incident Info">
                 <Row label="Name" value={selectedIncident.name} />
                 <Row label="Type" value={selectedIncident.type} />
@@ -395,48 +396,22 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
                   <StatusTag status={selectedIncident.status} />
                 </Row>
               </Section>
-
-              {/* RIGHT */}
               <Section title="Location Info">
                 <Row label="Address" value={selectedIncident.location} />
-                <Row
-                  label="Coordinates"
-                  mono
+                <Row label="Coordinates" mono
                   value={`${selectedIncident.coordinates.lat}, ${selectedIncident.coordinates.lng}`}
                 />
-                <Row
-                  label="Station"
-                  value={selectedIncident.coordinates.stationName}
-                />
+                <Row label="Station" value={selectedIncident.coordinates.stationName} />
               </Section>
-
-              {/* FULL WIDTH */}
               <Section full title="Timeline">
-                <Row
-                  label="Reported At"
-                  value={new Date(
-                    selectedIncident.timeReported,
-                  ).toLocaleString()}
-                />
-                <Row
-                  label="Alert State"
-                  value={
-                    selectedIncident.isNewAlert ? "New Alert" : "Acknowledged"
-                  }
-                />
+                <Row label="Reported At" value={new Date(selectedIncident.timeReported).toLocaleString()} />
+                <Row label="Alert State" value={selectedIncident.isNewAlert ? "New Alert" : "Acknowledged"} />
               </Section>
             </Box>
           )}
         </DialogContent>
 
-        {/* FOOTER */}
-        <DialogActions
-          sx={{
-            borderTop: "1px solid #2a2c30",
-            px: 3,
-            py: 2,
-          }}
-        >
+        <DialogActions sx={{ borderTop: `1px solid ${DARK.dialogBorder}`, px: 3, py: 2 }}>
           <Button
             onClick={closeDialog}
             sx={{
@@ -444,9 +419,7 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
               color: "#ff6b6b",
               px: 4,
               fontWeight: 600,
-              "&:hover": {
-                background: "rgba(255,77,77,0.1)",
-              },
+              "&:hover": { background: "rgba(255,77,77,0.1)" },
             }}
           >
             CLOSE
