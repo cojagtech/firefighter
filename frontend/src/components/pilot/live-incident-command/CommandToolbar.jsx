@@ -5,12 +5,16 @@ import { useNavigate } from "react-router-dom";
 
 import {
   Button,
-  Chip,
   Menu,
   MenuItem,
   Divider,
   IconButton,
+  Select,
+  FormControl,
 } from "@mui/material";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API = `${API_BASE}/pilot`;
 
 export default function CommandToolbar({
   layout,
@@ -18,39 +22,84 @@ export default function CommandToolbar({
   onFullscreen,
   onExitFullscreen,
   isFullscreen,
-  incidentId,
-  incidentName,
+  selectedDrone,
+  onDroneChange,
 }) {
   const navigate = useNavigate();
+
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+
+  const [drones, setDrones] = React.useState([]);
+
+  React.useEffect(() => {
+    async function fetchDrones() {
+      try {
+        const res = await fetch(`${API}/get_station_drones.php`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (data.success && data.drones) {
+          setDrones(data.drones);
+
+          // set default drone if not already selected
+          if (!selectedDrone && data.drones.length > 0) {
+            onDroneChange(data.drones[0].drone_code);
+          }
+        }
+      } catch (err) {
+        console.error("Drone fetch error:", err);
+      }
+    }
+
+    fetchDrones();
+  }, []);
 
   return (
     <div className="bg-[#141414] backdrop-blur-sm p-4 border-b border-[#1f1f1f]">
       <div className="flex items-center justify-between gap-4">
 
+        {/* LEFT */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
+
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#291818] border border-[#dc2626]">
             <SafeIcon name="AlertTriangle" className="h-5 w-5 text-primary" />
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{incidentName}</p>
-            <p className="text-xs text-muted-foreground font-mono">{incidentId}</p>
-          </div>
 
-          <Chip
-            label={
-              <span className="flex items-center gap-1">
-                <span className="mr-1.5 h-2 w-2 rounded-full bg-white"></span>
-                LIVE
-              </span>
-            }
-            color="error"
-            className="ml-2 animate-pulse"
-            size="small"
-          />
+          {/* DRONE SELECT */}
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <Select
+              value={selectedDrone || ""}
+              onChange={(e) => {
+                onDroneChange(e.target.value);
+                navigate(`/pilot-live-incident-command/${e.target.value}`);
+              }}
+              displayEmpty
+              sx={{
+                color: "white",
+                backgroundColor: "#1f1f1f",
+                ".MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2E2E2E",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#dc2626",
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "white",
+                },
+              }}
+            >
+              {drones.map((drone) => (
+                <MenuItem key={drone.id} value={drone.drone_code}>
+                  {drone.drone_code}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </div>
 
+        {/* CENTER */}
         <div className="flex items-center gap-2">
 
           <Button
@@ -95,6 +144,7 @@ export default function CommandToolbar({
           </Button>
         </div>
 
+        {/* RIGHT */}
         <div className="flex items-center gap-2">
 
           <Button
@@ -116,6 +166,7 @@ export default function CommandToolbar({
             <span className="px-4 py-2 text-xs text-muted-foreground font-semibold">
               Command Options
             </span>
+
             <Divider />
 
             <MenuItem onClick={() => setAnchorEl(null)}>
