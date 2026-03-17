@@ -1,16 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
+import CloseIcon from "@mui/icons-material/Close";
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Badge,
-  Menu,
-  MenuItem,
-  Box,
-  Chip,
-  Avatar,
-  Divider,
+  AppBar, Toolbar, Typography, IconButton, Badge,
+  Menu, MenuItem, Box, Chip, Avatar, Divider,
+  Dialog, DialogTitle, DialogContent, Grid
 } from "@mui/material";
 
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -35,6 +28,8 @@ export default function DashboardHeader() {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [notificationCount, setNotificationCount] = useState(0);
   const [menuAnchor, setMenuAnchor] = useState(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileData, setProfileData] = useState(null);
 
   const { isDark, toggleTheme } = useTheme();
   const { name, role, initials } = useUserInfo();
@@ -46,32 +41,37 @@ export default function DashboardHeader() {
   const DEV_BYPASS = import.meta.env.VITE_DEV_BYPASS_SHIFT === "true";
 
   // ✅ All backend logic unchanged
+  const openProfile = async () => {
+    try {
+      const sessionData = sessionStorage.getItem("fireOpsSession");
+      if (!sessionData) return;
+      const { userId } = JSON.parse(sessionData);
+      const res = await fetch(`${API_BASE}/common/login/get_user_profile.php?id=${userId}`);
+      const data = await res.json();
+      console.log("Profile API Response:", data);
+      setProfileData(data);
+      setProfileOpen(true);
+      setMenuAnchor(null);
+    } catch (err) {
+      console.error("Profile fetch error:", err);
+    }
+  };
+
   useEffect(() => {
     const sessionData = sessionStorage.getItem("fireOpsSession");
     let expiryTime = null;
-
-    if (sessionData) {
-      expiryTime = JSON.parse(sessionData).sessionExpiry;
-    }
-
-    if (!expiryTime) {
-      logoutUser();
-      return;
-    }
+    if (sessionData) expiryTime = JSON.parse(sessionData).sessionExpiry;
+    if (!expiryTime) { logoutUser(); return; }
 
     const updateTimer = () => {
       const now = Date.now();
       const secondsLeft = Math.max(0, Math.floor((expiryTime - now) / 1000));
       setTimeRemaining(secondsLeft);
-
       if (secondsLeft === 300 && !warningShownRef.current) {
         toast("Session expiring in 5 minutes!", { icon: "⚠️" });
         warningShownRef.current = true;
       }
-
-      if (secondsLeft === 0) {
-        logoutUser();
-      }
+      if (secondsLeft === 0) logoutUser();
     };
 
     updateTimer();
@@ -102,10 +102,7 @@ export default function DashboardHeader() {
   };
 
   const handleLogoutAttempt = () => {
-    if (DEV_BYPASS) {
-      logoutUser();
-      return;
-    }
+    if (DEV_BYPASS) { logoutUser(); return; }
     if (timeRemaining > 0) {
       toast.error(`Shift Active! Cannot logout`, { icon: "🔒" });
       setMenuAnchor(null);
@@ -152,6 +149,23 @@ export default function DashboardHeader() {
   const menuHoverBg = isDark ? "#2a2a2a" : "#f3f4f6";
   const dividerColor = isDark ? "#333" : "#e2e8f0";
 
+  // Profile dialog theme
+  const dialogBg = isDark ? "#1A1D21" : "#ffffff";
+  const dialogBorder = isDark ? "#2a2a2a" : "#e2e8f0";
+  const dialogText = isDark ? "#ffffff" : "#111827";
+  const dialogMuted = isDark ? "#aaaaaa" : "#6b7280";
+
+  const InfoRow = ({ title, value }) => (
+    <Box sx={{ borderBottom: `1px solid ${dialogBorder}`, pb: 1.2, mb: 1.5 }}>
+      <Typography fontSize={13} fontWeight="bold" sx={{ color: dialogText }}>
+        {title}
+      </Typography>
+      <Typography fontSize={14} sx={{ color: dialogMuted }}>
+        {value || "-"}
+      </Typography>
+    </Box>
+  );
+
   return (
     <AppBar
       position="sticky"
@@ -184,12 +198,7 @@ export default function DashboardHeader() {
         {/* Right — Actions */}
         <Box display="flex" alignItems="center" gap={2}>
           {DEV_BYPASS && (
-            <Chip
-              label="DEV MODE"
-              color="warning"
-              size="small"
-              sx={{ fontWeight: "bold" }}
-            />
+            <Chip label="DEV MODE" color="warning" size="small" sx={{ fontWeight: "bold" }} />
           )}
 
           <Chip
@@ -205,11 +214,7 @@ export default function DashboardHeader() {
           />
 
           <IconButton sx={{ color: textColor }}>
-            <Badge
-              badgeContent={notificationCount}
-              color="error"
-              invisible={notificationCount === 0}
-            >
+            <Badge badgeContent={notificationCount} color="error" invisible={notificationCount === 0}>
               <NotificationsIcon />
             </Badge>
           </IconButton>
@@ -217,23 +222,12 @@ export default function DashboardHeader() {
           {/* User Menu Trigger */}
           <Box
             onClick={(e) => setMenuAnchor(e.currentTarget)}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              cursor: "pointer",
-              gap: 1,
-            }}
+            sx={{ display: "flex", alignItems: "center", cursor: "pointer", gap: 1 }}
           >
-            <Avatar sx={{ bgcolor: avatarBg, color: avatarColor }}>
-              {initials}
-            </Avatar>
+            <Avatar sx={{ bgcolor: avatarBg, color: avatarColor }}>{initials}</Avatar>
             <Box>
-              <Typography sx={{ fontWeight: "bold", color: textColor }}>
-                {name}
-              </Typography>
-              <Typography sx={{ fontSize: 12, color: subtitleColor }}>
-                {role}
-              </Typography>
+              <Typography sx={{ fontWeight: "bold", color: textColor }}>{name}</Typography>
+              <Typography sx={{ fontSize: 12, color: subtitleColor }}>{role}</Typography>
             </Box>
             <ExpandMoreIcon sx={{ color: textColor }} />
           </Box>
@@ -249,42 +243,20 @@ export default function DashboardHeader() {
                 color: menuColor,
                 width: 220,
                 border: `1px solid ${headerBorder}`,
-                boxShadow: isDark
-                  ? "0 4px 12px rgba(0,0,0,0.5)"
-                  : "0 4px 12px rgba(0,0,0,0.1)",
+                boxShadow: isDark ? "0 4px 12px rgba(0,0,0,0.5)" : "0 4px 12px rgba(0,0,0,0.1)",
               },
             }}
           >
-            <MenuItem
-              sx={{
-                color: menuColor,
-                "&:hover": { background: menuHoverBg },
-              }}
-            >
+            <MenuItem onClick={openProfile} sx={{ color: menuColor, "&:hover": { background: menuHoverBg } }}>
               <AccountCircleIcon sx={{ mr: 1, color: menuColor }} /> Profile
             </MenuItem>
 
-            <MenuItem
-              onClick={toggleTheme}
-              sx={{
-                color: menuColor,
-                "&:hover": { background: menuHoverBg },
-              }}
-            >
-              <SafeIcon
-                name={isDark ? "Sun" : "Moon"}
-                size={16}
-                className="mr-2"
-              />
+            <MenuItem onClick={toggleTheme} sx={{ color: menuColor, "&:hover": { background: menuHoverBg } }}>
+              <SafeIcon name={isDark ? "Sun" : "Moon"} size={16} className="mr-2" />
               {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             </MenuItem>
 
-            <MenuItem
-              sx={{
-                color: menuColor,
-                "&:hover": { background: menuHoverBg },
-              }}
-            >
+            <MenuItem sx={{ color: menuColor, "&:hover": { background: menuHoverBg } }}>
               <SettingsIcon sx={{ mr: 1, color: menuColor }} /> Settings
             </MenuItem>
 
@@ -298,16 +270,114 @@ export default function DashboardHeader() {
                 "&:hover": { background: menuHoverBg },
               }}
             >
-              {timeRemaining > 0 && !DEV_BYPASS ? (
-                <LockIcon sx={{ mr: 1 }} />
-              ) : (
-                <LogoutIcon sx={{ mr: 1 }} />
-              )}
+              {timeRemaining > 0 && !DEV_BYPASS ? <LockIcon sx={{ mr: 1 }} /> : <LogoutIcon sx={{ mr: 1 }} />}
               {timeRemaining > 0 && !DEV_BYPASS ? "Shift Locked" : "Logout"}
             </MenuItem>
           </Menu>
         </Box>
       </Toolbar>
+
+      {/* Profile Dialog */}
+      <Dialog
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        maxWidth="md"
+        fullWidth
+        BackdropProps={{
+          sx: {
+            backdropFilter: "blur(6px)",
+            background: "rgba(0,0,0,0.6)",
+          },
+        }}
+        PaperProps={{
+          sx: {
+            maxWidth: "800px",
+            width: "100%",
+            position: "relative",
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            borderRadius: "16px",
+            overflow: "hidden",
+            background: dialogBg,
+            color: dialogText,
+            border: `1px solid ${dialogBorder}`,
+            my: 4,
+          },
+        }}
+      >
+        {/* Close Button */}
+        <IconButton
+          onClick={() => setProfileOpen(false)}
+          sx={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            color: isDark ? "#aaa" : "#6b7280",
+            zIndex: 10,
+            "&:hover": {
+              color: isDark ? "#fff" : "#111827",
+              background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+            },
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+
+        {/* Left Side */}
+        <Box
+          sx={{
+            width: { md: "32%" },
+            p: 4,
+            textAlign: "center",
+            borderRight: { md: `1px solid ${dialogBorder}` },
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 100,
+              height: 100,
+              mx: "auto",
+              mb: 2,
+              fontSize: 32,
+              background: "linear-gradient(135deg,#ff5252,#b71c1c)",
+            }}
+          >
+            {initials}
+          </Avatar>
+
+          <Typography fontWeight="bold" fontSize={18} sx={{ color: dialogText }}>
+            {profileData?.fullName}
+          </Typography>
+
+          <Typography fontSize={13} sx={{ color: dialogMuted, mb: 2 }}>
+            {profileData?.email}
+          </Typography>
+
+          <Chip
+            label={profileData?.status === 1 ? "Active" : "Inactive"}
+            sx={{
+              background: profileData?.status === 1 ? "#1b5e20" : "#b71c1c",
+              color: "#fff",
+              fontWeight: "bold",
+            }}
+          />
+        </Box>
+
+        {/* Right Side */}
+        <Box sx={{ flex: 1, display: "flex", alignItems: "center", px: 4 }}>
+          <Box sx={{ width: "100%", p: 4 }}>
+            <InfoRow title="Designation" value={profileData?.designation} />
+            <InfoRow title="Role" value={profileData?.role} />
+            <InfoRow title="Station" value={profileData?.station} />
+            <InfoRow title="Address" value={profileData?.address} />
+            <InfoRow title="Phone" value={profileData?.phone} />
+          </Box>
+        </Box>
+      </Dialog>
     </AppBar>
   );
 }
