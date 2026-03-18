@@ -10,12 +10,10 @@ import { Button } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 
 export default function LiveIncidentCommandScreen() {
-
   const { droneId } = useParams();
   const navigate = useNavigate();
 
   const [selectedDrone, setSelectedDrone] = useState("");
-
   const selectedVehicles = [];
 
   const [layout, setLayout] = useState("split");
@@ -23,19 +21,30 @@ export default function LiveIncidentCommandScreen() {
   const [focusedPanel, setFocusedPanel] = useState("drone-location");
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // ✅ URL → state sync
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
   useEffect(() => {
-    if (droneId) {
-      setSelectedDrone(droneId);
-    }
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ All logic unchanged
+  useEffect(() => {
+    if (droneId) setSelectedDrone(droneId);
   }, [droneId]);
 
-  // ✅ state → URL sync (MAIN FIX)
   useEffect(() => {
     if (selectedDrone && !droneId) {
-      navigate(`/pilot-live-incident-command/${selectedDrone}`, {
-        replace: true,
-      });
+      navigate(`/pilot-live-incident-command/${selectedDrone}`, { replace: true });
     }
   }, [selectedDrone, droneId]);
 
@@ -77,11 +86,15 @@ export default function LiveIncidentCommandScreen() {
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
+  const panelBg = isDark ? "#1F1F1F" : "#f1f5f9";
+  const pageBg = isDark ? "#0A0A0A" : "#f8fafc";
+
   const renderPanel = (key, Component, clickable = false) => (
     <div
-      className={`rounded-lg h-full min-h-0 overflow-hidden bg-[#1F1F1F] ${
+      className={`rounded-lg h-full min-h-0 overflow-hidden ${
         clickable ? "cursor-pointer hover:ring-2 hover:ring-red-500" : ""
       }`}
+      style={{ backgroundColor: panelBg }}
       onClick={clickable ? () => handleFocusChange(key) : undefined}
     >
       <Component
@@ -95,8 +108,10 @@ export default function LiveIncidentCommandScreen() {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-
+    <div
+      className="h-screen flex flex-col"
+      style={{ backgroundColor: isDark ? "#0A0A0A" : "#f8fafc" }}
+    >
       <CommandToolbar
         layout={layout}
         onLayoutChange={changeLayout}
@@ -107,8 +122,11 @@ export default function LiveIncidentCommandScreen() {
         onDroneChange={setSelectedDrone}
       />
 
-      <div className="flex-1 p-4 bg-[#0A0A0A]">
-
+      <div
+        className="flex-1 p-4"
+        style={{ backgroundColor: pageBg }}
+      >
+        {/* Split Layout */}
         {layout === "split" && (
           <div className="grid grid-cols-2 grid-rows-2 gap-4 h-[50%]">
             <div>{renderPanel("drone-location", DroneLivePanel)}</div>
@@ -117,6 +135,7 @@ export default function LiveIncidentCommandScreen() {
           </div>
         )}
 
+        {/* Focus Layout */}
         {layout === "focus" && (
           <div className="flex flex-col gap-3 h-full">
             <div className="h-[60%]">
@@ -124,7 +143,6 @@ export default function LiveIncidentCommandScreen() {
               {focusedPanel === "drone-camera" && renderPanel("drone-camera", DroneCameraPanel)}
               {focusedPanel === "3d-twin" && renderPanel("3d-twin", DetectionAlert)}
             </div>
-
             <div className="h-[35%] grid grid-cols-2 gap-2">
               {focusedPanel !== "drone-location" && renderPanel("drone-location", DroneLivePanel, true)}
               {focusedPanel !== "drone-camera" && renderPanel("drone-camera", DroneCameraPanel, true)}
@@ -133,6 +151,7 @@ export default function LiveIncidentCommandScreen() {
           </div>
         )}
 
+        {/* Full Layout */}
         {layout === "full" && (
           <div className="flex flex-col gap-4 h-full">
             <div className="h-[75%]">
@@ -140,25 +159,29 @@ export default function LiveIncidentCommandScreen() {
               {focusedPanel === "drone-camera" && renderPanel("drone-camera", DroneCameraPanel)}
               {focusedPanel === "3d-twin" && renderPanel("3d-twin", DetectionAlert)}
             </div>
-
             <div className="h-[25%] grid grid-cols-2 gap-2">
               {focusedPanel !== "drone-location" && renderPanel("drone-location", DroneLivePanel, true)}
               {focusedPanel !== "drone-camera" && renderPanel("drone-camera", DroneCameraPanel, true)}
               {focusedPanel !== "3d-twin" && renderPanel("3d-twin", DetectionAlert, true)}
             </div>
-
             <div className="flex justify-center pt-2">
               <Button
                 variant="outlined"
                 onClick={minimizePanel}
                 startIcon={<SafeIcon name="Minimize2" />}
+                sx={{
+                  borderColor: isDark ? "#2E2E2E" : "#e2e8f0",
+                  color: isDark ? "#ffffff" : "#111827",
+                  "&:hover": {
+                    backgroundColor: isDark ? "#1F1F1F" : "#f1f5f9",
+                  },
+                }}
               >
                 Exit Full View
               </Button>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

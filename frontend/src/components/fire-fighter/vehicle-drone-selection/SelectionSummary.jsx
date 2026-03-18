@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Card,
@@ -15,6 +15,24 @@ import GroupIcon from "@mui/icons-material/Group";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
+// Shared theme hook
+function useIsDark() {
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+  return isDark;
+}
+
 export default function SelectionSummary({
   selectedVehicles = [],
   selectedDrones = [],
@@ -22,6 +40,26 @@ export default function SelectionSummary({
   onActivate = () => {},
   onBack = () => {},
 }) {
+  const isDark = useIsDark();
+
+  const C = isDark
+    ? {
+        cardBg: "#141414",
+        cardBorder: "#222222",
+        divider: "#2c2c2c",
+        sectionHeader: "#aaaaaa",
+        backBtnColor: "#dddddd",
+        backBtnBorder: "#444444",
+      }
+    : {
+        cardBg: "#ffffff",
+        cardBorder: "#e2e8f0",
+        divider: "#e2e8f0",
+        sectionHeader: "#6b7280",
+        backBtnColor: "#111827",
+        backBtnBorder: "#e2e8f0",
+      };
+
   const totalDistance = selectedVehicles.reduce(
     (acc, v) => acc + (v.distanceKm || 0),
     0
@@ -38,8 +76,8 @@ export default function SelectionSummary({
     <Card
       sx={{
         borderRadius: "18px",
-        background: "#141414",
-        border: "1px solid #222",
+        background: C.cardBg,
+        border: `1px solid ${C.cardBorder}`,
         p: 1,
       }}
     >
@@ -60,11 +98,13 @@ export default function SelectionSummary({
           icon={<LocalShippingIcon />}
           label="Vehicle(s)"
           count={selectedVehicles.length}
+          isDark={isDark}
         />
         <SummaryBox
           icon={<FlightIcon />}
           label="Drone(s)"
           count={selectedDrones.length}
+          isDark={isDark}
         />
         <SummaryBox
           icon={<GroupIcon />}
@@ -74,30 +114,33 @@ export default function SelectionSummary({
             0
           )}
           last
+          isDark={isDark}
         />
 
-        <Divider sx={{ my: 2.5, borderColor: "#2c2c2c" }} />
+        <Divider sx={{ my: 2.5, borderColor: C.divider }} />
 
         <FlexRow label="Total Distance" value={`${totalDistance.toFixed(1)} km`} />
         <FlexRow label="Max ETA" value={`${maxEta} minutes`} />
 
-        <Divider sx={{ my: 2.5, borderColor: "#2c2c2c" }} />
+        <Divider sx={{ my: 2.5, borderColor: C.divider }} />
 
-        <SectionHeader text="SELECTED VEHICLES" />
+        <SectionHeader text="SELECTED VEHICLES" color={C.sectionHeader} />
         {selectedVehicles.map((v) => (
           <SelectedItem
             key={v.id}
             name={v.name}
             rightLabel={`${v.etaMinutes || 0}m`}
+            isDark={isDark}
           />
         ))}
 
-        <SectionHeader text="SELECTED DRONE(S)" />
+        <SectionHeader text="SELECTED DRONE(S)" color={C.sectionHeader} />
         {selectedDrones.map((d) => (
           <SelectedItem
             key={d.id}
             name={d.name}
             rightLabel={`${d.battery || 0}%  ${d.etaMinutes || "—"}m`}
+            isDark={isDark}
           />
         ))}
 
@@ -131,8 +174,13 @@ export default function SelectionSummary({
             borderRadius: "10px",
             fontWeight: 700,
             fontSize: "0.9rem",
-            color: "#ddd",
-            borderColor: "#444",
+            color: C.backBtnColor,
+            borderColor: C.backBtnBorder,
+            "&:hover": {
+              borderColor: "#ef4444",
+              color: "#ef4444",
+              backgroundColor: "rgba(239,68,68,0.08)",
+            },
           }}
         >
           ← Back
@@ -142,12 +190,11 @@ export default function SelectionSummary({
   );
 }
 
-
-function SummaryBox({ icon, label, count, last }) {
+function SummaryBox({ icon, label, count, last, isDark }) {
   return (
     <Box
       sx={{
-        border: "1px solid #2b2b2b",
+        border: `1px solid ${isDark ? "#2b2b2b" : "#e2e8f0"}`,
         borderRadius: "10px",
         px: 2,
         py: 1.5,
@@ -155,19 +202,24 @@ function SummaryBox({ icon, label, count, last }) {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        background: "#1a1a1a",
+        background: isDark ? "#1a1a1a" : "#f8fafc",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.3 }}>
         {icon}
-        <Typography fontWeight={600}>{label}</Typography>
+        <Typography
+          fontWeight={600}
+          sx={{ color: isDark ? "#ffffff" : "#111827" }}
+        >
+          {label}
+        </Typography>
       </Box>
 
       <Chip
         label={count}
         sx={{
-          background: "rgba(255,255,255,0.07)",
-          color: "#ddd",
+          background: isDark ? "rgba(255,255,255,0.07)" : "#e5e7eb",
+          color: isDark ? "#dddddd" : "#111827",
           fontWeight: 700,
           borderRadius: "8px",
         }}
@@ -186,32 +238,37 @@ function FlexRow({ label, value }) {
   );
 }
 
-function SectionHeader({ text }) {
+function SectionHeader({ text, color }) {
   return (
     <Typography
       variant="overline"
-      sx={{ color: "#aaa", mb: 1, display: "block", fontSize: "0.75rem" }}
+      sx={{ color: color, mb: 1, display: "block", fontSize: "0.75rem" }}
     >
       {text}
     </Typography>
   );
 }
 
-function SelectedItem({ name, rightLabel }) {
+function SelectedItem({ name, rightLabel, isDark }) {
   return (
     <Box
       sx={{
-        border: "1px solid #2d2d2d",
+        border: `1px solid ${isDark ? "#2d2d2d" : "#e2e8f0"}`,
         borderRadius: "8px",
         px: 2,
         py: 1,
         mb: 1,
-        background: "#1b1b1b",
+        background: isDark ? "#1b1b1b" : "#f8fafc",
         display: "flex",
         justifyContent: "space-between",
       }}
     >
-      <Typography fontWeight={600}>{name}</Typography>
+      <Typography
+        fontWeight={600}
+        sx={{ color: isDark ? "#ffffff" : "#111827" }}
+      >
+        {name}
+      </Typography>
       <Typography color="text.secondary">{rightLabel}</Typography>
     </Box>
   );
@@ -239,7 +296,6 @@ function StatusBox({ canActivate }) {
       ) : (
         <WarningAmberIcon sx={{ color: "#F3C241" }} />
       )}
-
       <Box>
         <Typography
           fontWeight={700}
@@ -247,7 +303,6 @@ function StatusBox({ canActivate }) {
         >
           {canActivate ? "Ready to Activate" : "Cannot Activate"}
         </Typography>
-
         <Typography color="text.secondary" variant="body2">
           {canActivate
             ? "All requirements met. Click activate to proceed."

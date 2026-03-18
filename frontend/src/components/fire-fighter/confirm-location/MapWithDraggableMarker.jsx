@@ -31,6 +31,23 @@ export default function MapWithDraggableMarkerMui({
   const [position, setPosition] = useState(null);
   const [originalPosition, setOriginalPosition] = useState(null);
 
+  // Theme observer
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Backend unchanged
   useEffect(() => {
     if (
       Number.isFinite(initialLat) &&
@@ -43,10 +60,42 @@ export default function MapWithDraggableMarkerMui({
     }
   }, [initialLat, initialLng, originalPosition]);
 
+  const C = isDark
+    ? {
+        cardBg: "#141414",
+        cardBorder: "#222222",
+        invalidBg: "#111111",
+        invalidText: "gray",
+        coordsBg: "#1e1e1e",
+        coordsLabel: "gray",
+        coordsText: "#ffffff",
+      }
+    : {
+        cardBg: "#ffffff",
+        cardBorder: "#e2e8f0",
+        invalidBg: "#f8fafc",
+        invalidText: "#9ca3af",
+        coordsBg: "#f1f5f9",
+        coordsLabel: "#6b7280",
+        coordsText: "#111827",
+      };
+
   if (!position) {
     return (
-      <Card sx={{ background: "#141414", border: "1px solid #222", borderRadius: 3 }}>
-        <CardHeader title="Incident Location Map" />
+      <Card
+        sx={{
+          background: C.cardBg,
+          border: `1px solid ${C.cardBorder}`,
+          borderRadius: 3,
+        }}
+      >
+        <CardHeader
+          title={
+            <Typography sx={{ color: isDark ? "#ffffff" : "#111827" }}>
+              Incident Location Map
+            </Typography>
+          }
+        />
         <CardContent>
           <Box
             sx={{
@@ -54,8 +103,8 @@ export default function MapWithDraggableMarkerMui({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "gray",
-              bgcolor: "#111",
+              color: C.invalidText,
+              bgcolor: C.invalidBg,
               borderRadius: 2,
             }}
           >
@@ -73,13 +122,18 @@ export default function MapWithDraggableMarkerMui({
         if (Number.isFinite(lat) && Number.isFinite(lng)) {
           const newPos = [lat, lng];
           setPosition(newPos);
-          onMarkerMove(lat, lng, false); 
+          onMarkerMove(lat, lng, false);
         }
       },
     };
 
     return (
-      <Marker icon={markerIcon} draggable eventHandlers={eventHandlers} position={position}>
+      <Marker
+        icon={markerIcon}
+        draggable
+        eventHandlers={eventHandlers}
+        position={position}
+      >
         <Popup>
           <b>{incidentName}</b> <br />
           {position[0].toFixed(4)}, {position[1].toFixed(4)}
@@ -89,13 +143,24 @@ export default function MapWithDraggableMarkerMui({
   }
 
   return (
-    <Card sx={{ background: "#141414", border: "1px solid #222", borderRadius: 3 }}>
+    <Card
+      sx={{
+        background: C.cardBg,
+        border: `1px solid ${C.cardBorder}`,
+        borderRadius: 3,
+      }}
+    >
       <CardHeader
         title={
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <LocationOnIcon color="primary" />
-              <Typography variant="h6">Incident Location Map</Typography>
+              <Typography
+                variant="h6"
+                sx={{ color: isDark ? "#ffffff" : "#111827" }}
+              >
+                Incident Location Map
+              </Typography>
             </Box>
             {hasMarkerMoved && <Chip label="ADJUSTED" color="warning" />}
           </Box>
@@ -113,7 +178,6 @@ export default function MapWithDraggableMarkerMui({
             <BaseLayer checked name="Normal Map">
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             </BaseLayer>
-
             <BaseLayer name="Satellite View">
               <TileLayer
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -121,15 +185,21 @@ export default function MapWithDraggableMarkerMui({
               />
             </BaseLayer>
           </LayersControl>
-
           <DraggableMarker />
         </MapContainer>
 
-        <Box mt={2} p={1} sx={{ bgcolor: "#1e1e1e", borderRadius: 1 }}>
-          <Typography fontSize={13} color="gray">
+        <Box
+          mt={2}
+          p={1}
+          sx={{ bgcolor: C.coordsBg, borderRadius: 1 }}
+        >
+          <Typography fontSize={13} sx={{ color: C.coordsLabel }}>
             Coordinates
           </Typography>
-          <Typography fontFamily="monospace">
+          <Typography
+            fontFamily="monospace"
+            sx={{ color: C.coordsText }}
+          >
             {position[0].toFixed(6)}, {position[1].toFixed(6)}
           </Typography>
         </Box>
@@ -142,8 +212,8 @@ export default function MapWithDraggableMarkerMui({
             sx={{ mt: 2 }}
             onClick={() => {
               const [resetLat, resetLng] = originalPosition;
-              setPosition(originalPosition);          
-              onMarkerMove(resetLat, resetLng, true); 
+              setPosition(originalPosition);
+              onMarkerMove(resetLat, resetLng, true);
             }}
           >
             Reset to Original Location
