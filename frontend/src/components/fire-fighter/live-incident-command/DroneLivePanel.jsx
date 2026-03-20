@@ -37,10 +37,14 @@ const droneIcon = new L.Icon({
   iconAnchor: [20, 20],
 });
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API = `${API_BASE}/pilot`;
+
 const DRONE_CODE_TO_DB_ID = {
   "DRN-002": 101,
   "DRN-001": 102,
 };
+
 
 export default function DroneLivePanel({
   incident,
@@ -124,7 +128,9 @@ export default function DroneLivePanel({
   useEffect(() => {
     if (!dbDroneId) return;
 
-    const DRONE_API = `http://65.2.78.112/fire-fighter/get_drone_location.php?droneId=${dbDroneId}`;
+    // const DRONE_API = `http://65.2.78.112/fire-fighter/get_drone_location.php?droneId=${dbDroneId}`;
+
+    const DRONE_API = `${API}/get_drone_location.php?droneId=${dbDroneId}`;
 
     async function getDrone() {
       try {
@@ -233,9 +239,8 @@ export default function DroneLivePanel({
             }}
           >
             <div
-              className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-red-600 transition-all duration-300 ${
-                mapMode === "3d" ? "left-[50%]" : "left-1"
-              }`}
+              className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-red-600 transition-all duration-300 ${mapMode === "3d" ? "left-[50%]" : "left-1"
+                }`}
             />
             <button
               onClick={() => setMapMode("2d")}

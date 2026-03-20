@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 17, 2026 at 12:57 PM
+-- Generation Time: Mar 20, 2026 at 07:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -140,7 +140,7 @@ INSERT INTO `drone_gps_logs` (`id`, `drone_code`, `latitude`, `longitude`, `spee
 
 CREATE TABLE `fire_detections` (
   `id` int(11) NOT NULL,
-  `TIMESTAMP` bigint(20) DEFAULT NULL,
+  `event_timestamp` bigint(20) DEFAULT NULL,
   `alert_type` varchar(50) DEFAULT NULL,
   `confidence` float DEFAULT NULL,
   `fire_count` int(11) DEFAULT NULL,
@@ -153,7 +153,7 @@ CREATE TABLE `fire_detections` (
 -- Dumping data for table `fire_detections`
 --
 
-INSERT INTO `fire_detections` (`id`, `TIMESTAMP`, `alert_type`, `confidence`, `fire_count`, `intensity_level`, `location`, `created_at`) VALUES
+INSERT INTO `fire_detections` (`id`, `event_timestamp`, `alert_type`, `confidence`, `fire_count`, `intensity_level`, `location`, `created_at`) VALUES
 (1, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-12 06:45:45'),
 (2, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:08:42'),
 (3, 1741785600000, 'fire_detection', 0.87, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:15:59'),
@@ -171,14 +171,8 @@ INSERT INTO `fire_detections` (`id`, `TIMESTAMP`, `alert_type`, `confidence`, `f
 (15, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:31:03'),
 (16, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:33:37'),
 (17, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:33:41'),
-(18, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:35:30'),
-(19, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:37:25'),
-(20, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:37:32'),
-(21, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:37:49'),
-(22, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:38:28'),
-(23, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:39:39'),
-(24, 1741785600000, 'fire_detection', 0.97, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:39:45'),
-(25, 1741785600000, 'fire_detection', 0.8, 4, '🔥🔥🔥 CRITICAL', 'AWS_RTMP_Stream', '2026-03-13 12:39:58');
+(26, 1710000000000, 'fire_detection', 0.91, 3, 'HIGH', 'RTMP_TEST', '2026-03-20 06:07:08'),
+(27, 1710000000000, 'fire_detection', 0.91, 3, 'HIGH', 'RTMP_TEST', '2026-03-20 06:25:54');
 
 -- --------------------------------------------------------
 
@@ -424,7 +418,7 @@ ALTER TABLE `drone_gps_logs`
 -- AUTO_INCREMENT for table `fire_detections`
 --
 ALTER TABLE `fire_detections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `fire_station`
