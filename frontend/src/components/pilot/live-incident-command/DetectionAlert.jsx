@@ -9,15 +9,17 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const ALERT_API =
   `${API_BASE}/fire-fighter/live-incident-command/get_latest_detection.php`;
 
-const FETCH_INTERVAL = 1000;
-const FIRE_TIMEOUT = 15000; // 🔥 increased for stability
+const FETCH_INTERVAL = 1000; // 1 sec
+const FIRE_TIMEOUT = 5000; // 5 sec
 
 export default function DetectionAlert({ isMaximized = false }) {
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const lastIdRef = useRef(null);
   const timeoutRef = useRef(null);
 
+  // normalize API fields
   const normalizeData = (data) => ({
     id: data.id ?? data.ID,
     confidence: data.confidence ?? data.CONFIDENCE,
@@ -31,23 +33,24 @@ export default function DetectionAlert({ isMaximized = false }) {
       const res = await fetch(ALERT_API + "?t=" + Date.now());
       const json = await res.json();
 
-      if (!json) {
+      if (!json || !json.data) {
         setAlert(null);
         return;
       }
 
-      if (json.status === "fire" && json.data) {
-        const normalized = normalizeData(json.data);
+      const normalized = normalizeData(json.data);
+
+      // only show if new detection
+      if (lastIdRef.current !== Number(normalized.id)) {
+        lastIdRef.current = Number(normalized.id);
 
         setAlert(normalized);
 
+        // auto remove fire after timeout
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
         timeoutRef.current = setTimeout(() => {
           setAlert(null);
         }, FIRE_TIMEOUT);
-      } else {
-        setAlert(null);
       }
 
     } catch (err) {
@@ -61,7 +64,6 @@ export default function DetectionAlert({ isMaximized = false }) {
   useEffect(() => {
     fetchAlert();
     const interval = setInterval(fetchAlert, FETCH_INTERVAL);
-
     return () => {
       clearInterval(interval);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -91,7 +93,7 @@ export default function DetectionAlert({ isMaximized = false }) {
         />
       </div>
 
-      {/* Panel */}
+      {/* Detection Panel */}
       <div className="flex-1 rounded-lg border border-dashed border-[#2E2E2E] bg-muted/20 flex items-center justify-center">
 
         {loading && <span className="text-sm">Loading…</span>}
@@ -105,9 +107,7 @@ export default function DetectionAlert({ isMaximized = false }) {
         {!loading && alert && (
           <div className="text-center space-y-2">
 
-            <p className="text-base font-semibold text-red-500">
-              🔥 Fire Detected
-            </p>
+            <p className="text-base font-semibold text-red-500">🔥 Fire Detected</p>
 
             <p className="text-xs text-white">
               Confidence: {(Number(alert.confidence) * 100).toFixed(1)}%
@@ -125,6 +125,7 @@ export default function DetectionAlert({ isMaximized = false }) {
         )}
 
       </div>
+
     </div>
   );
 }

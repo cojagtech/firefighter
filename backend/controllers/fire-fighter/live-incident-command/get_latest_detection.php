@@ -3,43 +3,6 @@
 require_once realpath(__DIR__ . "/../../../config/db.php");
 
 $result = $conn->query("
-SELECT *
-FROM fire_detections
-ORDER BY id DESC
-LIMIT 1
-");
-
-$row = $result->fetch_assoc();
-
-if (!$row) {
-    echo json_encode([
-        "status" => "no_fire"
-    ]);
-    exit;
-}
-
-$current_time = time();
-$created_time = strtotime($row['created_at']);
-
-$diff = $current_time - $created_time;
-
-// consider fire valid for 10 seconds
-$is_fire = ($diff <= 10);
-
-echo json_encode([
-    "status" => $is_fire ? "fire" : "no_fire",
-    "age" => $diff,
-    "data" => $row
-]);
-
-?>
-
-
-<!-- <?php
-
-require_once realpath(__DIR__ . "/../../../config/db.php");
-
-$result = $conn->query("
 SELECT * 
 FROM fire_detections
 WHERE created_at >= NOW() - INTERVAL 10 SECOND
@@ -66,4 +29,4 @@ if(($current_time - $created_time) > 3){
     ]);
 }
 
-?> -->
+?>
