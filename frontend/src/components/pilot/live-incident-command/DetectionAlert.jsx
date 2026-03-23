@@ -9,17 +9,16 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const ALERT_API =
   `${API_BASE}/fire-fighter/live-incident-command/get_latest_detection.php`;
 
-const FETCH_INTERVAL = 1000; // 1 sec
-const FIRE_TIMEOUT = 5000; // 5 sec
+const FETCH_INTERVAL = 1000;
+const FIRE_TIMEOUT = 12000; 
 
 export default function DetectionAlert({ isMaximized = false }) {
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const lastIdRef = useRef(null);
-  const timeoutRef = useRef(null);
+  // 🔥 track last time fire was seen
+  const lastFireTimeRef = useRef(0);
 
-  // normalize API fields
   const normalizeData = (data) => ({
     id: data.id ?? data.ID,
     confidence: data.confidence ?? data.CONFIDENCE,
@@ -33,29 +32,29 @@ export default function DetectionAlert({ isMaximized = false }) {
       const res = await fetch(ALERT_API + "?t=" + Date.now());
       const json = await res.json();
 
-      if (!json || !json.data) {
-        setAlert(null);
-        return;
-      }
+      const now = Date.now();
 
-      const normalized = normalizeData(json.data);
-
-      // only show if new detection
-      if (lastIdRef.current !== Number(normalized.id)) {
-        lastIdRef.current = Number(normalized.id);
+      if (json?.status?.trim() === "fire" && json?.data) {
+        const normalized = normalizeData(json.data);
 
         setAlert(normalized);
+        lastFireTimeRef.current = now;
 
-        // auto remove fire after timeout
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(() => {
-          setAlert(null);
-        }, FIRE_TIMEOUT);
+      }
+      else if (json?.status?.trim() === "no_fire") {
+        // 🔥 IMMEDIATE CLEAR (IMPORTANT FIX)
+        setAlert(null);
+        lastFireTimeRef.current = 0;
       }
 
     } catch (err) {
-      console.log("Fetch error:", err);
-      setAlert(null);
+      console.log("❌ Fetch error:", err);
+
+      // fallback safety
+      const now = Date.now();
+      if (now - lastFireTimeRef.current > FIRE_TIMEOUT) {
+        setAlert(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -64,10 +63,8 @@ export default function DetectionAlert({ isMaximized = false }) {
   useEffect(() => {
     fetchAlert();
     const interval = setInterval(fetchAlert, FETCH_INTERVAL);
-    return () => {
-      clearInterval(interval);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -93,7 +90,7 @@ export default function DetectionAlert({ isMaximized = false }) {
         />
       </div>
 
-      {/* Detection Panel */}
+      {/* Panel */}
       <div className="flex-1 rounded-lg border border-dashed border-[#2E2E2E] bg-muted/20 flex items-center justify-center">
 
         {loading && <span className="text-sm">Loading…</span>}
@@ -107,7 +104,9 @@ export default function DetectionAlert({ isMaximized = false }) {
         {!loading && alert && (
           <div className="text-center space-y-2">
 
-            <p className="text-base font-semibold text-red-500">🔥 Fire Detected</p>
+            <p className="text-base font-semibold text-red-500">
+              🔥 Fire Detected
+            </p>
 
             <p className="text-xs text-white">
               Confidence: {(Number(alert.confidence) * 100).toFixed(1)}%
@@ -118,14 +117,13 @@ export default function DetectionAlert({ isMaximized = false }) {
             </p>
 
             <p className="text-xs text-white">
-              {alert.intensity_level}
+              Intensity Level: {alert.intensity_level}
             </p>
 
           </div>
         )}
 
       </div>
-
     </div>
   );
 }
