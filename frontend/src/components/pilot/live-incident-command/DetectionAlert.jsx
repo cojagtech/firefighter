@@ -10,7 +10,7 @@ const ALERT_API =
   `${API_BASE}/fire-fighter/live-incident-command/get_latest_detection.php`;
 
 const FETCH_INTERVAL = 1000; // 1 sec
-const FIRE_TIMEOUT = 5000; // 5 sec
+const FIRE_TIMEOUT = 15000; // 5 sec
 
 export default function DetectionAlert({ isMaximized = false }) {
   const [alert, setAlert] = useState(null);
