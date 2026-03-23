@@ -40,10 +40,10 @@ const droneIcon = new L.Icon({
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const API = `${API_BASE}/pilot`;
 
-const DRONE_CODE_TO_DB_ID = {
-  "DRN-002": 101,
-  "DRN-001": 102,
-};
+// const DRONE_CODE_TO_DB_ID = {
+//   "DRN-002": 101,
+//   "DRN-001": 102,
+// };
 
 
 export default function DroneLivePanel({
@@ -53,7 +53,7 @@ export default function DroneLivePanel({
   onExit,
 }) {
   const { droneId: droneCode } = useParams();
-  const dbDroneId = DRONE_CODE_TO_DB_ID[droneCode];
+  // const dbDroneId = DRONE_CODE_TO_DB_ID[droneCode];
 
   const mapContainerRef = useRef(null);
   const leafletMapRef = useRef(null);
@@ -130,7 +130,7 @@ export default function DroneLivePanel({
 
     // const DRONE_API = `http://65.2.78.112/fire-fighter/get_drone_location.php?droneId=${dbDroneId}`;
 
-    const DRONE_API = `${API}/get_drone_location.php?droneId=${dbDroneId}`;
+    const DRONE_API = `${API}/get_drone_location.php?drone_code=${droneCode}`;
 
     async function getDrone() {
       try {
