@@ -135,54 +135,106 @@ export default function DroneLivePanel({
     async function getDrone() {
       try {
         const res = await fetch(DRONE_API);
-        const data = await res.json();
+        const result = await res.json();
 
-        if (!data?.latitude || !data?.longitude) return;
+        console.log("Drone API response:", result);
 
-        const lat = parseFloat(data.latitude);
-        const lng = parseFloat(data.longitude);
+        // ✅ Correct structure check
+        if (
+          !result ||
+          !result.data ||
+          result.data.latitude === undefined ||
+          result.data.longitude === undefined
+        ) {
+          console.error("Invalid GPS data:", result);
+          return;
+        }
+
+        const lat = parseFloat(result.data.latitude);
+        const lng = parseFloat(result.data.longitude);
+
+        console.log("Lat:", lat, "Lng:", lng);
 
         if (isNaN(lat) || isNaN(lng)) return;
 
-        setDroneLocations([data]);
+        // ✅ store correct data
+        setDroneLocations([result.data]);
 
+        // =========================
+        // 🗺 2D MAP (Leaflet)
+        // =========================
         if (mapMode === "2d" && leafletMapRef.current) {
           const latLng = [lat, lng];
+
           if (!droneMarkerRef.current) {
+            console.log("Creating marker...");
+
             droneMarkerRef.current = L.marker(latLng, { icon: droneIcon })
               .addTo(leafletMapRef.current);
+
             leafletMapRef.current.setView(latLng, 16);
           } else {
+            console.log("Updating marker...");
+
             droneMarkerRef.current.setLatLng(latLng);
           }
         }
 
+        // =========================
+        // 🌍 3D MAP (Cesium)
+        // =========================
         if (mapMode === "3d") {
           const Cesium = window.Cesium;
-          const viewer = window.viewer || window.VIEWER || window.cesiumViewer || window.V || window.v;
-          if (!Cesium || !viewer) return;
+          const viewer =
+            window.viewer ||
+            window.VIEWER ||
+            window.cesiumViewer ||
+            window.V ||
+            window.v;
+
+          if (!Cesium || !viewer) {
+            console.warn("Cesium not ready");
+            return;
+          }
 
           const carto = Cesium.Cartographic.fromDegrees(lng, lat);
-          const updated = await Cesium.sampleTerrainMostDetailed(viewer.terrainProvider, [carto]);
+          const updated = await Cesium.sampleTerrainMostDetailed(
+            viewer.terrainProvider,
+            [carto]
+          );
+
           const groundHeight = updated[0].height || 0;
           const finalHeight = groundHeight + 100;
+
           const pos = Cesium.Cartesian3.fromDegrees(lng, lat, finalHeight);
 
           let entity = viewer.entities.getById("live_drone");
+
           if (!entity) {
+            console.log("Creating 3D drone...");
+
             viewer.entities.add({
               id: "live_drone",
               position: pos,
-              model: { uri: "/assets/model/drone.glb", scale: 0.5, minimumPixelSize: 64 },
+              model: {
+                uri: "/assets/model/drone.glb",
+                scale: 0.5,
+                minimumPixelSize: 64,
+              },
             });
           } else {
+            console.log("Updating 3D drone...");
             entity.position = pos;
           }
 
           if (!hasZoomedRef.current) {
             hasZoomedRef.current = true;
+
             setTimeout(() => {
-              viewer.zoomTo(viewer.entities, new Cesium.HeadingPitchRange(0, -0.8, 1000));
+              viewer.zoomTo(
+                viewer.entities,
+                new Cesium.HeadingPitchRange(0, -0.8, 1000)
+              );
             }, 1200);
           }
         }
