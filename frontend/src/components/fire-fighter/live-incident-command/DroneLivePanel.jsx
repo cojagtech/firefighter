@@ -126,7 +126,7 @@ export default function DroneLivePanel({
   }, [mapMode]);
 
   useEffect(() => {
-    if (!dbDroneId) return;
+    if (!droneCode) return;
 
     // const DRONE_API = `http://65.2.78.112/fire-fighter/get_drone_location.php?droneId=${dbDroneId}`;
 
