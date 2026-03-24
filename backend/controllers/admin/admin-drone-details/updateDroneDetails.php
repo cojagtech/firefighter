@@ -11,7 +11,7 @@ header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Content-Type: application/json");
 
 require_once realpath(__DIR__ . "/../../../config/db.php");
-require "../../../helpers/logActivity.php";
+require_once realpath(__DIR__ . "/../../../helpers/logActivity.php");
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(["success" => false, "message" => "Invalid request"]);
