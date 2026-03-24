@@ -26,8 +26,11 @@ SELECT
 
 FROM fire_station fs
 
-JOIN incidents i 
-    ON i.id = ?
+JOIN (
+    SELECT latitude, longitude, stationName
+    FROM incidents
+    WHERE id = ?
+) i ON 1=1
 
 LEFT JOIN vehicles v
     ON v.station = fs.station_name
@@ -37,7 +40,7 @@ LEFT JOIN drones d
     ON d.station = fs.station_name
     AND d.status = 'Active'
 
-WHERE fs.station_name != i.stationName   -- 🚨 exclude incident station
+WHERE fs.station_name != i.stationName
 
 GROUP BY fs.id
 
@@ -47,7 +50,7 @@ LIMIT 3;
 ";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $incidentId);
+$stmt->bind_param("i", $incidentId); // assuming incident_id is integer
 $stmt->execute();
 
 $result = $stmt->get_result();
