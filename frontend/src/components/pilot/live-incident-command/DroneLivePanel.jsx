@@ -50,18 +50,16 @@ export default function DroneLivePanel({
   const droneMarkerRef = useRef(null);
 
   const [mapMode, setMapMode] = useState("2d");
-  const [dronePosition, setDronePosition] = useState({
-    lat: 21.1458,
-    lng: 79.0882,
-  });
+  const [dronePosition, setDronePosition] = useState({ lat: 21.1458, lng: 79.0882 });
 
   const cesiumInitRef = useRef(false);
+  const hasZoomedRef = useRef(false);
 
+  // Theme observer
   const [isDark, setIsDark] = useState(
     document.documentElement.classList.contains("dark")
   );
 
-  // Theme observer
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains("dark"));
@@ -73,94 +71,77 @@ export default function DroneLivePanel({
     return () => observer.disconnect();
   }, []);
 
-  // 🔄 Fetch Drone Location
+  // ✅ All backend logic unchanged
   useEffect(() => {
-    if (!droneCode) return;
+    if (!droneCode) {
+      console.warn("Drone code missing; cannot fetch location yet.");
+      return;
+    }
+
+    let isMounted = true;
 
     async function fetchDroneLocation() {
       try {
-        const res = await fetch(
-          `${API}/get_drone_location.php?drone_code=${droneCode}`,
-          { credentials: "include" }
-        );
+        const res = await fetch(`${API}/get_drone_location.php?drone_code=${droneCode}`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to fetch drone location");
+
         const data = await res.json();
+        if (!data || data.success === false) {
+          console.warn("Invalid drone location received:", data);
+          return;
+        }
 
-        const lat = parseFloat(data?.data?.latitude);
-        const lng = parseFloat(data?.data?.longitude);
+        const lat = parseFloat(data.data.latitude);
+        const lng = parseFloat(data.data.longitude);
 
-        if (isNaN(lat) || isNaN(lng)) return;
+        if (isNaN(lat) || isNaN(lng)) {
+          console.warn("Invalid LatLng received:", data);
+          return;
+        }
 
         setDronePosition({ lat, lng });
 
-        // Update 2D marker
         if (droneMarkerRef.current && leafletMapRef.current) {
           droneMarkerRef.current.setLatLng([lat, lng]);
-          leafletMapRef.current.setView([lat, lng]);
+          leafletMapRef.current.setView([lat, lng], leafletMapRef.current.getZoom());
         }
 
-        // Update 3D entity
         if (mapMode === "3d" && window.Cesium && window.viewer) {
           const Cesium = window.Cesium;
-          const pos = Cesium.Cartesian3.fromDegrees(lng, lat, 100);
-
+          const pos = Cesium.Cartesian3.fromDegrees(lng, lat, 800);
           let entity = window.viewer.entities.getById("live_drone");
           if (entity) entity.position = pos;
-
-          // ✅ FIX: stable camera (no zoom jump)
-          window.viewer.camera.setView({
-            destination: Cesium.Cartesian3.fromDegrees(lng, lat, 1200),
-          });
-
-          // 🔥 Optional smooth movement (uncomment if needed)
-          /*
-          window.viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(lng, lat, 1200),
-            duration: 1.5,
-          });
-          */
         }
       } catch (err) {
-        console.error(err);
+        console.error("Drone location fetch error:", err);
       }
     }
 
     fetchDroneLocation();
     const interval = setInterval(fetchDroneLocation, 5000);
-    return () => clearInterval(interval);
+    return () => { isMounted = false; clearInterval(interval); };
   }, [droneCode, mapMode]);
 
-  // 🗺️ Leaflet 2D
   useEffect(() => {
     if (mapMode !== "2d") return;
     if (leafletMapRef.current) return;
 
-    setTimeout(() => {
-      leafletMapRef.current = L.map(mapContainerRef.current).setView(
-        [dronePosition.lat, dronePosition.lng],
-        16
-      );
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
-        .addTo(leafletMapRef.current);
-
-      droneMarkerRef.current = L.marker(
-        [dronePosition.lat, dronePosition.lng],
-        { icon: droneIcon }
-      ).addTo(leafletMapRef.current);
-
-      setTimeout(() => {
-        leafletMapRef.current.invalidateSize();
-      }, 100);
-    }, 0);
+    leafletMapRef.current = L.map(mapContainerRef.current).setView(
+      [dronePosition.lat, dronePosition.lng], 16
+    );
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(leafletMapRef.current);
+    droneMarkerRef.current = L.marker([dronePosition.lat, dronePosition.lng], { icon: droneIcon })
+      .addTo(leafletMapRef.current);
 
     return () => {
       leafletMapRef.current?.remove();
       leafletMapRef.current = null;
       droneMarkerRef.current = null;
     };
-  }, [mapMode]);
+  }, [mapMode, dronePosition.lat, dronePosition.lng]);
 
-  // 🌍 Cesium 3D
   useEffect(() => {
     if (mapMode !== "3d") return;
 
@@ -177,70 +158,117 @@ export default function DroneLivePanel({
         if (window.initMap) window.initMap();
 
         const Cesium = window.Cesium;
-        const viewer = window.viewer;
+        const viewer = window.viewer || window.VIEWER || window.cesiumViewer || window.V || window.v;
         if (!Cesium || !viewer) return;
 
-        const pos = Cesium.Cartesian3.fromDegrees(
-          dronePosition.lng,
-          dronePosition.lat,
-          100
-        );
-
+        const pos = Cesium.Cartesian3.fromDegrees(dronePosition.lng, dronePosition.lat, 100);
         let entity = viewer.entities.getById("live_drone");
-
         if (!entity) {
           entity = viewer.entities.add({
             id: "live_drone",
             position: pos,
-            model: {
-              uri: "/assets/model/drone.glb",
-              scale: 0.5,
-              minimumPixelSize: 64,
-            },
+            model: { uri: "/assets/model/drone.glb", scale: 0.5, minimumPixelSize: 64 },
           });
         } else {
           entity.position = pos;
         }
 
-        // ✅ FIX: stable camera
-        viewer.camera.setView({
-          destination: Cesium.Cartesian3.fromDegrees(
-            dronePosition.lng,
-            dronePosition.lat,
-            1200
-          ),
-        });
-
+        if (!hasZoomedRef.current) {
+          hasZoomedRef.current = true;
+          viewer.zoomTo(entity);
+        }
       } catch (err) {
         console.error("Cesium load error:", err);
       }
     }
 
     initCesium();
-  }, [mapMode, dronePosition]);
+  }, [mapMode, dronePosition.lat, dronePosition.lng]);
+
+  useEffect(() => {
+    if (!incident) return;
+    const { latitude, longitude } = incident;
+    if (mapMode === "3d" && window.addFireHazardPoint) {
+      window.addFireHazardPoint(parseFloat(latitude), parseFloat(longitude), 200);
+    }
+  }, [incident, mapMode]);
 
   return (
     <div className="flex flex-col h-full p-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-2">
-        <h3 className="font-semibold text-lg">
+        <h3
+          className="font-semibold text-lg"
+          style={{ color: isDark ? "#ffffff" : "#111827" }}
+        >
           Drone Live View
         </h3>
 
         <div className="flex items-center gap-3">
-          <Chip label="LIVE" size="small" color="error" />
+          <Chip label="LIVE" size="small" color="error" className="animate-pulse" />
 
-          {/* Toggle */}
-          <div className="flex">
-            <button onClick={() => setMapMode("2d")}>2D</button>
-            <button onClick={() => setMapMode("3d")}>3D</button>
+          {/* Map Mode Toggle */}
+          <div
+            className="relative flex items-center rounded-full p-1 w-[110px] h-8"
+            style={{
+              backgroundColor: isDark ? "rgba(0,0,0,0.7)" : "#f1f5f9",
+              border: `1px solid ${isDark ? "#2E2E2E" : "#e2e8f0"}`,
+            }}
+          >
+            <div
+              className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-red-600 transition-all duration-300 ${
+                mapMode === "3d" ? "left-[50%]" : "left-1"
+              }`}
+            />
+            <button
+              onClick={() => setMapMode("2d")}
+              className="relative z-10 w-1/2 text-xs font-semibold"
+              style={{
+                color: mapMode === "2d" ? "#ffffff" : isDark ? "#9ca3af" : "#6b7280",
+              }}
+            >
+              2D
+            </button>
+            <button
+              onClick={() => setMapMode("3d")}
+              className="relative z-10 w-1/2 text-xs font-semibold"
+              style={{
+                color: mapMode === "3d" ? "#ffffff" : isDark ? "#9ca3af" : "#6b7280",
+              }}
+            >
+              3D
+            </button>
           </div>
+
+          {!isMaximized && (
+            <button
+              onClick={onMaximize}
+              className="p-1 hover:bg-muted rounded"
+              style={{ color: isDark ? "#ffffff" : "#111827" }}
+            >
+              <SafeIcon name="Maximize2" className="h-4 w-4" />
+            </button>
+          )}
+          {isMaximized && (
+            <button
+              onClick={onExit}
+              className="p-1 hover:bg-muted rounded"
+              style={{ color: isDark ? "#ffffff" : "#111827" }}
+            >
+              <SafeIcon name="X" className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Map */}
-      <div className="flex-1 rounded-lg overflow-hidden border">
-        <div ref={mapContainerRef} className="w-full h-full min-h-[300px]" />
+      {/* Map Container */}
+      <div
+        className="flex-1 rounded-lg overflow-hidden"
+        style={{
+          border: `1px dashed ${isDark ? "#2E2E2E" : "#cbd5e1"}`,
+        }}
+      >
+        <div id="map-container" ref={mapContainerRef} className="w-full h-full" />
       </div>
     </div>
   );
