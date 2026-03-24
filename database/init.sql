@@ -222,7 +222,7 @@ CREATE TABLE `incidents` (
 --
 
 INSERT INTO `incidents` (`id`, `name`, `location`, `latitude`, `longitude`, `stationName`, `timeReported`, `status`, `isNewAlert`) VALUES
-('INC-20251120-003', 'Major Structural Fire - Downtown', 'False Street A-123, Commercial District', 18.454324432525688, 73.85854325144334, 'Katraj Fire Station', '2026-01-06 10:35:00', 'in_progress', 0),
+('INC-20251120-003', 'Major Structural Fire - Downtown', 'False Street A-123, Commercial District', 18.454324432525688, 73.85854325144334, 'Katraj Fire Station', '2026-01-06 10:35:00', 'new', 1),
 ('INC-20251122-001', 'Vehicle Accident & Fire', 'Paud Road, Near Signal, Kothrud', 18.5074, 73.8077, 'Baner Fire Station', '2025-11-22 15:25:00', 'new', 1),
 ('INC-20251122-002', 'Warehouse Fire - Industrial Zone', 'Plot No. 45, Industrial Area, Katraj', 18.4445, 73.8521, 'Yerwada Fire Station', '2026-01-02 14:10:00', 'new', 1);
 

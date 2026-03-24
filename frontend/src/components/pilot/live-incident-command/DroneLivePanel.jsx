@@ -7,12 +7,10 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import SafeIcon from "@/components/common/SafeIcon";
 
+// -------------------- Helpers --------------------
 function loadScript(src) {
   return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
-    }
+    if (document.querySelector(`script[src="${src}"]`)) return resolve();
     const s = document.createElement("script");
     s.src = src;
     s.async = true;
@@ -30,14 +28,12 @@ function loadCss(href) {
   document.head.appendChild(link);
 }
 
+// -------------------- Leaflet Fix --------------------
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
 const droneIcon = new L.Icon({
@@ -49,6 +45,8 @@ const droneIcon = new L.Icon({
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const API = `${API_BASE}/pilot`;
 
+// =========================================================
+
 export default function DroneLivePanel({
   incident,
   onMaximize,
@@ -57,23 +55,25 @@ export default function DroneLivePanel({
 }) {
   const { droneId: droneCode } = useParams();
 
-  const mapContainerRef = useRef(null);
-  const leafletMapRef = useRef(null);
-  const droneMarkerRef = useRef(null);
+  const leafletRef = useRef(null);
+  const markerRef = useRef(null);
+  const cesiumInitRef = useRef(false);
+  const hasZoomedRef = useRef(false);
+
+  const map2DRef = useRef(null);
+  const map3DRef = useRef(null);
 
   const [mapMode, setMapMode] = useState("2d");
-
   const [dronePosition, setDronePosition] = useState({
     lat: 21.1458,
     lng: 79.0882,
   });
 
-  const cesiumInitRef = useRef(false);
-
   const [isDark, setIsDark] = useState(
     document.documentElement.classList.contains("dark")
   );
 
+  // -------------------- Theme Observer --------------------
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains("dark"));
@@ -85,13 +85,11 @@ export default function DroneLivePanel({
     return () => observer.disconnect();
   }, []);
 
-  // =========================
-  // 🚁 Fetch Drone Location
-  // =========================
+  // -------------------- Fetch Drone --------------------
   useEffect(() => {
     if (!droneCode) return;
 
-    async function fetchDroneLocation() {
+    async function fetchDrone() {
       try {
         const res = await fetch(
           `${API}/get_drone_location.php?drone_code=${droneCode}`,
@@ -99,83 +97,89 @@ export default function DroneLivePanel({
         );
 
         const data = await res.json();
-        if (!data || data.success === false) return;
+        if (!data?.data) return;
 
         const lat = parseFloat(data.data.latitude);
         const lng = parseFloat(data.data.longitude);
-
         if (isNaN(lat) || isNaN(lng)) return;
 
         setDronePosition({ lat, lng });
 
-        // 🗺 Update 2D map
-        if (leafletMapRef.current && droneMarkerRef.current) {
-          droneMarkerRef.current.setLatLng([lat, lng]);
-          leafletMapRef.current.setView([lat, lng]);
+        // 2D update
+        if (mapMode === "2d" && markerRef.current) {
+          markerRef.current.setLatLng([lat, lng]);
         }
 
-        // 🌍 Update 3D map
+        // 3D update
         if (mapMode === "3d" && window.Cesium && window.viewer) {
           const Cesium = window.Cesium;
+          const viewer = window.viewer;
 
-          const pos = Cesium.Cartesian3.fromDegrees(lng, lat, 800);
-          let entity = window.viewer.entities.getById("live_drone");
+          const carto = Cesium.Cartographic.fromDegrees(lng, lat);
+          const updated = await Cesium.sampleTerrainMostDetailed(
+            viewer.terrainProvider,
+            [carto]
+          );
 
-          if (entity) {
-            entity.position = pos;
+          const height = (updated[0]?.height || 0) + 100;
+          const pos = Cesium.Cartesian3.fromDegrees(lng, lat, height);
 
-            window.viewer.camera.flyTo({
-              destination: Cesium.Cartesian3.fromDegrees(lng, lat, 1200),
-              orientation: {
-                heading: 0,
-                pitch: -0.7,
-                roll: 0,
+          let entity = viewer.entities.getById("live_drone");
+
+          if (!entity) {
+            entity = viewer.entities.add({
+              id: "live_drone",
+              position: pos,
+              model: {
+                uri: "/assets/model/drone.glb",
+                scale: 0.5,
+                minimumPixelSize: 64,
               },
-              duration: 1.5,
             });
+          } else {
+            entity.position = pos;
           }
         }
-      } catch (err) {
-        console.error("Drone location fetch error:", err);
+      } catch (e) {
+        console.error("Drone fetch error:", e);
       }
     }
 
-    fetchDroneLocation();
-    const interval = setInterval(fetchDroneLocation, 5000);
-    return () => clearInterval(interval);
+    fetchDrone();
+    const i = setInterval(fetchDrone, 5000);
+    return () => clearInterval(i);
   }, [droneCode, mapMode]);
 
-  // =========================
-  // 🗺 Leaflet Init
-  // =========================
+  // -------------------- 2D Init --------------------
   useEffect(() => {
     if (mapMode !== "2d") return;
-    if (leafletMapRef.current) return;
 
-    leafletMapRef.current = L.map(mapContainerRef.current).setView(
-      [dronePosition.lat, dronePosition.lng],
-      16
-    );
+    if (!leafletRef.current && map2DRef.current) {
+      leafletRef.current = L.map(map2DRef.current).setView(
+        [dronePosition.lat, dronePosition.lng],
+        16
+      );
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
-      leafletMapRef.current
-    );
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
+        leafletRef.current
+      );
 
-    droneMarkerRef.current = L.marker(
-      [dronePosition.lat, dronePosition.lng],
-      { icon: droneIcon }
-    ).addTo(leafletMapRef.current);
+      markerRef.current = L.marker(
+        [dronePosition.lat, dronePosition.lng],
+        { icon: droneIcon }
+      ).addTo(leafletRef.current);
+    }
 
     return () => {
-      leafletMapRef.current?.remove();
-      leafletMapRef.current = null;
-      droneMarkerRef.current = null;
+      if (leafletRef.current) {
+        leafletRef.current.remove();
+        leafletRef.current = null;
+        markerRef.current = null;
+      }
     };
   }, [mapMode]);
 
-  // =========================
-  // 🌍 Cesium Init
-  // =========================
+  // -------------------- 3D Init --------------------
   useEffect(() => {
     if (mapMode !== "3d") return;
 
@@ -190,57 +194,52 @@ export default function DroneLivePanel({
           );
           await loadScript("/assets/js/globel.js");
           await loadScript("/assets/js/map.js");
+
           cesiumInitRef.current = true;
         }
 
-        if (window.initMap) window.initMap();
-
-        const Cesium = window.Cesium;
-        const viewer =
-          window.viewer ||
-          window.VIEWER ||
-          window.cesiumViewer ||
-          window.V;
-
-        if (!Cesium || !viewer) return;
-
-        const pos = Cesium.Cartesian3.fromDegrees(
-          dronePosition.lng,
-          dronePosition.lat,
-          100
-        );
-
-        let entity = viewer.entities.getById("live_drone");
-
-        if (!entity) {
-          entity = viewer.entities.add({
-            id: "live_drone",
-            position: pos,
-            model: {
-              uri: "/assets/model/drone.glb",
-              scale: 0.5,
-              minimumPixelSize: 64,
-            },
-          });
-        } else {
-          entity.position = pos;
+        if (!window.viewer && window.initMap) {
+          window.initMap("cesiumContainer"); // IMPORTANT
         }
 
-        viewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(
-            dronePosition.lng,
-            dronePosition.lat,
-            1200
-          ),
-          duration: 1.5,
-        });
+        const viewer = window.viewer;
+        if (!viewer) return;
+
+        if (!hasZoomedRef.current) {
+          hasZoomedRef.current = true;
+          setTimeout(() => {
+            viewer.zoomTo(viewer.entities);
+          }, 1000);
+        }
       } catch (err) {
-        console.error("Cesium load error:", err);
+        console.error("Cesium error:", err);
       }
     }
 
     initCesium();
-  }, [mapMode, dronePosition]);
+  }, [mapMode]);
+
+  // -------------------- Incident --------------------
+  useEffect(() => {
+    if (!incident || mapMode !== "3d") return;
+
+    const { latitude, longitude } = incident;
+
+    const i = setInterval(() => {
+      if (window.addFireHazardPoint) {
+        window.addFireHazardPoint(
+          parseFloat(latitude),
+          parseFloat(longitude),
+          200
+        );
+        clearInterval(i);
+      }
+    }, 500);
+
+    return () => clearInterval(i);
+  }, [incident, mapMode]);
+
+  // =========================================================
 
   return (
     <div className="flex flex-col h-full p-4">
@@ -248,51 +247,61 @@ export default function DroneLivePanel({
       <div className="flex justify-between items-center mb-2">
         <h3
           className="font-semibold text-lg"
-          style={{ color: isDark ? "#fff" : "#111827" }}
+          style={{ color: isDark ? "#fff" : "#111" }}
         >
           Drone Live View
         </h3>
 
         <div className="flex items-center gap-3">
-          <Chip label="LIVE" size="small" color="error" className="animate-pulse" />
+          <Chip label="LIVE" size="small" color="error" />
 
           {/* Toggle */}
-          <div className="flex gap-1 bg-gray-200 rounded-full p-1">
+          <div className="flex rounded-full bg-gray-200 dark:bg-black p-1 w-[110px]">
             <button
               onClick={() => setMapMode("2d")}
-              className={`px-3 py-1 rounded-full ${
-                mapMode === "2d" ? "bg-red-500 text-white" : ""
+              className={`w-1/2 text-xs ${
+                mapMode === "2d" ? "text-white bg-red-600 rounded-full" : ""
               }`}
             >
               2D
             </button>
             <button
               onClick={() => setMapMode("3d")}
-              className={`px-3 py-1 rounded-full ${
-                mapMode === "3d" ? "bg-black text-white" : ""
+              className={`w-1/2 text-xs ${
+                mapMode === "3d" ? "text-white bg-red-600 rounded-full" : ""
               }`}
             >
               3D
             </button>
           </div>
 
-          {!isMaximized && (
+          {!isMaximized ? (
             <button onClick={onMaximize}>
-              <SafeIcon name="Maximize2" />
+              <SafeIcon name="Maximize2" className="h-4 w-4" />
             </button>
-          )}
-
-          {isMaximized && (
+          ) : (
             <button onClick={onExit}>
-              <SafeIcon name="X" />
+              <SafeIcon name="X" className="h-4 w-4" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Map */}
-      <div className="flex-1 rounded-lg overflow-hidden border">
-        <div ref={mapContainerRef} className="w-full h-full" />
+      {/* Map Container */}
+      <div className="flex-1 relative rounded-lg overflow-hidden border">
+        {/* 2D */}
+        {mapMode === "2d" && (
+          <div ref={map2DRef} className="w-full h-full" />
+        )}
+
+        {/* 3D */}
+        {mapMode === "3d" && (
+          <div
+            id="cesiumContainer"
+            ref={map3DRef}
+            className="w-full h-full"
+          />
+        )}
       </div>
     </div>
   );
