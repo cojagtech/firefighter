@@ -62,7 +62,6 @@ export default function DroneLivePanel({
   const droneMarkerRef = useRef(null);
 
   const [mapMode, setMapMode] = useState("2d");
-  const [autoFollow, setAutoFollow] = useState(true);
 
   const [dronePosition, setDronePosition] = useState({
     lat: 21.1458,
@@ -100,7 +99,6 @@ export default function DroneLivePanel({
         );
 
         const data = await res.json();
-
         if (!data || data.success === false) return;
 
         const lat = parseFloat(data.data.latitude);
@@ -110,23 +108,13 @@ export default function DroneLivePanel({
 
         setDronePosition({ lat, lng });
 
-        // =========================
-        // 🗺 2D AUTO FOLLOW
-        // =========================
+        // 🗺 Update 2D map
         if (leafletMapRef.current && droneMarkerRef.current) {
           droneMarkerRef.current.setLatLng([lat, lng]);
-
-          if (autoFollow) {
-            leafletMapRef.current.flyTo([lat, lng], leafletMapRef.current.getZoom(), {
-              animate: true,
-              duration: 1.2,
-            });
-          }
+          leafletMapRef.current.setView([lat, lng]);
         }
 
-        // =========================
-        // 🌍 3D AUTO FOLLOW
-        // =========================
+        // 🌍 Update 3D map
         if (mapMode === "3d" && window.Cesium && window.viewer) {
           const Cesium = window.Cesium;
 
@@ -136,17 +124,15 @@ export default function DroneLivePanel({
           if (entity) {
             entity.position = pos;
 
-            if (autoFollow) {
-              window.viewer.camera.flyTo({
-                destination: Cesium.Cartesian3.fromDegrees(lng, lat, 1200),
-                orientation: {
-                  heading: 0,
-                  pitch: -0.7,
-                  roll: 0,
-                },
-                duration: 1.5,
-              });
-            }
+            window.viewer.camera.flyTo({
+              destination: Cesium.Cartesian3.fromDegrees(lng, lat, 1200),
+              orientation: {
+                heading: 0,
+                pitch: -0.7,
+                roll: 0,
+              },
+              duration: 1.5,
+            });
           }
         }
       } catch (err) {
@@ -157,7 +143,7 @@ export default function DroneLivePanel({
     fetchDroneLocation();
     const interval = setInterval(fetchDroneLocation, 5000);
     return () => clearInterval(interval);
-  }, [droneCode, mapMode, autoFollow]);
+  }, [droneCode, mapMode]);
 
   // =========================
   // 🗺 Leaflet Init
@@ -179,9 +165,6 @@ export default function DroneLivePanel({
       [dronePosition.lat, dronePosition.lng],
       { icon: droneIcon }
     ).addTo(leafletMapRef.current);
-
-    // 🛑 stop follow on user drag
-    leafletMapRef.current.on("dragstart", () => setAutoFollow(false));
 
     return () => {
       leafletMapRef.current?.remove();
@@ -243,7 +226,6 @@ export default function DroneLivePanel({
           entity.position = pos;
         }
 
-        // ✅ first time focus
         viewer.camera.flyTo({
           destination: Cesium.Cartesian3.fromDegrees(
             dronePosition.lng,
@@ -275,18 +257,24 @@ export default function DroneLivePanel({
           <Chip label="LIVE" size="small" color="error" className="animate-pulse" />
 
           {/* Toggle */}
-          <div className="flex gap-1">
-            <button onClick={() => setMapMode("2d")}>2D</button>
-            <button onClick={() => setMapMode("3d")}>3D</button>
+          <div className="flex gap-1 bg-gray-200 rounded-full p-1">
+            <button
+              onClick={() => setMapMode("2d")}
+              className={`px-3 py-1 rounded-full ${
+                mapMode === "2d" ? "bg-red-500 text-white" : ""
+              }`}
+            >
+              2D
+            </button>
+            <button
+              onClick={() => setMapMode("3d")}
+              className={`px-3 py-1 rounded-full ${
+                mapMode === "3d" ? "bg-black text-white" : ""
+              }`}
+            >
+              3D
+            </button>
           </div>
-
-          {/* Follow Toggle */}
-          <button
-            onClick={() => setAutoFollow(!autoFollow)}
-            className="text-xs px-2 py-1 border rounded"
-          >
-            {autoFollow ? "FOLLOW ON" : "FOLLOW OFF"}
-          </button>
 
           {!isMaximized && (
             <button onClick={onMaximize}>

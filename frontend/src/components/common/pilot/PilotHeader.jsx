@@ -39,7 +39,7 @@ export default function PilotHeader({ notificationCount = 0 }) {
             <div className="pilot-header__logo-icon">
               <SafeIcon name="Drone" size={20} />
             </div>
-            <span className="pilot-header__logo-text">Pilot Console</span>
+            <span className="pilot-header__logo-text">Pilot Dashboard</span>
           </div>
         </div>
 
