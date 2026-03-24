@@ -7,7 +7,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import SafeIcon from "@/components/common/SafeIcon";
 
-// -------------------- helpers (unchanged) --------------------
+// ---------------- helpers ----------------
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     if (document.querySelector(`script[src="${src}"]`)) {
@@ -31,7 +31,7 @@ function loadCss(href) {
   document.head.appendChild(link);
 }
 
-// Leaflet icons fix
+// Leaflet fix
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -50,7 +50,6 @@ const droneIcon = new L.Icon({
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const API = `${API_BASE}/pilot`;
 
-// -------------------- component --------------------
 export default function DroneLivePanel({
   incident,
   onMaximize,
@@ -76,7 +75,7 @@ export default function DroneLivePanel({
     document.documentElement.classList.contains("dark")
   );
 
-  // theme observer
+  // ---------------- theme ----------------
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains("dark"));
@@ -90,7 +89,7 @@ export default function DroneLivePanel({
     return () => observer.disconnect();
   }, []);
 
-  // -------------------- backend polling (unchanged) --------------------
+  // ---------------- drone polling ----------------
   useEffect(() => {
     if (!droneCode) return;
 
@@ -136,7 +135,7 @@ export default function DroneLivePanel({
     return () => clearInterval(interval);
   }, [droneCode, mapMode]);
 
-  // -------------------- 2D map --------------------
+  // ---------------- 2D MAP ----------------
   useEffect(() => {
     if (mapMode !== "2d") return;
     if (leafletMapRef.current) return;
@@ -162,9 +161,11 @@ export default function DroneLivePanel({
     };
   }, [mapMode]);
 
-  // -------------------- 3D map --------------------
+  // ---------------- 3D MAP (FIXED) ----------------
   useEffect(() => {
     if (mapMode !== "3d") return;
+
+    let interval;
 
     async function initCesium() {
       try {
@@ -172,68 +173,78 @@ export default function DroneLivePanel({
           loadCss(
             "https://cesium.com/downloads/cesiumjs/releases/1.96/Build/Cesium/Widgets/widgets.css"
           );
+
           await loadScript(
             "https://cdnjs.cloudflare.com/ajax/libs/cesium/1.96.0/Cesium.js"
           );
+
           await loadScript("/assets/js/globel.js");
           await loadScript("/assets/js/map.js");
+
           cesiumInitRef.current = true;
         }
 
         if (window.initMap) window.initMap();
 
-        const Cesium = window.Cesium;
-        const viewer =
-          window.viewer ||
-          window.VIEWER ||
-          window.cesiumViewer ||
-          window.V;
+        // 🔥 WAIT FOR VIEWER SAFELY
+        interval = setInterval(() => {
+          const Cesium = window.Cesium;
+          const viewer =
+            window.viewer ||
+            window.cesiumViewer ||
+            window.VIEWER ||
+            window.V;
 
-        if (!Cesium || !viewer) return;
+          if (!Cesium || !viewer) return;
 
-        const pos = Cesium.Cartesian3.fromDegrees(
-          dronePosition.lng,
-          dronePosition.lat,
-          100
-        );
+          clearInterval(interval);
 
-        let entity = viewer.entities.getById("live_drone");
+          const pos = Cesium.Cartesian3.fromDegrees(
+            dronePosition.lng,
+            dronePosition.lat,
+            100
+          );
 
-        if (!entity) {
-          entity = viewer.entities.add({
-            id: "live_drone",
-            position: pos,
-            model: {
-              uri: "/assets/model/drone.glb",
-              scale: 0.5,
-              minimumPixelSize: 64,
-            },
-          });
-        } else {
-          entity.position = pos;
-        }
+          let entity = viewer.entities.getById("live_drone");
 
-        if (!hasZoomedRef.current) {
-          hasZoomedRef.current = true;
-          viewer.zoomTo(entity);
-        }
+          if (!entity) {
+            entity = viewer.entities.add({
+              id: "live_drone",
+              position: pos,
+              model: {
+                uri: "/assets/model/drone.glb",
+                scale: 0.5,
+                minimumPixelSize: 64,
+              },
+            });
+          } else {
+            entity.position = pos;
+          }
 
-        // ✅ IMPORTANT FIX: prevent layout shift
-        setTimeout(() => {
-          viewer.resize?.();
-          viewer.scene?.requestRender();
-        }, 150);
+          setTimeout(() => {
+            viewer.resize?.();
+            viewer.scene?.requestRender();
+
+            if (!hasZoomedRef.current) {
+              hasZoomedRef.current = true;
+              viewer.zoomTo(entity);
+            }
+          }, 250);
+        }, 100);
       } catch (err) {
-        console.error(err);
+        console.error("Cesium error:", err);
       }
     }
 
     initCesium();
-  }, [mapMode]);
 
-  // -------------------- incident (unchanged) --------------------
+    return () => clearInterval(interval);
+  }, [mapMode, dronePosition]);
+
+  // ---------------- incident ----------------
   useEffect(() => {
     if (!incident) return;
+
     if (mapMode === "3d" && window.addFireHazardPoint) {
       window.addFireHazardPoint(
         parseFloat(incident.latitude),
@@ -243,9 +254,9 @@ export default function DroneLivePanel({
     }
   }, [incident, mapMode]);
 
-  // -------------------- UI --------------------
+  // ---------------- UI ----------------
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] overflow-hidden p-4">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden p-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-2 shrink-0">
         <h3
@@ -258,26 +269,54 @@ export default function DroneLivePanel({
         <div className="flex items-center gap-3">
           <Chip label="LIVE" size="small" color="error" />
 
-          {/* Toggle */}
-          <div className="relative flex items-center rounded-full p-1 w-[110px] h-8">
+          {/* ORIGINAL TOGGLE (UNCHANGED) */}
+          <div
+            className="relative flex items-center rounded-full p-1 w-[110px] h-8"
+            style={{
+              backgroundColor: isDark ? "rgba(0,0,0,0.7)" : "#f1f5f9",
+              border: `1px solid ${isDark ? "#2E2E2E" : "#e2e8f0"}`,
+            }}
+          >
             <div
-              className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-red-600 transition-all ${
-                mapMode === "3d" ? "left-1/2" : "left-1"
+              className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-red-600 transition-all duration-300 ${
+                mapMode === "3d" ? "left-[50%]" : "left-1"
               }`}
             />
 
-            <button onClick={() => setMapMode("2d")} className="w-1/2 text-xs">
+            <button
+              onClick={() => setMapMode("2d")}
+              className="relative z-10 w-1/2 text-xs font-semibold"
+              style={{
+                color:
+                  mapMode === "2d"
+                    ? "#ffffff"
+                    : isDark
+                    ? "#9ca3af"
+                    : "#6b7280",
+              }}
+            >
               2D
             </button>
 
-            <button onClick={() => setMapMode("3d")} className="w-1/2 text-xs">
+            <button
+              onClick={() => setMapMode("3d")}
+              className="relative z-10 w-1/2 text-xs font-semibold"
+              style={{
+                color:
+                  mapMode === "3d"
+                    ? "#ffffff"
+                    : isDark
+                    ? "#9ca3af"
+                    : "#6b7280",
+              }}
+            >
               3D
             </button>
           </div>
         </div>
       </div>
 
-      {/* MAP WRAPPER (FIXED) */}
+      {/* MAP */}
       <div className="flex-1 min-h-0 rounded-lg overflow-hidden relative border">
         <div
           ref={mapContainerRef}
