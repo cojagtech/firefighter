@@ -52,40 +52,27 @@ export default function DroneLivePanel({
   const hasFocusedRef = useRef(false);
   const isUserInteractingRef = useRef(false);
 
-  const [mapMode, setMapMode] = useState("2d");
-  const [dronePosition, setDronePosition] = useState({ lat: 21.1458, lng: 79.0882 });
-
   const cesiumInitRef = useRef(false);
-  const hasZoomedRef = useRef(false);
 
-  const [isDark, setIsDark] = useState(
-    document.documentElement.classList.contains("dark")
-  );
+  const [mapMode, setMapMode] = useState("2d");
+  const [dronePosition, setDronePosition] = useState({
+    lat: 21.1458,
+    lng: 79.0882,
+  });
 
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDark(document.documentElement.classList.contains("dark"));
-    });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  // 🔥 FETCH + AUTO FOLLOW
+  // 🔥 FETCH LOCATION
   useEffect(() => {
     if (!droneCode) return;
 
     async function fetchDroneLocation() {
       try {
-        const res = await fetch(`${API}/get_drone_location.php?drone_code=${droneCode}`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed");
+        const res = await fetch(
+          `${API}/get_drone_location.php?drone_code=${droneCode}`,
+          { credentials: "include" }
+        );
 
         const data = await res.json();
-        if (!data || data.success === false) return;
+        if (!data?.success) return;
 
         const lat = parseFloat(data.data.latitude);
         const lng = parseFloat(data.data.longitude);
@@ -94,37 +81,26 @@ export default function DroneLivePanel({
         setDronePosition({ lat, lng });
 
         // ✅ 2D FOLLOW
-        if (droneMarkerRef.current && leafletMapRef.current) {
+        if (mapMode === "2d" && leafletMapRef.current) {
           const map = leafletMapRef.current;
 
-          droneMarkerRef.current.setLatLng([lat, lng]);
+          droneMarkerRef.current?.setLatLng([lat, lng]);
 
           if (!isUserInteractingRef.current) {
             if (!hasFocusedRef.current) {
               hasFocusedRef.current = true;
-
-              map.setView([lat, lng], 17, {
-                animate: true,
-                duration: 1.5,
-              });
+              map.setView([lat, lng], 17, { animate: true });
             } else {
-              map.panTo([lat, lng], {
-                animate: true,
-                duration: 1.2,
-              });
+              map.panTo([lat, lng], { animate: true });
             }
           }
         }
 
         // ✅ 3D FOLLOW
-        if (mapMode === "3d" && window.Cesium && window.viewer) {
-          const Cesium = window.Cesium;
-          const pos = Cesium.Cartesian3.fromDegrees(lng, lat, 800);
-          let entity = window.viewer.entities.getById("live_drone");
-
-          if (entity) {
-            entity.position = pos;
-          }
+        if (mapMode === "3d" && window.viewer && window.Cesium) {
+          const pos = window.Cesium.Cartesian3.fromDegrees(lng, lat, 100);
+          const entity = window.viewer.entities.getById("live_drone");
+          if (entity) entity.position = pos;
         }
 
       } catch (err) {
@@ -137,13 +113,21 @@ export default function DroneLivePanel({
     return () => clearInterval(interval);
   }, [droneCode, mapMode]);
 
-  // ✅ Leaflet Init + User Interaction Detection
+  // ✅ INIT 2D
   useEffect(() => {
     if (mapMode !== "2d") return;
+
+    // 💥 destroy cesium view
+    if (window.viewer) {
+      window.viewer.destroy();
+      window.viewer = null;
+    }
+
     if (leafletMapRef.current) return;
 
     const map = L.map(mapContainerRef.current).setView(
-      [dronePosition.lat, dronePosition.lng], 16
+      [dronePosition.lat, dronePosition.lng],
+      16
     );
 
     leafletMapRef.current = map;
@@ -155,7 +139,6 @@ export default function DroneLivePanel({
       { icon: droneIcon }
     ).addTo(map);
 
-    // 👇 detect user interaction
     map.on("dragstart zoomstart", () => {
       isUserInteractingRef.current = true;
     });
@@ -163,29 +146,47 @@ export default function DroneLivePanel({
     return () => {
       map.remove();
       leafletMapRef.current = null;
-      droneMarkerRef.current = null;
     };
   }, [mapMode]);
 
-  // ✅ 3D INIT
+  // ✅ INIT 3D
   useEffect(() => {
     if (mapMode !== "3d") return;
 
     async function initCesium() {
       try {
         if (!cesiumInitRef.current) {
-          loadCss("https://cesium.com/downloads/cesiumjs/releases/1.96/Build/Cesium/Widgets/widgets.css");
-          await loadScript("https://cdnjs.cloudflare.com/ajax/libs/cesium/1.96.0/Cesium.js");
-          await loadScript("/assets/js/globel.js");
-          await loadScript("/assets/js/map.js");
+          loadCss(
+            "https://cesium.com/downloads/cesiumjs/releases/1.96/Build/Cesium/Widgets/widgets.css"
+          );
+          await loadScript(
+            "https://cdnjs.cloudflare.com/ajax/libs/cesium/1.96.0/Cesium.js"
+          );
           cesiumInitRef.current = true;
         }
 
-        if (window.initMap) window.initMap();
-
         const Cesium = window.Cesium;
+        if (!Cesium) return;
+
+        // 💥 destroy leaflet
+        if (leafletMapRef.current) {
+          leafletMapRef.current.remove();
+          leafletMapRef.current = null;
+        }
+
+        // 💥 clear container
+        mapContainerRef.current.innerHTML = "";
+
+        // 💥 create viewer
+        if (!window.viewer) {
+          window.viewer = new Cesium.Viewer(mapContainerRef.current, {
+            animation: false,
+            timeline: false,
+            shouldAnimate: true,
+          });
+        }
+
         const viewer = window.viewer;
-        if (!Cesium || !viewer) return;
 
         const pos = Cesium.Cartesian3.fromDegrees(
           dronePosition.lng,
@@ -206,14 +207,15 @@ export default function DroneLivePanel({
             },
           });
 
-          // 🔥 AUTO FOLLOW IN 3D
           viewer.trackedEntity = entity;
         } else {
           entity.position = pos;
         }
 
+        setTimeout(() => viewer.resize(), 300);
+
       } catch (err) {
-        console.error(err);
+        console.error("Cesium error:", err);
       }
     }
 
@@ -222,10 +224,9 @@ export default function DroneLivePanel({
 
   return (
     <div className="flex flex-col h-full p-4">
+      {/* 🔴 UI NOT CHANGED */}
       <div className="flex justify-between items-center mb-2">
-        <h3 className="font-semibold text-lg">
-          Drone Live View
-        </h3>
+        <h3 className="font-semibold text-lg">Drone Live View</h3>
 
         <div className="flex items-center gap-3">
           <Chip label="LIVE" size="small" color="error" />
@@ -237,7 +238,7 @@ export default function DroneLivePanel({
         </div>
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 rounded-lg overflow-hidden">
         <div ref={mapContainerRef} className="w-full h-full" />
       </div>
     </div>
