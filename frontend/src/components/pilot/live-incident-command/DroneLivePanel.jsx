@@ -36,7 +36,8 @@ delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl:
     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
@@ -69,7 +70,6 @@ export default function DroneLivePanel({
   });
 
   const cesiumInitRef = useRef(false);
-  const hasZoomedRef = useRef(false);
 
   const [isDark, setIsDark] = useState(
     document.documentElement.classList.contains("dark")
@@ -121,7 +121,9 @@ export default function DroneLivePanel({
           const Cesium = window.Cesium;
           const pos = Cesium.Cartesian3.fromDegrees(lng, lat, 800);
 
-          let entity = window.viewer.entities.getById("live_drone");
+          const entity =
+            window.viewer.entities.getById("live_drone");
+
           if (entity) entity.position = pos;
         }
       } catch (err) {
@@ -145,9 +147,9 @@ export default function DroneLivePanel({
       16
     );
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
-      leafletMapRef.current
-    );
+    L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    ).addTo(leafletMapRef.current);
 
     droneMarkerRef.current = L.marker(
       [dronePosition.lat, dronePosition.lng],
@@ -161,11 +163,11 @@ export default function DroneLivePanel({
     };
   }, [mapMode]);
 
-  // ---------------- 3D MAP (FIXED) ----------------
+  // ---------------- 3D MAP (FINAL STABLE FIX) ----------------
   useEffect(() => {
     if (mapMode !== "3d") return;
 
-    let interval;
+    let viewerReady = false;
 
     async function initCesium() {
       try {
@@ -184,20 +186,19 @@ export default function DroneLivePanel({
           cesiumInitRef.current = true;
         }
 
-        if (window.initMap) window.initMap();
+        if (window.initMap) {
+          window.initMap();
+        }
 
-        // 🔥 WAIT FOR VIEWER SAFELY
-        interval = setInterval(() => {
+        // 🔥 ONLY RELIABLE CONDITION: wait for viewer
+        const wait = setInterval(() => {
+          if (!window.viewer || !window.Cesium) return;
+
+          clearInterval(wait);
+          viewerReady = true;
+
           const Cesium = window.Cesium;
-          const viewer =
-            window.viewer ||
-            window.cesiumViewer ||
-            window.VIEWER ||
-            window.V;
-
-          if (!Cesium || !viewer) return;
-
-          clearInterval(interval);
+          const viewer = window.viewer;
 
           const pos = Cesium.Cartesian3.fromDegrees(
             dronePosition.lng,
@@ -224,22 +225,16 @@ export default function DroneLivePanel({
           setTimeout(() => {
             viewer.resize?.();
             viewer.scene?.requestRender();
-
-            if (!hasZoomedRef.current) {
-              hasZoomedRef.current = true;
-              viewer.zoomTo(entity);
-            }
-          }, 250);
+            viewer.zoomTo(entity);
+          }, 300);
         }, 100);
       } catch (err) {
-        console.error("Cesium error:", err);
+        console.error("Cesium init error:", err);
       }
     }
 
     initCesium();
-
-    return () => clearInterval(interval);
-  }, [mapMode, dronePosition]);
+  }, [mapMode]);
 
   // ---------------- incident ----------------
   useEffect(() => {
@@ -257,7 +252,7 @@ export default function DroneLivePanel({
   // ---------------- UI ----------------
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden p-4">
-      {/* Header */}
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-2 shrink-0">
         <h3
           className="font-semibold text-lg"
@@ -269,12 +264,14 @@ export default function DroneLivePanel({
         <div className="flex items-center gap-3">
           <Chip label="LIVE" size="small" color="error" />
 
-          {/* ORIGINAL TOGGLE (UNCHANGED) */}
+          {/* 🔥 YOUR ORIGINAL TOGGLE (UNCHANGED) */}
           <div
             className="relative flex items-center rounded-full p-1 w-[110px] h-8"
             style={{
               backgroundColor: isDark ? "rgba(0,0,0,0.7)" : "#f1f5f9",
-              border: `1px solid ${isDark ? "#2E2E2E" : "#e2e8f0"}`,
+              border: `1px solid ${
+                isDark ? "#2E2E2E" : "#e2e8f0"
+              }`,
             }}
           >
             <div
@@ -289,7 +286,7 @@ export default function DroneLivePanel({
               style={{
                 color:
                   mapMode === "2d"
-                    ? "#ffffff"
+                    ? "#fff"
                     : isDark
                     ? "#9ca3af"
                     : "#6b7280",
@@ -304,7 +301,7 @@ export default function DroneLivePanel({
               style={{
                 color:
                   mapMode === "3d"
-                    ? "#ffffff"
+                    ? "#fff"
                     : isDark
                     ? "#9ca3af"
                     : "#6b7280",
@@ -316,7 +313,7 @@ export default function DroneLivePanel({
         </div>
       </div>
 
-      {/* MAP */}
+      {/* MAP CONTAINER */}
       <div className="flex-1 min-h-0 rounded-lg overflow-hidden relative border">
         <div
           ref={mapContainerRef}
