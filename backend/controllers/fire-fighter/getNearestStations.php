@@ -13,10 +13,10 @@ SELECT
 
     (
         6371 * ACOS(
-            COS(RADIANS(i.latitude)) *
+            COS(RADIANS(MAX(i.latitude))) *
             COS(RADIANS(fs.latitude)) *
-            COS(RADIANS(fs.longitude) - RADIANS(i.longitude)) +
-            SIN(RADIANS(i.latitude)) *
+            COS(RADIANS(fs.longitude) - RADIANS(MAX(i.longitude))) +
+            SIN(RADIANS(MAX(i.latitude))) *
             SIN(RADIANS(fs.latitude))
         )
     ) AS distance_km,
@@ -26,11 +26,8 @@ SELECT
 
 FROM fire_station fs
 
-JOIN (
-    SELECT latitude, longitude, stationName
-    FROM incidents
-    WHERE id = ?
-) i ON 1=1
+JOIN incidents i 
+    ON i.id = ?
 
 LEFT JOIN vehicles v
     ON v.station = fs.station_name
