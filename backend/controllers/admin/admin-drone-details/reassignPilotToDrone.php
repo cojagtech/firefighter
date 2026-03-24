@@ -8,7 +8,7 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Content-Type: application/json");
 
 require_once realpath(__DIR__ . "/../../../config/db.php");
-require "../../../helpers/logActivity.php";
+require_once realpath(__DIR__ . "/../../../helpers/logActivity.php");
 
 $drone_code      = $_POST['drone_code'] ?? null;
 $new_pilot_id    = $_POST['pilot_id'] ?? null;
