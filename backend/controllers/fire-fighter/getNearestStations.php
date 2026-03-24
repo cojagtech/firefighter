@@ -1,6 +1,6 @@
 <?php
 
-require_once realpath(__DIR__ . "../../config/db.php");
+require_once realpath(__DIR__ . "/../../config/db.php");
 
 $incidentId = $_GET['incident_id'];
 
