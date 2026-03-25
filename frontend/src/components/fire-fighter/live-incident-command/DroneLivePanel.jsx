@@ -204,7 +204,7 @@ export default function DroneLivePanel({
           );
 
           const groundHeight = updated[0].height || 0;
-          const finalHeight = groundHeight + 100;
+          const finalHeight = groundHeight + 600;
 
           const pos = Cesium.Cartesian3.fromDegrees(lng, lat, finalHeight);
 
