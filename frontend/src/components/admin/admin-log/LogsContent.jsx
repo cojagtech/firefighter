@@ -1,86 +1,128 @@
-import { useEffect, useState } from "react";
-import LogsFilters from "./LogsFilters";
-import LogsTable from "./LogsTable";
-import LogsPagination from "./LogsPagination";
+import { useState, useEffect } from "react";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
-const API = `${API_BASE}/admin/admin-logs/get_logs.php`;
-
-
-export default function LogsPage() {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const [filters, setFilters] = useState({
-    search: "",
-    module: "all",
-    date: "",
-    page: 1,
-    limit: 10,
-  });
-
-  const [totalPages, setTotalPages] = useState(1);
-
-  const fetchLogs = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        search: filters.search,
-        module: filters.module === "all" ? "" : filters.module,
-        date: filters.date, 
-        page: filters.page,
-        limit: filters.limit,
-      });
-
-      const res = await fetch(`${API}?${params.toString()}`, {
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setLogs(data.logs || []);
-        setTotalPages(data.pages || 1);
-      } else {
-        setLogs([]);
-      }
-    } catch (err) {
-      console.error("Logs fetch failed", err);
-      setLogs([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function LogsFilters({ filters, setFilters }) {
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark")
+  );
 
   useEffect(() => {
-    fetchLogs();
-  }, [
-    filters.page,
-    filters.module,
-    filters.search,
-    filters.date, 
-  ]);
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const inputStyle = {
+    backgroundColor: isDark ? "#141414" : "#ffffff",
+    color: isDark ? "#ffffff" : "#000000",
+    border: `1px solid ${isDark ? "#2E2E2E" : "#e2e8f0"}`,
+  };
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">System Logs</h1>
-        <p className="text-muted-foreground">
-          Complete audit trail of all activities
-        </p>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Filters</CardTitle>
+      </CardHeader>
 
-      <LogsFilters filters={filters} setFilters={setFilters} />
+      <CardContent className="grid md:grid-cols-5 gap-4">
+        
+        {/* 🔍 Search */}
+        <Input
+          placeholder="Search logs..."
+          value={filters.search}
+          onChange={(e) =>
+            setFilters((p) => ({
+              ...p,
+              search: e.target.value,
+              page: 1,
+            }))
+          }
+          style={inputStyle}
+        />
 
-      <LogsTable logs={logs} loading={loading} />
+        {/* 📦 Module */}
+        <select
+          value={filters.module}
+          onChange={(e) =>
+            setFilters((p) => ({
+              ...p,
+              module: e.target.value,
+              page: 1,
+            }))
+          }
+          style={inputStyle}
+          className="p-2 rounded"
+        >
+          <option value="all">All Modules</option>
+          <option value="VEHICLE">Vehicle</option>
+          <option value="USER">User</option>
+          <option value="DRONE">Drone</option>
+          <option value="INCIDENT">Incident</option>
+        </select>
 
-      <LogsPagination
-        page={filters.page}
-        totalPages={totalPages}
-        onChange={(page) =>
-          setFilters((p) => ({ ...p, page }))
-        }
-      />
-    </div>
+        {/* 👤 ROLE (FIXED) */}
+        <select
+          value={filters.role}
+          onChange={(e) =>
+            setFilters((p) => ({
+              ...p,
+              role: e.target.value,
+              page: 1,
+            }))
+          }
+          style={inputStyle}
+          className="p-2 rounded"
+        >
+          <option value="all">All Roles</option>
+          <option value="Admin">Admin</option>
+          <option value="Pilot">Pilot</option>
+          <option value="Vehicle Driver">Vehicle Driver</option>
+          <option value="Fire Station Command Control">
+            Fire Station Command Control
+          </option>
+        </select>
+
+        {/* 📅 Date */}
+        <Input
+          type="date"
+          value={filters.date}
+          onChange={(e) =>
+            setFilters((p) => ({
+              ...p,
+              date: e.target.value,
+              page: 1,
+            }))
+          }
+          style={inputStyle}
+        />
+
+        {/* ❌ Clear */}
+        <button
+          onClick={() =>
+            setFilters((p) => ({
+              ...p,
+              date: "",
+              role: "all",
+              module: "all",
+              search: "",
+              page: 1,
+            }))
+          }
+          style={{
+            border: `1px solid ${isDark ? "#2E2E2E" : "#e2e8f0"}`,
+            color: isDark ? "#d1d5db" : "#000",
+          }}
+          className="rounded hover:bg-red-600 hover:text-white transition"
+        >
+          Clear All
+        </button>
+      </CardContent>
+    </Card>
   );
 }

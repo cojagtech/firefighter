@@ -23,12 +23,14 @@ $page   = max(1, intval($_GET['page'] ?? 1));
 $limit  = max(10, intval($_GET['limit'] ?? 20));
 $search = trim($_GET['search'] ?? "");
 $module = trim($_GET['module'] ?? "");
+$role   = trim($_GET['role'] ?? "");
 $date   = trim($_GET['date'] ?? "");
+
 $offset = ($page - 1) * $limit;
 
 $where = "WHERE 1=1";
 
-/* SEARCH */
+/* 🔍 SEARCH */
 if ($search !== "") {
     $search = mysqli_real_escape_string($conn, $search);
     $where .= " AND (
@@ -38,22 +40,30 @@ if ($search !== "") {
     )";
 }
 
-/* MODULE */
-if ($module !== "") {
+/* 📦 MODULE */
+if ($module !== "" && $module !== "all") {
     $module = mysqli_real_escape_string($conn, $module);
     $where .= " AND module = '$module'";
 }
 
-/* DATE */
+/* 👤 ROLE (FIXED) */
+if ($role !== "" && $role !== "all") {
+    $role = mysqli_real_escape_string($conn, $role);
+    $where .= " AND TRIM(role) = '$role'";
+}
+
+/* 📅 DATE */
 if ($date !== "") {
     $date = mysqli_real_escape_string($conn, $date);
     $where .= " AND DATE(created_at) = '$date'";
 }
 
+/* 🔢 COUNT */
 $countSql = "SELECT COUNT(*) AS total FROM activity_logs $where";
 $countRes = mysqli_query($conn, $countSql);
 $total    = mysqli_fetch_assoc($countRes)['total'] ?? 0;
 
+/* 📄 DATA */
 $sql = "
   SELECT id, user_name, role, module, action, description, ip_address, created_at
   FROM activity_logs
@@ -72,10 +82,10 @@ while ($row = mysqli_fetch_assoc($result)) {
 echo json_encode([
     "success" => true,
     "page"    => $page,
-    "limit"  => $limit,
-    "total"  => intval($total),
-    "pages"  => ceil($total / $limit),
-    "logs"   => $logs
+    "limit"   => $limit,
+    "total"   => intval($total),
+    "pages"   => ceil($total / $limit),
+    "logs"    => $logs
 ]);
 
 mysqli_close($conn);

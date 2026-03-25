@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 20, 2026 at 07:26 AM
+-- Generation Time: Mar 25, 2026 at 09:44 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -76,9 +76,9 @@ CREATE TABLE `drones` (
   `id` int(10) UNSIGNED NOT NULL,
   `drone_code` varchar(50) NOT NULL,
   `drone_name` varchar(150) NOT NULL,
-  `ward` varchar(50) NOT NULL,
+  `ward` varchar(50) DEFAULT NULL,
   `status` enum('Active','StandBy','Maintenance') NOT NULL,
-  `battery` int(11) NOT NULL,
+  `battery` int(11) DEFAULT NULL,
   `flight_hours` float DEFAULT 0,
   `health_status` varchar(50) DEFAULT 'Optimal',
   `firmware_version` varchar(20) DEFAULT 'v1.0.0',
