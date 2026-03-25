@@ -228,7 +228,7 @@ export default function DroneLivePanel({
             [carto]
           );
           const ground = updated?.[0]?.height || 0;
-          const pos = Cesium.Cartesian3.fromDegrees(lng, lat, ground + 100);
+          const pos = Cesium.Cartesian3.fromDegrees(lng, lat, ground + 800);
 
           let entity = viewer.entities.getById("live_drone");
 
