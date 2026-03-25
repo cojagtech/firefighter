@@ -199,13 +199,13 @@ export default function CommandToolbar({
             />
           </Button>
 
-          <IconButton
+          {/* <IconButton
             size="small"
             onClick={(e) => setAnchorEl(e.currentTarget)}
             sx={{ color: C.btnColor }}
           >
             <SafeIcon name="MoreVertical" className="h-4 w-4" />
-          </IconButton>
+          </IconButton> */}
 
           {/* <Menu
             anchorEl={anchorEl}
