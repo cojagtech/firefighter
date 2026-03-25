@@ -162,26 +162,24 @@ export default function UserRoleManagementPage() {
   const filteredUsers = useMemo(() => {
     return users
       .filter((u) => {
-        if (
-          filters.name &&
-          !u.fullName?.toLowerCase().includes(filters.name.toLowerCase())
-        )
-          return false;
+        const name = u.fullName?.toLowerCase() || "";
+        const role = u.role?.trim().toLowerCase() || "";
+        const station = u.station?.trim().toLowerCase() || "";
 
-        if (
-          filters.station &&
-          u.station?.trim().toLowerCase() !==
-          filters.station.trim().toLowerCase()
-        )
-          return false;
+        const filterName = filters.name?.toLowerCase() || "";
+        const filterRole = filters.role?.trim().toLowerCase() || "";
+        const filterStation = filters.station?.trim().toLowerCase() || "";
 
-        if (
-          filters.role &&
-          u.role?.trim().toLowerCase() !==
-          filters.role.trim().toLowerCase()
-        )
-          return false;
+        // 🔍 Name filter
+        if (filterName && !name.includes(filterName)) return false;
 
+        // 🏢 Station filter
+        if (filterStation && station !== filterStation) return false;
+
+        // 👤 Role filter (🔥 main fix)
+        if (filterRole && role !== filterRole) return false;
+
+        // 📊 Status filter
         if (filters.status === "active" && !u.active) return false;
         if (filters.status === "inactive" && u.active) return false;
 
@@ -193,6 +191,17 @@ export default function UserRoleManagementPage() {
         return 0;
       });
   }, [users, filters]);
+
+  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+    return filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
+  }, [filteredUsers, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, users]);
 
   return (
     <div
