@@ -88,6 +88,13 @@ export default function DroneLivePanel({
   // ---------------- 2D MAP ----------------
   useEffect(() => {
     if (mapMode !== "2d") return;
+
+    // Clear container before initializing
+    if (mapContainerRef.current) {
+      mapContainerRef.current.innerHTML = "";
+      mapContainerRef.current.style.height = "100%";
+    }
+
     if (leafletMapRef.current) return;
 
     leafletMapRef.current = L.map(mapContainerRef.current).setView(
@@ -100,13 +107,16 @@ export default function DroneLivePanel({
     );
 
     return () => {
-      leafletMapRef.current?.remove();
-      leafletMapRef.current = null;
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
+      }
       droneMarkerRef.current = null;
+      if (mapContainerRef.current) mapContainerRef.current.innerHTML = "";
     };
   }, [mapMode]);
 
-  // ---------------- 3D MAP (FIXED STABLE) ----------------
+  // ---------------- 3D MAP ----------------
   useEffect(() => {
     if (mapMode !== "3d") return;
 
@@ -129,12 +139,17 @@ export default function DroneLivePanel({
           cesiumInitRef.current = true;
         }
 
+        // Clear container before Cesium init
+        if (mapContainerRef.current) {
+          mapContainerRef.current.innerHTML = "";
+          mapContainerRef.current.style.height = "100%";
+        }
+
         if (window.initMap) window.initMap();
 
-        // ✅ SAFE WAIT FOR VIEWER
+        // Safe wait for viewer
         waitViewer = setInterval(() => {
           if (!window.Cesium || !window.viewer) return;
-
           clearInterval(waitViewer);
           console.log("Cesium Ready ✔");
         }, 100);
@@ -147,6 +162,17 @@ export default function DroneLivePanel({
 
     return () => {
       if (waitViewer) clearInterval(waitViewer);
+
+      if (window.viewer) {
+        window.viewer.destroy();
+        window.viewer = null;
+      }
+
+      if (mapContainerRef.current) {
+        mapContainerRef.current.innerHTML = "";
+      }
+
+      hasZoomedRef.current = false;
     };
   }, [mapMode]);
 
@@ -188,7 +214,7 @@ export default function DroneLivePanel({
         }
 
         // =========================
-        // 3D UPDATE (FIXED)
+        // 3D UPDATE
         // =========================
         if (mapMode === "3d") {
           const Cesium = window.Cesium;
@@ -197,18 +223,12 @@ export default function DroneLivePanel({
           if (!Cesium || !viewer) return;
 
           const carto = Cesium.Cartographic.fromDegrees(lng, lat);
-
           const updated = await Cesium.sampleTerrainMostDetailed(
             viewer.terrainProvider,
             [carto]
           );
-
           const ground = updated?.[0]?.height || 0;
-          const pos = Cesium.Cartesian3.fromDegrees(
-            lng,
-            lat,
-            ground + 100
-          );
+          const pos = Cesium.Cartesian3.fromDegrees(lng, lat, ground + 100);
 
           let entity = viewer.entities.getById("live_drone");
 
@@ -272,14 +292,11 @@ export default function DroneLivePanel({
         <div className="flex items-center gap-3">
           <Chip label="LIVE" size="small" color="error" />
 
-          {/* YOUR ORIGINAL TOGGLE (UNCHANGED) */}
           <div
             className="relative flex items-center rounded-full p-1 w-[110px] h-8"
             style={{
               backgroundColor: isDark ? "rgba(0,0,0,0.7)" : "#f1f5f9",
-              border: `1px solid ${
-                isDark ? "#2E2E2E" : "#e2e8f0"
-              }`,
+              border: `1px solid ${isDark ? "#2E2E2E" : "#e2e8f0"}`,
             }}
           >
             <div
@@ -322,11 +339,11 @@ export default function DroneLivePanel({
       </div>
 
       {/* MAP */}
-      <div className="flex-1 rounded-lg overflow-hidden">
+      <div className="flex-1 rounded-lg overflow-hidden relative">
         <div
           id="map-container"
           ref={mapContainerRef}
-          className="w-full h-full"
+          className="absolute inset-0 w-full h-full"
         />
       </div>
     </div>
