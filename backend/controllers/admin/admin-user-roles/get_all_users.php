@@ -12,10 +12,10 @@ $users = [];
 while ($row = $result->fetch_assoc()) {
     $users[] = [
         "id" => $row["id"],
-        "name" => $row["fullName"],
-        "role" => $row["role"],
-        "station" => $row["station"],
-        "active" => $row["status"] == 1 ? true : false,
+        "fullName" => trim($row["fullName"]), // ✅ FIX
+        "role" => trim($row["role"]),         // ✅ FIX
+        "station" => trim($row["station"]),   // ✅ FIX
+        "active" => (int)$row["status"] === 1,
         "reason" => $row["deactivation_reason"]
     ];
 }

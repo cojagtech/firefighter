@@ -167,10 +167,24 @@ export default function UserRoleManagementPage() {
           !u.fullName?.toLowerCase().includes(filters.name.toLowerCase())
         )
           return false;
-        if (filters.station && u.station !== filters.station) return false;
-        if (filters.role && u.role !== filters.role) return false;
+
+        if (
+          filters.station &&
+          u.station?.trim().toLowerCase() !==
+          filters.station.trim().toLowerCase()
+        )
+          return false;
+
+        if (
+          filters.role &&
+          u.role?.trim().toLowerCase() !==
+          filters.role.trim().toLowerCase()
+        )
+          return false;
+
         if (filters.status === "active" && !u.active) return false;
         if (filters.status === "inactive" && u.active) return false;
+
         return true;
       })
       .sort((a, b) => {
@@ -180,39 +194,25 @@ export default function UserRoleManagementPage() {
       });
   }, [users, filters]);
 
-  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
-
-  const paginatedUsers = useMemo(() => {
-    const startIndex = (currentPage - 1) * USERS_PER_PAGE;
-    return filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
-  }, [filteredUsers, currentPage]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters, users]);
-
   return (
     <div
-      className={`min-h-screen p-6 space-y-6 ${
-        isDark ? "bg-gray-950" : "bg-gray-50"
-      }`}
+      className={`min-h-screen p-6 space-y-6 ${isDark ? "bg-gray-950" : "bg-gray-50"
+        }`}
     >
       <div className="flex items-center justify-between">
         <h1
-          className={`text-2xl font-bold ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}
+          className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"
+            }`}
         >
           User Management
         </h1>
 
         <button
           onClick={handleAddUser}
-          className={`px-8 py-2 text-white rounded-md border border-gray-700 ${
-            isDark
+          className={`px-8 py-2 text-white rounded-md border border-gray-700 ${isDark
               ? "bg-black-800 hover:bg-red-600"
               : "bg-black hover:bg-red-600"
-          }`}
+            }`}
         >
           Add User
         </button>
@@ -249,11 +249,10 @@ export default function UserRoleManagementPage() {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`px-3 py-1 rounded text-sm border ${
-                  currentPage === page
+                className={`px-3 py-1 rounded text-sm border ${currentPage === page
                     ? "bg-blue-600 text-white"
                     : "bg-white text-black"
-                }`}
+                  }`}
               >
                 {page}
               </button>
