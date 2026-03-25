@@ -46,10 +46,10 @@ if ($module !== "" && $module !== "all") {
     $where .= " AND module = '$module'";
 }
 
-/* 👤 ROLE (FIXED) */
+/* 👤 ROLE (🔥 FINAL FIX) */
 if ($role !== "" && $role !== "all") {
     $role = mysqli_real_escape_string($conn, $role);
-    $where .= " AND TRIM(role) = '$role'";
+    $where .= " AND LOWER(TRIM(role)) = LOWER(TRIM('$role'))";
 }
 
 /* 📅 DATE */
