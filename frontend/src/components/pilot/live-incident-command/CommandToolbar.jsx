@@ -207,7 +207,7 @@ export default function CommandToolbar({
             <SafeIcon name="MoreVertical" className="h-4 w-4" />
           </IconButton>
 
-          <Menu
+          {/* <Menu
             anchorEl={anchorEl}
             open={open}
             onClose={() => setAnchorEl(null)}
@@ -249,7 +249,7 @@ export default function CommandToolbar({
             >
               <SafeIcon name="LogOut" className="mr-2 h-4 w-4" /> End Mission
             </MenuItem>
-          </Menu>
+          </Menu> */}
 
           <Button
             size="small"

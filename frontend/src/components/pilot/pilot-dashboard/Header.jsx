@@ -16,7 +16,7 @@ export default function Header({ selectedDrone }) {
     <div className="flex items-start justify-between">
       <div className="space-y-2">
         <div className="flex items-center gap-3">
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             onClick={() =>
@@ -24,7 +24,7 @@ export default function Header({ selectedDrone }) {
             }
           >
             <SafeIcon name="ArrowLeft" size={20} />
-          </Button>
+          </Button> */}
 
           <h1 className="text-3xl font-bold">
             {selectedDrone?.drone_name || "Select Drone"}
