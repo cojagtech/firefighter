@@ -9,6 +9,7 @@ import {
   Button,
   Autocomplete,
 } from "@mui/material";
+import toast from "react-hot-toast";
 
 export default function EditVehicleModal({
   open,
@@ -19,7 +20,6 @@ export default function EditVehicleModal({
 }) {
   const [formData, setFormData] = useState(null);
   const [isDirty, setIsDirty] = useState(false);
-  const [error, setError] = useState("");
 
   const originalRef = useRef(null);
 
@@ -45,7 +45,6 @@ export default function EditVehicleModal({
     setFormData(safeVehicle);
     originalRef.current = JSON.stringify(safeVehicle);
     setIsDirty(false);
-    setError("");
   }, [vehicle]);
 
   if (!formData) return null;
@@ -54,17 +53,20 @@ export default function EditVehicleModal({
     const { name, value } = e.target;
     const updated = { ...formData, [name]: value };
     setFormData(updated);
-    setError("");
     setIsDirty(JSON.stringify(updated) !== originalRef.current);
   };
 
   const saveChanges = async () => {
     if (!isDirty) return;
+
     const res = await onUpdate(formData);
+
     if (!res?.success) {
-      setError(res?.message || "Update failed");
+      toast.error(res?.message || "Vehicle update failed");
       return;
     }
+
+    toast.success("Vehicle updated successfully 🚗");
     onClose();
   };
 
@@ -132,22 +134,6 @@ export default function EditVehicleModal({
       </DialogTitle>
 
       <DialogContent sx={{ py: 2 }}>
-        {error && (
-          <div
-            style={{
-              marginBottom: "14px",
-              padding: "10px 14px",
-              borderRadius: "8px",
-              background: "rgba(239,68,68,0.12)",
-              border: "1px solid rgba(239,68,68,0.6)",
-              color: "#ef4444",
-              fontWeight: 600,
-            }}
-          >
-            {error}
-          </div>
-        )}
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
           <TextField
             label="Vehicle Name"
