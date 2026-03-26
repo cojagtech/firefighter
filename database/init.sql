@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 25, 2026 at 09:44 AM
+-- Generation Time: Mar 26, 2026 at 12:55 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -194,10 +194,10 @@ CREATE TABLE `fire_station` (
 --
 
 INSERT INTO `fire_station` (`id`, `station_name`, `station_code`, `latitude`, `longitude`, `created_at`) VALUES
-(1, 'Baner Fire Station', 'STN-001', 18.5603810, 73.7769030, '2026-02-03 07:21:41'),
 (2, 'Warje Fire Station', 'STN-002', 18.4834350, 73.8024832, '2026-02-03 07:28:11'),
 (3, 'Yerwada Fire Station', 'STN-003', 18.5064749, 73.8684440, '2026-02-03 10:10:52'),
-(4, 'Katraj Fire Station', 'STN-004', 18.4538017, 73.8562777, '2026-02-03 10:12:47');
+(19, 'Katraj Fire Station', 'STN-001', 18.4549192, 73.8569108, '2026-03-26 11:30:58'),
+(20, 'Baner Fire Station', 'STN-004', 18.5603810, 73.7769030, '2026-03-26 11:31:49');
 
 -- --------------------------------------------------------
 
@@ -222,9 +222,9 @@ CREATE TABLE `incidents` (
 --
 
 INSERT INTO `incidents` (`id`, `name`, `location`, `latitude`, `longitude`, `stationName`, `timeReported`, `status`, `isNewAlert`) VALUES
-('INC-20251120-003', 'Major Structural Fire - Downtown', 'False Street A-123, Commercial District', 18.454324432525688, 73.85854325144334, 'Katraj Fire Station', '2026-01-06 10:35:00', 'new', 1),
 ('INC-20251122-001', 'Vehicle Accident & Fire', 'Paud Road, Near Signal, Kothrud', 18.5074, 73.8077, 'Baner Fire Station', '2025-11-22 15:25:00', 'new', 1),
-('INC-20251122-002', 'Warehouse Fire - Industrial Zone', 'Plot No. 45, Industrial Area, Katraj', 18.4445, 73.8521, 'Yerwada Fire Station', '2026-01-02 14:10:00', 'new', 1);
+('INC-20251122-002', 'Warehouse Fire - Industrial Zone', 'Plot No. 45, Industrial Area, Katraj', 18.4445, 73.8521, 'Yerwada Fire Station', '2026-01-02 14:10:00', 'new', 1),
+('INC-20260115-003', 'Residential Building Fire', 'Near Katraj Bus Depot, Pune', 18.45445378969955, 73.85859890802172, 'Katraj Fire Station', '2026-01-15 18:40:00', 'in_progress', 0);
 
 -- --------------------------------------------------------
 
@@ -313,9 +313,9 @@ CREATE TABLE `vehicles` (
 --
 
 INSERT INTO `vehicles` (`id`, `name`, `type`, `registration`, `device_id`, `location`, `status`, `created_at`, `station`) VALUES
-(1, 'Rescue Van', 'Hydraulic Rescue Vehicle', 'MH-12-KJ-1001', 'VTS-HRV-001', 'Katraj Fire Station', 'available', '2025-12-05 09:47:34', 'Katraj Fire Station'),
+(1, 'Rescue Van', 'Hydraulic Rescue Vehicle', 'MH-12-KJ-1001', 'VTS-HRV-001', 'Katraj Fire Station', 'maintenance', '2025-12-05 09:47:34', 'Katraj Fire Station'),
 (2, 'Water Tender', 'Bulk Water Carrier', 'MH-12-KJ-1002', 'VTS-BWC-002', 'Katraj Fire Station', 'available', '2025-12-05 09:47:34', 'Katraj Fire Station'),
-(3, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-KJ-1003', 'VTS-QRV-003', 'Katraj Fire Station', 'available', '2025-12-05 09:47:34', 'Katraj Fire Station'),
+(3, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-KJ-1003', '0453aa40-80a0-11f0-902d-59ff54eea995', 'Katraj Fire Station', 'available', '2025-12-05 09:47:34', 'Katraj Fire Station'),
 (4, 'Rescue Van', 'Hydraulic Rescue Vehicle', 'MH-12-BN-2341', 'VTS-HRV-101', 'Baner Fire Station', 'available', '2025-12-05 09:47:34', 'Baner Fire Station'),
 (5, 'Water Tender', 'Bulk Water Carrier', 'MH-12-BN-2342', 'VTS-BWC-102', 'Baner Fire Station', 'available', '2025-12-05 09:47:34', 'Baner Fire Station'),
 (6, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-BN-2343', 'VTS-QRV-103', 'Baner Fire Station', 'available', '2025-12-05 09:47:34', 'Baner Fire Station'),
@@ -424,7 +424,7 @@ ALTER TABLE `fire_detections`
 -- AUTO_INCREMENT for table `fire_station`
 --
 ALTER TABLE `fire_station`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `maintenance_requests`
