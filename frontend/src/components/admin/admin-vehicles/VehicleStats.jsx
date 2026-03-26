@@ -5,7 +5,7 @@ import SafeIcon from "@/components/common/SafeIcon";
 export default function VehicleStats({ vehicles = [] }) {
 
   const total = vehicles.length;
-  const active = vehicles.filter(v => v.status === "active").length;
+  const active = vehicles.filter(v => v.status === "available").length;
   const busy = vehicles.filter(v => ["busy", "on-mission"].includes(v.status)).length;
   const maintenance = vehicles.filter(v => v.status === "maintenance").length;
 

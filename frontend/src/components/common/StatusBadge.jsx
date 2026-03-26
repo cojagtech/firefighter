@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge"
 import SafeIcon from "@/components/common/SafeIcon"
 
-export default function StatusBadge({ 
-  status, 
+export default function StatusBadge({
+  status,
   label,
   showIcon = true,
   className = ""
@@ -13,7 +13,13 @@ export default function StatusBadge({
         return {
           color: "bg-emerald-600 text-white hover:bg-emerald-700",
           icon: "CheckCircle",
-          text: label || "Active"
+          text: label || "active"
+        }
+      case "available":
+        return {
+          color: "bg-emerald-600 text-white hover:bg-emerald-700",
+          icon: "CheckCircle",
+          text: label || "available"
         }
       case "busy":
         return {
