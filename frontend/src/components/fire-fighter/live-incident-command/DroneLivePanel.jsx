@@ -358,6 +358,25 @@ export default function DroneLivePanel({
               3D
             </button>
           </div>
+           {!isMaximized ? (
+            <button
+              onClick={onMaximize}
+              className="p-1 hover:bg-muted rounded"
+              style={{ color: isDark ? "#fff" : "#111827" }}
+              title="Maximize Panel"
+            >
+              <SafeIcon name="Maximize2" className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              onClick={onExit}
+              className="p-1 hover:bg-muted rounded"
+              style={{ color: isDark ? "#fff" : "#111827" }}
+              title="Close Panel"
+            >
+              <SafeIcon name="X" className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 

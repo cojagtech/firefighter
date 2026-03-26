@@ -6,7 +6,7 @@ header("Content-Type: application/json");
 
 $stations = [
     ["name" => "Central Fire Brigade Pune", "lat" => 18.506453, "lng" => 73.865253],
-    ["name" => "Katraj Fire Station Pune", "lat" => 18.454962, "lng" => 73.856881],
+    ["name" => "Katraj Fire Station Pune", "lat" => 18.454919200249957, "lng" => 73.85691076631967],
     ["name" => "Kasba Fire Station", "lat" => 18.522394, "lng" =>  73.856602], 
     ["name" => "Kondhwa Khurd Fire Station", "lat" => 18.480530, "lng" => 73.891470], 
     ["name" => "Hadapsar Fire Station", "lat" => 18.512236, "lng" => 73.915089],
