@@ -236,7 +236,7 @@ export default function VTSLivePanel({
         {mapMode === "3d" ? (
           <iframe
             ref={iframeRef}
-            src="/index.html"
+            src="/cesium-map.html"
             className="w-full h-full border-none"
             title="3D Map"
           />
