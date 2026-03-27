@@ -49,7 +49,6 @@ export default function DroneMonitoringContent() {
   const dropdownColor = isDark ? "#ffffff" : "#000000";
   const dropdownStyle = { backgroundColor: dropdownBg, color: dropdownColor };
 
-  // ✅ All backend logic unchanged below
   const loadDrones = useCallback(async (isAutoRefresh = false) => {
     try {
       const res = await fetch(`${API}/get_drone_locations.php`);

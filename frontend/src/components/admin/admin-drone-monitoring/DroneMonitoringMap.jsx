@@ -2,83 +2,89 @@ import { useEffect, useState, useRef } from "react";
 import L from "leaflet";
 
 export default function DroneMonitoringMap({ drones }) {
-  const [mapMode, setMapMode] = useState("2d");
-  const mapRef = useRef(null);
-
-  // Theme observer
   const [isDark, setIsDark] = useState(
     document.documentElement.classList.contains("dark")
   );
 
+  const mapRef = useRef(null);
+  const markerLayerRef = useRef(null);
+
+  // 🌙 Theme observer
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains("dark"));
     });
+
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],
     });
+
     return () => observer.disconnect();
   }, []);
 
-  function loadLeafletMap() {
+  // 🚀 Initialize map ONLY ONCE
+  const initializeMap = () => {
     const div = document.getElementById("monitorMap2D");
     if (!div || div.offsetHeight === 0) return;
 
     if (!mapRef.current) {
-      mapRef.current = L.map("monitorMap2D").setView([18.527693, 73.853166], 14);
+      mapRef.current = L.map("monitorMap2D").setView(
+        [18.527693, 73.853166],
+        14
+      );
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "© OpenStreetMap",
       }).addTo(mapRef.current);
+
+      markerLayerRef.current = L.layerGroup().addTo(mapRef.current);
     }
 
-    if (!window.monitorMarkerLayer) {
-      window.monitorMarkerLayer = L.layerGroup().addTo(mapRef.current);
-    } else {
-      window.monitorMarkerLayer.clearLayers();
-    }
+    // ⚡ Instant size fix (no delay)
+    setTimeout(() => {
+      mapRef.current?.invalidateSize();
+    }, 0);
+  };
+
+  // 📍 Update markers (FAST)
+  const updateMarkers = () => {
+    if (!markerLayerRef.current) return;
+
+    markerLayerRef.current.clearLayers();
 
     drones.forEach((d) => {
       if (!d.latitude || !d.longitude) return;
 
       L.marker([d.latitude, d.longitude])
         .bindPopup(`
-          <b>${d.drone_name}</b><br>
-          Code: ${d.drone_code}<br>
-          Status: ${d.status}<br>
+          <b>${d.drone_name}</b><br/>
+          Code: ${d.drone_code}<br/>
+          Status: ${d.status}
         `)
-        .addTo(window.monitorMarkerLayer);
+        .addTo(markerLayerRef.current);
     });
+  };
 
-    setTimeout(() => mapRef.current?.invalidateSize(), 200);
-  }
-
+  // 🧠 Run once on mount
   useEffect(() => {
-    const mapDiv = document.getElementById("monitorMap2D");
-    if (!mapDiv) return;
+    initializeMap();
+  }, []);
 
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && mapMode === "2d") {
-        loadLeafletMap();
-      }
-    });
-
-    observer.observe(mapDiv);
-    return () => observer.disconnect();
-  }, [mapMode]);
-
+  // 🔄 Update when drones change
   useEffect(() => {
-    if (mapMode === "2d") {
-      setTimeout(loadLeafletMap, 200);
-    }
-  }, [drones, mapMode]);
+    initializeMap();   // ensure map exists
+    updateMarkers();   // update instantly
+  }, [drones]);
 
+  // 🧹 Cleanup
   useEffect(() => {
     return () => {
-      mapRef.current?.remove();
-      mapRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
   }, []);
 
