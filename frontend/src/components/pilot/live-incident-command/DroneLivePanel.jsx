@@ -227,8 +227,8 @@ export default function DroneLivePanel({
             viewer.terrainProvider,
             [carto]
           );
-          const ground = updated?.[0]?.height || 0;
-          const pos = Cesium.Cartesian3.fromDegrees(lng, lat, ground + 500);
+          const ground = updated?.[0]?.height || 558;
+          const pos = Cesium.Cartesian3.fromDegrees(lng, lat, ground + 100);
 
           let entity = viewer.entities.getById("live_drone");
 
@@ -265,6 +265,30 @@ export default function DroneLivePanel({
     return () => clearInterval(interval);
   }, [droneCode, mapMode]);
 
+
+  useEffect(() => {
+    if (!droneCode) return;
+
+    // Reset 2D marker
+    if (droneMarkerRef.current) {
+      droneMarkerRef.current.remove();
+      droneMarkerRef.current = null;
+    }
+
+    // Reset 3D entity
+    if (window.viewer) {
+      const entity = window.viewer.entities.getById("live_drone");
+      if (entity) {
+        window.viewer.entities.remove(entity);
+      }
+    }
+
+    // Allow zoom again for new drone
+    hasZoomedRef.current = false;
+
+    console.log("🔄 Drone switched:", droneCode);
+  }, [droneCode]);
+
   // ---------------- INCIDENT ----------------
   useEffect(() => {
     if (!incident) return;
@@ -300,9 +324,8 @@ export default function DroneLivePanel({
             }}
           >
             <div
-              className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-red-600 transition-all duration-300 ${
-                mapMode === "3d" ? "left-[50%]" : "left-1"
-              }`}
+              className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-red-600 transition-all duration-300 ${mapMode === "3d" ? "left-[50%]" : "left-1"
+                }`}
             />
 
             <button
@@ -313,8 +336,8 @@ export default function DroneLivePanel({
                   mapMode === "2d"
                     ? "#fff"
                     : isDark
-                    ? "#9ca3af"
-                    : "#6b7280",
+                      ? "#9ca3af"
+                      : "#6b7280",
               }}
             >
               2D
@@ -328,8 +351,8 @@ export default function DroneLivePanel({
                   mapMode === "3d"
                     ? "#fff"
                     : isDark
-                    ? "#9ca3af"
-                    : "#6b7280",
+                      ? "#9ca3af"
+                      : "#6b7280",
               }}
             >
               3D
