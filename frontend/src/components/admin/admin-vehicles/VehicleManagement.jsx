@@ -132,7 +132,7 @@ export default function VehicleManagement() {
     return matchSearch && matchStatus && matchStation;
   });
 
-  const statuses = ["all", "active", "on-mission", "maintenance"];
+  const statuses = ["all", "available", "on-mission", "maintenance"];
 
   return (
     <div className="space-y-6 p-6">

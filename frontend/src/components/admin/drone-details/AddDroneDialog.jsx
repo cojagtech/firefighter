@@ -167,7 +167,7 @@ export default function AddDroneDialog({ open, onOpenChange, stations, onSuccess
             <input
               type="text"
               value={drone.drone_code}
-              placeholder="DR-001"
+              placeholder="DRN-001"
               onChange={(e) => updateField("drone_code", e.target.value)}
               style={inputStyle}
               className="w-full mt-1 h-9 rounded-md px-3 focus:outline-none focus:border-red-600"
