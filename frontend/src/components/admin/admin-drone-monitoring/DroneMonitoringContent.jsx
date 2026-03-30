@@ -149,13 +149,14 @@ export default function DroneMonitoringContent() {
     <div className="space-y-6 p-6">
 
       {/* Station Dropdown */}
+            {/* Station Dropdown */}
       <div className="flex justify-start">
         <div className="w-64 relative" ref={dropdownRef}>
           <label className="text-sm font-medium text-foreground">Station</label>
 
           <div
             onClick={() => setStationOpen(!stationOpen)}
-            className="w-full p-2 rounded border border-border cursor-pointer flex justify-between items-center bg-background text-foreground"
+            className="w-full p-2 border border-[#292C30] rounded-lg hover:border-[#dc2626] cursor-pointer flex justify-between items-center bg-background text-foreground"
           >
             <span>
               {selectedStation === "all" ? "All Stations" : selectedStation}
@@ -165,7 +166,7 @@ export default function DroneMonitoringContent() {
 
           {stationOpen && (
             <div
-              className="absolute z-50 mt-1 w-full border rounded shadow-lg"
+              className="absolute z-50 mt-1 w-full border border-[#292C30] rounded-lg shadow-lg"
               style={dropdownStyle}
             >
               <input
@@ -174,10 +175,10 @@ export default function DroneMonitoringContent() {
                 value={stationSearch}
                 onChange={(e) => setStationSearch(e.target.value)}
                 style={dropdownStyle}
-                className="w-full px-3 py-2 border-b border-border outline-none rounded-t placeholder:text-gray-400"
+                className="w-full px-3 py-2 border-b border-[#292C30] outline-none rounded-lg placeholder:text-gray-400"
               />
 
-              <div className="max-h-40 overflow-y-auto custom-scrollbar">
+              <div className="max-h-40 overflow-y-auto custom-scrollbar mb-1">
                 <div
                   onClick={() => {
                     setSelectedStation("all");
@@ -209,6 +210,7 @@ export default function DroneMonitoringContent() {
           )}
         </div>
       </div>
+
 
       <DroneMonitoringHeader
         totalDrones={filteredDrones.length}
