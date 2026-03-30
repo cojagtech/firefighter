@@ -1,28 +1,33 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useTheme } from "@/Context/ThemeContext";
-
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Badge,
+  Menu,
+  MenuItem,
+  Box,
+  Avatar,
+  Divider,
+} from "@mui/material";
 
-import { Badge } from "@/components/ui/badge";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import LogoutIcon from "@mui/icons-material/Logout";
+import FlightIcon from "@mui/icons-material/Flight";
+
+import { useTheme } from "@/Context/ThemeContext";
 import SafeIcon from "@/components/common/pilot/SafeIcon";
 import logoutUser from "../auth/logout";
 import useUserInfo from "@/components/common/auth/useUserInfo";
-
 import ProfileDialog from "@/components/common/profile/ProfileDialog";
-
-import "./PilotHeader.css";
 
 export default function PilotHeader({ notificationCount = 0 }) {
   const [mounted, setMounted] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false); // 🔥 STATE
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const { isDark, toggleTheme } = useTheme();
   const { name, role, initials } = useUserInfo();
@@ -33,104 +38,180 @@ export default function PilotHeader({ notificationCount = 0 }) {
 
   if (!mounted) return null;
 
+  // 🎨 Theme styles — same pattern as DashboardHeader
+  const headerBg = isDark ? "#0d0d0d" : "#ffffff";
+  const headerBorder = isDark ? "#1f1f1f" : "#e2e8f0";
+  const textColor = isDark ? "#ffffff" : "#000000";
+  const subtitleColor = isDark ? "#bbbbbb" : "#6b7280";
+  const avatarBg = isDark ? "#333" : "#e5e7eb";
+  const avatarColor = isDark ? "#ffffff" : "#000000";
+  const menuBg = isDark ? "#1a1a1a" : "#ffffff";
+  const menuColor = isDark ? "#ffffff" : "#000000";
+  const menuHoverBg = isDark ? "#2a2a2a" : "#f3f4f6";
+  const dividerColor = isDark ? "#333" : "#e2e8f0";
+
+  const openProfile = () => {
+    setProfileOpen(true);
+    setMenuAnchor(null);
+  };
+
   return (
     <>
-      <header className="pilot-header">
-        <div className="pilot-header__container">
+      <AppBar
+        position="sticky"
+        sx={{
+          background: headerBg,
+          borderBottom: `1px solid ${headerBorder}`,
+          color: textColor,
+        }}
+      >
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
 
           {/* LEFT */}
-          <div className="pilot-header__left">
-            <div className="pilot-header__logo">
-              <div className="pilot-header__logo-icon">
-                <SafeIcon name="Drone" size={20} />
-              </div>
-              <span className="pilot-header__logo-text">Pilot Console</span>
-            </div>
-          </div>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Avatar sx={{ bgcolor: "#b71c1c" }}>
+              <FlightIcon />
+            </Avatar>
+
+            <Box>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: "#ff5252" }}>
+                Pilot Console
+              </Typography>
+              <Typography fontSize={12} sx={{ color: subtitleColor }}>
+                Drone Operations Dashboard
+              </Typography>
+            </Box>
+          </Box>
 
           {/* RIGHT */}
-          <div className="pilot-header__right">
+          <Box display="flex" alignItems="center" gap={2}>
 
-            {/* Notifications */}
-            <Button variant="ghost" size="icon" className="pilot-header__notification-button">
-              <SafeIcon name="Bell" size={20} />
-              {notificationCount > 0 && (
-                <Badge className="pilot-header__notification-badge">
-                  {notificationCount > 9 ? "9+" : notificationCount}
-                </Badge>
-              )}
-            </Button>
+            {/* 🔔 Notifications */}
+            <IconButton sx={{ color: textColor }}>
+              <Badge
+                badgeContent={notificationCount}
+                color="error"
+                invisible={notificationCount === 0}
+              >
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
 
-            {/* Profile Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="pilot-header__profile-button">
+            {/* 👤 USER */}
+            <Box
+              onClick={(e) => setMenuAnchor(e.currentTarget)}
+              sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}
+            >
+              <Avatar
+                src="https://spark-builder.s3.us-east-1.amazonaws.com/image/2025/11/20/382b2788-4a1a-42b3-ad58-7ff36533b34a.png"
+                alt={name}
+                sx={{ bgcolor: avatarBg, color: avatarColor }}
+              >
+                {initials}
+              </Avatar>
 
-                  <Avatar className="pilot-header__profile-avatar">
-                    <AvatarImage
-                      src="https://spark-builder.s3.us-east-1.amazonaws.com/image/2025/11/20/382b2788-4a1a-42b3-ad58-7ff36533b34a.png"
-                      alt={name}
-                    />
-                    <AvatarFallback>{initials}</AvatarFallback>
-                  </Avatar>
+              <Box ml={1}>
+                <Typography fontWeight="bold" sx={{ color: textColor }}>
+                  {name}
+                </Typography>
+                <Typography fontSize={12} sx={{ color: subtitleColor }}>
+                  {role}
+                </Typography>
+              </Box>
 
-                  <div className="pilot-header__profile-info">
-                    <span className="pilot-header__profile-name">{name}</span>
-                    <span className="pilot-header__profile-role">{role}</span>
-                  </div>
+              <ExpandMoreIcon sx={{ color: textColor }} />
+            </Box>
 
-                  <SafeIcon name="ChevronDown" size={16} />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" className="pilot-header__dropdown">
-
-                <DropdownMenuLabel className="pilot-header__dropdown-label">
-                  Pilot Account
-                </DropdownMenuLabel>
-
-                <div className="divider" />
-
-                {/* 🔥 PROFILE CLICK */}
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.preventDefault(); // prevent dropdown glitch
-                    setProfileOpen(true);
+            {/* DROPDOWN MENU */}
+            <Menu
+              anchorEl={menuAnchor}
+              open={Boolean(menuAnchor)}
+              onClose={() => setMenuAnchor(null)}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+              PaperProps={{
+                sx: {
+                  background: headerBg,
+                  color: menuColor,
+                  width: 225,
+                  borderRadius: "7px",
+                  border: `1px solid ${dividerColor}`,
+                  mt: 1.5,
+                  px: 1, 
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+                },
+              }}
+            >
+              {/* 🧾 HEADER */}
+              <Box px={2} py={1}>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: subtitleColor,
+                    letterSpacing: 0.3,
                   }}
-                  className="pilot-header__dropdown-item"
                 >
-                  <SafeIcon name="User" size={16} />
-                  Profile
-                </DropdownMenuItem>
+                  My Account
+                </Typography>
+              </Box>
 
-                {/* THEME TOGGLE */}
-                <DropdownMenuItem
-                  onClick={toggleTheme}
-                  className="pilot-header__dropdown-item"
-                >
-                  <SafeIcon name={isDark ? "Sun" : "Moon"} size={16} />
-                  {isDark ? "Light Mode" : "Dark Mode"}
-                </DropdownMenuItem>
+              <Divider sx={{ borderColor: dividerColor, marginBottom: 1 }} />
 
-                <div className="divider" />
+              {/* 👤 PROFILE */}
+              <MenuItem
+                onClick={openProfile}
+                sx={{
+                  fontSize: 15,
+                  py: 1.4,
+                  borderRadius: "8px",
+                  "&:hover": { background: menuHoverBg },
+                }}
+              >
+                <AccountCircleIcon sx={{ mr: 2 }} />
+                Profile
+              </MenuItem>
 
-                {/* LOGOUT */}
-                <DropdownMenuItem
-                  onClick={logoutUser}
-                  className="pilot-header__dropdown-item logout"
-                >
-                  <SafeIcon name="LogOut" size={16} />
-                  Logout
-                </DropdownMenuItem>
+              {/* 🌗 THEME */}
+              <MenuItem
+                onClick={toggleTheme}
+                sx={{
+                  fontSize: 15,
+                  py: 1.4,
+                  borderRadius: "8px",
+                  "&:hover": { background: menuHoverBg },
+                }}
+              >
+                <SafeIcon
+                  name={isDark ? "Sun" : "Moon"}
+                  size={18}
+                  style={{ marginRight: 16 }}
+                />
+                {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              </MenuItem>
 
-              </DropdownMenuContent>
-            </DropdownMenu>
+              {/* 🚪 LOGOUT */}
+              <MenuItem
+                onClick={logoutUser}
+                sx={{
+                  fontSize: 15,
+                  py: 1.4,
+                  borderRadius: "8px",
+                  color: "#ef4444",
+                  "&:hover": {
+                    background: "rgba(239,68,68,0.1)",
+                  },
+                }}
+              >
+                <LogoutIcon sx={{ mr: 2 }} />
+                Logout
+              </MenuItem>
+            </Menu>
+          </Box>
+        </Toolbar>
+      </AppBar>
 
-          </div>
-        </div>
-      </header>
-
-      {/* 🔥 PROFILE DIALOG (OUTSIDE HEADER) */}
+      {/* ✅ Independent Dialog */}
       <ProfileDialog
         open={profileOpen}
         onClose={() => setProfileOpen(false)}

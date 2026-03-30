@@ -38,7 +38,6 @@ export default function DashboardHeader() {
   const warningShownRef = useRef(false);
   const DEV_BYPASS = import.meta.env.VITE_DEV_BYPASS_SHIFT === "true";
 
-  // 🔥 Open profile (NO API HERE NOW)
   const openProfile = () => {
     setProfileOpen(true);
     setMenuAnchor(null);
@@ -151,7 +150,6 @@ export default function DashboardHeader() {
   const chipBorder = isDark ? "#333" : "#e2e8f0";
   const avatarBg = isDark ? "#333" : "#e5e7eb";
   const avatarColor = isDark ? "#ffffff" : "#000000";
-  const menuBg = isDark ? "#1a1a1a" : "#ffffff";
   const menuColor = isDark ? "#ffffff" : "#000000";
   const menuHoverBg = isDark ? "#2a2a2a" : "#f3f4f6";
   const dividerColor = isDark ? "#333" : "#e2e8f0";
@@ -167,7 +165,7 @@ export default function DashboardHeader() {
         }}
       >
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-          
+
           {/* 🔥 LEFT */}
           <Box display="flex" alignItems="center" gap={2}>
             <Avatar sx={{ bgcolor: "#b71c1c" }}>
@@ -186,7 +184,7 @@ export default function DashboardHeader() {
 
           {/* 🔥 RIGHT */}
           <Box display="flex" alignItems="center" gap={2}>
-            
+
             {DEV_BYPASS && (
               <Chip label="DEV MODE" color="warning" size="small" />
             )}
@@ -232,104 +230,93 @@ export default function DashboardHeader() {
             </Box>
 
             <Menu
-  anchorEl={menuAnchor}
-  open={Boolean(menuAnchor)}
-  onClose={() => setMenuAnchor(null)}
-  PaperProps={{
-    sx: {
-      background: menuBg,
-      color: menuColor,
-      width: 260,
-      borderRadius: "12px",
-      border: `1px solid ${dividerColor}`,
-      mt: 1,
-      p: 1,
-      boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
-    },
-  }}
->
-  {/* 🧾 HEADER */}
-  <Box px={2} py={1}>
-    <Typography
-      sx={{
-        fontSize: 14,
-        fontWeight: 600,
-        color: subtitleColor,
-        letterSpacing: 0.3
-      }}
-    >
-      My Account
-    </Typography>
-  </Box>
+              anchorEl={menuAnchor}
+              open={Boolean(menuAnchor)}
+              onClose={() => setMenuAnchor(null)}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+              PaperProps={{
+                sx: {
+                  background: headerBg,
+                  color: menuColor,
+                  width: 225,
+                  borderRadius: "7px",
+                  border: `1px solid ${dividerColor}`,
+                  mt: 1.5,
+                  px: 1, 
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+                },
+              }}
+            >
+              {/* 🧾 HEADER */}
+              <Box px={2} py={1}>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: subtitleColor,
+                    letterSpacing: 0.3,
+                  }}
+                >
+                  My Account
+                </Typography>
+              </Box>
 
-  <Divider sx={{ borderColor: dividerColor }} />
+              <Divider sx={{ borderColor: dividerColor , marginBottom: 1 }} />
 
-  {/* 👤 PROFILE */}
-  <MenuItem
-    onClick={openProfile}
-    sx={{
-      py: 1.2,
-      borderRadius: "8px",
-      "&:hover": { background: menuHoverBg }
-    }}
-  >
-    <AccountCircleIcon sx={{ mr: 2 }} />
-    Profile
-  </MenuItem>
+              {/* 👤 PROFILE */}
+              <MenuItem
+                onClick={openProfile}
+                sx={{
+                  fontSize: 15,
+                  py: 1.4,
+                  borderRadius: "8px",
+                  "&:hover": { background: menuHoverBg },
+                }}
+              >
+                <AccountCircleIcon sx={{ mr: 2 }} />
+                Profile
+              </MenuItem>
 
-  {/* ⚙ SETTINGS */}
-  <MenuItem
-    sx={{
-      py: 1.2,
-      borderRadius: "8px",
-      "&:hover": { background: menuHoverBg }
-    }}
-  >
-    <SettingsIcon sx={{ mr: 2 }} />
-    Settings
-  </MenuItem>
+              {/* 🌗 THEME */}
+              <MenuItem
+                onClick={toggleTheme}
+                sx={{
+                  fontSize: 15,
+                  py: 1.4,
+                  borderRadius: "8px",
+                  "&:hover": { background: menuHoverBg },
+                }}
+              >
+                <SafeIcon
+                  name={isDark ? "Sun" : "Moon"}
+                  size={18}
+                  style={{ marginRight: 16 }}
+                />
+                {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              </MenuItem>
 
-  <Divider sx={{ borderColor: dividerColor, my: 1 }} />
-
-  {/* 🌗 THEME */}
-  <MenuItem
-    onClick={toggleTheme}
-    sx={{
-      py: 1.2,
-      borderRadius: "8px",
-      "&:hover": { background: menuHoverBg }
-    }}
-  >
-    <SafeIcon
-      name={isDark ? "Sun" : "Moon"}
-      size={18}
-      style={{ marginRight: 16 }}
-    />
-    {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-  </MenuItem>
-
-  <Divider sx={{ borderColor: dividerColor, my: 1 }} />
-
-  {/* 🚪 LOGOUT */}
-  <MenuItem
-    onClick={handleLogoutAttempt}
-    sx={{
-      py: 1.2,
-      borderRadius: "8px",
-      color: "#ef4444",
-      "&:hover": {
-        background: "rgba(239,68,68,0.1)"
-      }
-    }}
-  >
-    {timeRemaining > 0 && !DEV_BYPASS ? (
-      <LockIcon sx={{ mr: 2 }} />
-    ) : (
-      <LogoutIcon sx={{ mr: 2 }} />
-    )}
-    Logout
-  </MenuItem>
-</Menu>
+              {/* 🚪 LOGOUT */}
+              <MenuItem
+                onClick={handleLogoutAttempt}
+                sx={{
+                  fontSize: 15,
+                  py: 1.4,
+                  borderRadius: "8px",
+                  color: "#ef4444",
+                  "&:hover": {
+                    background: "rgba(239,68,68,0.1)",
+                  },
+                }}
+              >
+                {timeRemaining > 0 && !DEV_BYPASS ? (
+                  <LockIcon sx={{ mr: 2 }} />
+                ) : (
+                  <LogoutIcon sx={{ mr: 2 }} />
+                )}
+                Logout
+              </MenuItem>
+            </Menu>
           </Box>
         </Toolbar>
       </AppBar>
