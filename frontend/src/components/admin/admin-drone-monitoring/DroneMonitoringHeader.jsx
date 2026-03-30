@@ -40,7 +40,7 @@ export default function DroneMonitoringHeader({
       {stats.map((stat) => (
         <Card
           key={stat.label}
-          className="border border-border hover:border-red-400 hover:shadow-[0_0_10px_rgba(255,0,0,0.35)] transition-all duration-300"
+          className="border hover:border-red-400 hover:shadow-[0_0_10px_rgba(255,0,0,0.35)] transition-all duration-300"
         >
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">

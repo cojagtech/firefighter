@@ -102,7 +102,7 @@ export default function DroneMonitoringMap({ drones }) {
       </div>
 
       <div
-        className="rounded-xl border border-border overflow-hidden"
+        className="rounded-xl border overflow-hidden"
         style={{ backgroundColor: isDark ? "#14171b" : "#f1f5f9" }}
       >
         <div id="monitorMap2D" style={{ height: "350px" }}></div>

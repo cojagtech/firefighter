@@ -165,7 +165,7 @@ export default function DroneMonitoringContent() {
 
           {stationOpen && (
             <div
-              className="absolute z-50 mt-1 w-full border border-border rounded shadow-lg"
+              className="absolute z-50 mt-1 w-full border rounded shadow-lg"
               style={dropdownStyle}
             >
               <input
