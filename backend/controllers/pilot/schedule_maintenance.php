@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 session_start();
 require_once realpath(__DIR__ . "/../../config/db.php");
-
+require_once realpath(__DIR__ . "/../../helpers/logActivity.php"); // ✅ Added
 
 // =====================
 // AUTH CHECK
@@ -42,6 +42,13 @@ $issue = trim($data['issue_description']);
 
 $station = $_SESSION['user']['station'];
 $reportedBy = $_SESSION['user']['fullName'];
+
+// ✅ Added
+$logUser = $_SESSION["user"] ?? [
+    "id" => null,
+    "fullName" => "SYSTEM",
+    "role" => "SYSTEM"
+];
 
 // =====================
 // VERIFY DRONE
@@ -109,6 +116,18 @@ try {
 
     $update->bind_param("ss", $droneCode, $station);
     $update->execute();
+
+    // =====================
+    // LOG ACTIVITY ✅ Added
+    // =====================
+    logActivity(
+        $conn,
+        $logUser,
+        "SCHEDULE_MAINTENANCE",
+        "MAINTENANCE",
+        "Scheduled maintenance for drone {$droneName} ({$droneCode}) at station {$station} on {$scheduledDate}. Issue: {$issue}",
+        null
+    );
 
     // =====================
     // COMMIT

@@ -24,7 +24,6 @@ import SuggestedStationsPanel from "./SuggestedStationsPanel";
 import { createTheme, ThemeProvider, CssBaseline } from "@mui/material";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
-const API = `${API_BASE}/fire-fighter/fire-fighter-dashboard`;
 
 export default function ConfirmLocationPage() {
   const { id } = useParams();
@@ -38,6 +37,9 @@ export default function ConfirmLocationPage() {
   const [currentLng, setCurrentLng] = useState(null);
   const [hasMarkerMoved, setHasMarkerMoved] = useState(false);
   const [selectedStationName, setSelectedStationName] = useState(null);
+
+  // 🔥 NEW: Assets state
+  const [assets, setAssets] = useState([]);
 
   // Theme observer
   const [isDark, setIsDark] = useState(
@@ -55,14 +57,14 @@ export default function ConfirmLocationPage() {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ All backend logic unchanged
+  // ✅ Load incident if not passed
   useEffect(() => {
     if (incident) {
       setLoading(false);
       return;
     }
 
-    fetch(`${API}/get_incidents.php`)
+    fetch(`${API_BASE}/fire-fighter/fire-fighter-dashboard/get_incidents.php`)
       .then((res) => res.json())
       .then((data) => {
         const inc = data.find((i) => i.id === id);
@@ -80,6 +82,7 @@ export default function ConfirmLocationPage() {
       });
   }, [id, incident, navigate]);
 
+  // ✅ Set coordinates
   useEffect(() => {
     if (!incident) return;
 
@@ -90,76 +93,53 @@ export default function ConfirmLocationPage() {
       setCurrentLat(lat);
       setCurrentLng(lng);
     } else {
-      console.error("❌ Invalid coordinates after resolve:", incident);
       setCurrentLat(null);
       setCurrentLng(null);
     }
   }, [incident]);
 
-  // Theme-aware MUI theme
+  // 🔥 MAIN: Fetch nearby assets
+  useEffect(() => {
+    if (!incident?.id) return;
+
+    fetch(
+      `${API_BASE}/fire-fighter/nearby-assets.php?incident_id=${incident.id}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("🔥 Nearby Assets:", data);
+        setAssets(data.assets || []);
+      })
+      .catch((err) => console.error("Assets API Error:", err));
+  }, [incident]);
+
+  // Theme
   const incidentTheme = createTheme({
     palette: {
       mode: isDark ? "dark" : "light",
-      background: {
-        default: isDark ? "#0F0F10" : "#f8fafc",
-        paper: isDark ? "#131314" : "#ffffff",
-      },
       primary: { main: "#E53935" },
-      text: {
-        primary: isDark ? "#EDEDED" : "#111827",
-        secondary: isDark ? "#999999" : "#6b7280",
-      },
-      divider: isDark ? "#2A2A2A" : "#e2e8f0",
     },
   });
 
-  const C = isDark
-    ? {
-        iconBoxBg: "#1E1E1F",
-        iconBoxBorder: "#2A2A2A",
-        invalidMapBg: "#111111",
-        invalidMapBorder: "#2A2A2A",
-        invalidMapText: "#777777",
-        adjustedCardBg: "#211112",
-      }
-    : {
-        iconBoxBg: "#f1f5f9",
-        iconBoxBorder: "#e2e8f0",
-        invalidMapBg: "#f8fafc",
-        invalidMapBorder: "#e2e8f0",
-        invalidMapText: "#9ca3af",
-        adjustedCardBg: "#fff1f2",
-      };
-
   if (loading || !incident) {
-    return (
-      <p style={{ color: isDark ? "white" : "#111827", padding: 40 }}>
-        Loading...
-      </p>
-    );
+    return <p style={{ padding: 40 }}>Loading...</p>;
   }
-
-  const assets = [
-    { id: "T-1", name: "Fire Truck A", type: "fire", distance: 1.2 },
-    { id: "D-1", name: "Drone Recon", type: "drone", distance: 0.8 },
-  ];
 
   const confirmAndProceed = () => {
     const payload = {
       ...incident,
       latitude: currentLat,
       longitude: currentLng,
-      coordinates: {
-        lat: currentLat,
-        lng: currentLng,
-      },
+      coordinates: { lat: currentLat, lng: currentLng },
       locationAdjusted: hasMarkerMoved,
       selectedStationName: selectedStationName || null,
     };
 
     if (selectedStationName) {
       navigate(
-        `/confirm-forward-incidence/${incident.id}/${encodeURIComponent(selectedStationName)}`,
+        `/confirm-forward-incidence/${incident.id}/${encodeURIComponent(
+          selectedStationName
+        )}`,
         { state: { incident: payload } }
       );
     } else {
@@ -178,92 +158,44 @@ export default function ConfirmLocationPage() {
 
           {/* Header */}
           <Stack direction="row" spacing={2} alignItems="center">
-            <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: 2,
-                bgcolor: C.iconBoxBg,
-                border: `1px solid ${C.iconBoxBorder}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <PlaceIcon sx={{ color: "primary.main" }} />
-            </Box>
-
-            <Box>
-              <Typography variant="h4" fontWeight={800}>
-                Confirm Incident Location
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Adjust marker precisely before dispatch
-              </Typography>
-            </Box>
+            <PlaceIcon color="primary" />
+            <Typography variant="h5" fontWeight={700}>
+              Confirm Incident Location
+            </Typography>
           </Stack>
 
-          {/* Incident Info Card */}
+          {/* Incident Info */}
           <Card>
-            <CardHeader
-              title={<Typography variant="h6">{incident.name}</Typography>}
-            />
+            <CardHeader title={incident.name} />
             <CardContent>
-              <Stack direction="row" spacing={4} flexWrap="wrap">
-                <InfoField label="Incident ID" value={incident.id} mono />
-                <InfoField label="Type" value={incident.type || incident.name} mono />
-                <InfoField
-                  label="Status"
-                  value={<Chip size="small" label={incident.status} color="error" />}
-                />
-                <InfoField label="Location" value={incident.location} />
-                <InfoField
-                  label="Coordinates"
-                  value={
-                    Number.isFinite(currentLat) && Number.isFinite(currentLng)
-                      ? `${currentLat}, ${currentLng}`
-                      : "Not Available"
-                  }
-                  mono
-                />
-              </Stack>
+              <Typography variant="body2">
+                Coordinates: {currentLat}, {currentLng}
+              </Typography>
             </CardContent>
           </Card>
 
-          {/* Map + Panels */}
+          {/* Layout */}
           <Stack direction={{ xs: "column", lg: "row" }} spacing={3}>
+
+            {/* Map */}
             <Box flex={2}>
-              {Number.isFinite(currentLat) && Number.isFinite(currentLng) ? (
+              {currentLat && currentLng && (
                 <MapWithDraggableMarker
                   initialLat={currentLat}
                   initialLng={currentLng}
-                  incidentName={incident.name}
-                  hasMarkerMoved={hasMarkerMoved}
-                  onMarkerMove={(lat, lng, isReset = false) => {
+                  onMarkerMove={(lat, lng) => {
                     setCurrentLat(lat);
                     setCurrentLng(lng);
-                    setHasMarkerMoved(!isReset);
+                    setHasMarkerMoved(true);
                   }}
                 />
-              ) : (
-                <Box
-                  sx={{
-                    height: 400,
-                    bgcolor: C.invalidMapBg,
-                    border: `1px solid ${C.invalidMapBorder}`,
-                    borderRadius: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: C.invalidMapText,
-                  }}
-                >
-                  Invalid or missing incident coordinates
-                </Box>
               )}
             </Box>
 
+            {/* Right Panel */}
             <Stack flex={1} spacing={3}>
+
+              {/* 🔥 REAL DATA */}
               <NearbyAssetsPanel assets={assets} />
 
               <SuggestedStationsPanel
@@ -272,43 +204,30 @@ export default function ConfirmLocationPage() {
                 onSelectStation={setSelectedStationName}
               />
 
-              <Stack spacing={2}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  size="large"
-                  startIcon={<CheckIcon />}
-                  onClick={confirmAndProceed}
-                >
-                  {selectedStationName
-                    ? "Confirm & Share Incident"
-                    : "Confirm Location & Continue"}
-                </Button>
+              <Button
+                variant="contained"
+                startIcon={<CheckIcon />}
+                onClick={confirmAndProceed}
+              >
+                Confirm & Continue
+              </Button>
 
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  size="large"
-                  startIcon={<ChevronLeftIcon />}
-                  onClick={() => navigate(-1)}
-                >
-                  Back to Dashboard
-                </Button>
-              </Stack>
+              <Button
+                variant="outlined"
+                startIcon={<ChevronLeftIcon />}
+                onClick={() => navigate(-1)}
+              >
+                Back
+              </Button>
 
               {hasMarkerMoved && (
-                <Card sx={{ borderColor: "primary.main", bgcolor: C.adjustedCardBg }}>
+                <Card>
                   <CardContent>
                     <Stack direction="row" spacing={2}>
                       <InfoIcon color="primary" />
-                      <Box>
-                        <Typography fontWeight="bold">
-                          Location Adjusted
-                        </Typography>
-                        <Typography variant="caption">
-                          Routing & response units recalculated
-                        </Typography>
-                      </Box>
+                      <Typography variant="body2">
+                        Location adjusted — assets should be recalculated
+                      </Typography>
                     </Stack>
                   </CardContent>
                 </Card>
