@@ -222,7 +222,7 @@ export default function DroneMonitoringContent() {
       {/* Map + Status Section */}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
-          <Card className="border border-border">
+          <Card className="border">
             <CardContent>
               {viewMode === "map" ? (
                 <DroneMonitoringMap drones={filteredDrones} />
