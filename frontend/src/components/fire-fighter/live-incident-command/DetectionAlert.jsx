@@ -113,9 +113,9 @@ export default function DetectionAlert({ isMaximized = false }) {
               Confidence: {(Number(alert.confidence) * 100).toFixed(1)}%
             </p>
 
-            {/* <p className="text-xs text-white">
+            <p className="text-xs text-white">
               Fire Count: {alert.fire_count}
-            </p> */}
+            </p>
 
             <p className="text-xs text-white">
               Intensity Level: {alert.intensity_level}

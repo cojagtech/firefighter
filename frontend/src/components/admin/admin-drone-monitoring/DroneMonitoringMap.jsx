@@ -8,6 +8,7 @@ export default function DroneMonitoringMap({ drones }) {
 
   const mapRef = useRef(null);
   const markerLayerRef = useRef(null);
+  const hasAutoZoomedRef = useRef(false); // ✅ NEW
 
   // 🌙 Theme observer
   useEffect(() => {
@@ -42,22 +43,28 @@ export default function DroneMonitoringMap({ drones }) {
       markerLayerRef.current = L.layerGroup().addTo(mapRef.current);
     }
 
-    // ⚡ Instant size fix (no delay)
     setTimeout(() => {
       mapRef.current?.invalidateSize();
     }, 0);
   };
 
-  // 📍 Update markers (FAST)
+  // 📍 Update markers + auto focus
   const updateMarkers = () => {
     if (!markerLayerRef.current) return;
 
     markerLayerRef.current.clearLayers();
 
-    drones.forEach((d) => {
-      if (!d.latitude || !d.longitude) return;
+    const validDrones = drones.filter(
+      (d) => d.latitude && d.longitude
+    );
 
-      L.marker([d.latitude, d.longitude])
+    const bounds = [];
+
+    validDrones.forEach((d) => {
+      const latLng = [d.latitude, d.longitude];
+      bounds.push(latLng);
+
+      L.marker(latLng)
         .bindPopup(`
           <b>${d.drone_name}</b><br/>
           Code: ${d.drone_code}<br/>
@@ -65,17 +72,27 @@ export default function DroneMonitoringMap({ drones }) {
         `)
         .addTo(markerLayerRef.current);
     });
+
+    // ✅ Auto focus ONLY once
+    if (bounds.length > 0 && !hasAutoZoomedRef.current) {
+      hasAutoZoomedRef.current = true;
+
+      mapRef.current.fitBounds(bounds, {
+        padding: [50, 50],
+        maxZoom: 16,
+      });
+    }
   };
 
-  // 🧠 Run once on mount
+  // 🧠 Run once
   useEffect(() => {
     initializeMap();
   }, []);
 
   // 🔄 Update when drones change
   useEffect(() => {
-    initializeMap();   // ensure map exists
-    updateMarkers();   // update instantly
+    initializeMap();
+    updateMarkers();
   }, [drones]);
 
   // 🧹 Cleanup
@@ -109,5 +126,4 @@ export default function DroneMonitoringMap({ drones }) {
       </div>
     </div>
   );
-
 }

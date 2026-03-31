@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState, useCallback, memo } from "react";
+import { useEffect, useRef, useCallback, memo } from "react";
 import L from "leaflet";
 import { PlayCircle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import StatusBadge from "@/components/common/StatusBadge";
-import SafeIcon from "@/components/common/SafeIcon";
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -44,12 +42,10 @@ function preloadCesium() {
   loadScript("/assets/js/map.js");
 }
 
-
 function DashboardMapSection({
   droneLocations = [],
   mapMode,
   setMapMode,
-  activeDrones = [],
 }) {
   const mapRef = useRef(null);
   const markerLayerRef = useRef(null);
@@ -65,7 +61,7 @@ function DashboardMapSection({
     }
   }, []);
 
-
+  // ---------------- 2D MAP ----------------
   const init2DMap = useCallback(() => {
     const div = document.getElementById("liveMap");
     if (!div) return;
@@ -96,13 +92,28 @@ function DashboardMapSection({
 
     markerLayerRef.current.clearLayers();
 
-    (Array.isArray(droneLocations) ? droneLocations : []).forEach((d) => {
-      if (!d.latitude || !d.longitude) return;
+    const validDrones = (Array.isArray(droneLocations) ? droneLocations : [])
+      .filter((d) => d.latitude && d.longitude);
 
-      L.marker([d.latitude, d.longitude])
+    const bounds = [];
+
+    validDrones.forEach((d) => {
+      const latLng = [d.latitude, d.longitude];
+      bounds.push(latLng);
+
+      L.marker(latLng)
         .bindPopup(`<b>${d.drone_name}</b><br>${d.drone_code}`)
         .addTo(markerLayerRef.current);
     });
+
+    if (bounds.length > 0 && !hasAutoZoomedRef.current) {
+      hasAutoZoomedRef.current = true;
+
+      mapRef.current.fitBounds(bounds, {
+        padding: [50, 50],
+        maxZoom: 16,
+      });
+    }
 
     setTimeout(() => mapRef.current.invalidateSize(), 80);
     setTimeout(() => mapRef.current.invalidateSize(), 200);
@@ -126,7 +137,13 @@ function DashboardMapSection({
     return () => obs.disconnect();
   }, [mapMode, init2DMap]);
 
+  useEffect(() => {
+    if (mapMode === "2d") {
+      hasAutoZoomedRef.current = false;
+    }
+  }, [mapMode]);
 
+  // ---------------- 3D MAP ----------------
   useEffect(() => {
     if (mapMode !== "3d") return;
 
@@ -177,6 +194,8 @@ function DashboardMapSection({
         return;
       }
 
+      const positions = [];
+
       for (const d of locs) {
         if (!d.latitude || !d.longitude) continue;
 
@@ -194,14 +213,16 @@ function DashboardMapSection({
 
         if (cancelled) return;
 
-        const groundHeight = updated[0].height || 0;
-        const finalHeight = groundHeight + 600;
+        const groundHeight = updated[0].height || 558;
+        const finalHeight = groundHeight + 100;
 
         const pos = Cesium.Cartesian3.fromDegrees(
           d.longitude,
           d.latitude,
           finalHeight
         );
+
+        positions.push(pos);
 
         let entity = viewer.entities.getById(id);
 
@@ -220,15 +241,23 @@ function DashboardMapSection({
         }
       }
 
-      if (!hasAutoZoomedRef.current) {
+      // ✅ PERFECT CAMERA FIT (FIXED)
+      if (!hasAutoZoomedRef.current && positions.length > 0) {
         hasAutoZoomedRef.current = true;
 
         setTimeout(() => {
           try {
-            viewer.zoomTo(
-              viewer.entities,
-              new Cesium.HeadingPitchRange(0, -0.8, 1000)
-            );
+            const boundingSphere =
+              Cesium.BoundingSphere.fromPoints(positions);
+
+            viewer.camera.flyToBoundingSphere(boundingSphere, {
+              duration: 1.5,
+              offset: new Cesium.HeadingPitchRange(
+                0,
+                -Math.PI / 5, // nice angle
+                boundingSphere.radius * 2 // dynamic distance
+              ),
+            });
           } catch (e) {
             console.log("Zoom error:", e);
           }
@@ -250,60 +279,59 @@ function DashboardMapSection({
   }, [mapMode]);
 
   return (
-    <>
-      <Card className="mb-0 bg-card border border-none">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            <PlayCircle size={18} className="text-red-400" />
-            <CardTitle className="text-lg font-semibold">
-              Live Monitoring
-            </CardTitle>
-          </div>
-<div className="flex gap-2">
-  <button
-    onClick={() => setMapMode("2d")}
-    className={`px-3 py-1 rounded-md text-sm transition-colors ${
-      mapMode === "2d"
-        ? "bg-red-600 text-white"
-        : "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-    }`}
-  >
-    2D Map
-  </button>
+    <Card className="mb-0 bg-card border border-none">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <PlayCircle size={18} className="text-red-400" />
+          <CardTitle className="text-lg font-semibold">
+            Live Monitoring
+          </CardTitle>
+        </div>
 
-  <button
-    onClick={() => setMapMode("3d")}
-    className={`px-3 py-1 rounded-md text-sm transition-colors ${
-      mapMode === "3d"
-        ? "bg-red-600 text-white"
-        : "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-    }`}
-  >
-    3D Map
-  </button>
-</div>
-        </CardHeader>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setMapMode("2d")}
+            className={`px-3 py-1 rounded-md text-sm ${
+              mapMode === "2d"
+                ? "bg-red-600 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            2D Map
+          </button>
 
-        <CardContent className="pb-0 overflow-hidden">
-          <div
-            id="liveMap"
-            style={{
-              display: mapMode === "2d" ? "block" : "none",
-              height: "350px",
-              borderRadius: "10px",
-            }}
-          ></div>
+          <button
+            onClick={() => setMapMode("3d")}
+            className={`px-3 py-1 rounded-md text-sm ${
+              mapMode === "3d"
+                ? "bg-red-600 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            3D Map
+          </button>
+        </div>
+      </CardHeader>
 
-          <div
-            id="map-container"
-            style={{
-              display: mapMode === "3d" ? "block" : "none",
-              height: "350px",
-            }}
-          ></div>
-        </CardContent>
-      </Card>
-    </>
+      <CardContent className="pb-0 overflow-hidden">
+        <div
+          id="liveMap"
+          style={{
+            display: mapMode === "2d" ? "block" : "none",
+            height: "350px",
+            borderRadius: "10px",
+          }}
+        ></div>
+
+        <div
+          id="map-container"
+          style={{
+            display: mapMode === "3d" ? "block" : "none",
+            height: "350px",
+          }}
+        ></div>
+      </CardContent>
+    </Card>
   );
 }
 

@@ -240,7 +240,7 @@ export default function EditVehicleModal({
               },
             }}
           >
-            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="available">Available</MenuItem>
             <MenuItem value="busy">Busy</MenuItem>
             <MenuItem value="on-mission">On Mission</MenuItem>
             <MenuItem value="maintenance">Maintenance</MenuItem>
