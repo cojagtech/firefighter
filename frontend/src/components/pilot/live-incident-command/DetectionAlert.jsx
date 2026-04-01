@@ -117,6 +117,10 @@ export default function DetectionAlert({ isMaximized = false }) {
             </p>
 
             <p className="text-xs text-white">
+              Intensity Score: {alert.intensity_score}
+            </p>
+
+            <p className="text-xs text-white">
               Intensity Level: {alert.intensity_level}
             </p>
 

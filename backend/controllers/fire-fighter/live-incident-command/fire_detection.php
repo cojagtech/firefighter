@@ -21,11 +21,12 @@ if (!$data) {
     exit;
 }
 
-// ✅ 2. Safely extract values (no crash if missing)
-$timestamp        = $data["timestamp"] ?? null;
+// ✅ 2. Safely extract values
+$timestamp        = $data["event_timestamp"] ?? null;
 $alert_type       = $data["alert_type"] ?? "";
 $confidence       = $data["confidence"] ?? 0;
 $fire_count       = $data["fire_count"] ?? 0;
+$intensity_score  = $data["intensity_score"] ?? 0;   // ✅ NEW
 $intensity_level  = $data["intensity_level"] ?? "";
 $location         = $data["location"] ?? "";
 
@@ -34,16 +35,16 @@ if ($timestamp === null) {
     http_response_code(422);
     echo json_encode([
         "status" => "error",
-        "message" => "Missing required field: timestamp"
+        "message" => "Missing required field: event_timestamp"
     ]);
     exit;
 }
 
-// ✅ 4. Prepare statement safely
+// ✅ 4. Prepare statement
 $stmt = $conn->prepare("
     INSERT INTO fire_detections 
-    (event_timestamp, alert_type, confidence, fire_count, intensity_level, location)
-    VALUES (?, ?, ?, ?, ?, ?)
+    (event_timestamp, alert_type, confidence, fire_count, intensity_score, intensity_level, location)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
 ");
 
 if (!$stmt) {
@@ -58,16 +59,17 @@ if (!$stmt) {
 
 // ✅ 5. Bind parameters
 $stmt->bind_param(
-    "isdiss",
+    "isddiss",
     $timestamp,
     $alert_type,
     $confidence,
     $fire_count,
+    $intensity_score,
     $intensity_level,
     $location
 );
 
-// ✅ 6. Execute and verify
+// ✅ 6. Execute
 if ($stmt->execute()) {
     echo json_encode([
         "status" => "success",
