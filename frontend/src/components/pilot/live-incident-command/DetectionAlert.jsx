@@ -23,6 +23,7 @@ export default function DetectionAlert({ isMaximized = false }) {
     id: data.id ?? data.ID,
     confidence: data.confidence ?? data.CONFIDENCE,
     fire_count: data.fire_count ?? data.FIRE_COUNT,
+    intensity_score: data.intensity_score ?? data.INTENSITY_SCORE,
     intensity_level: data.intensity_level ?? data.INTENSITY_LEVEL,
     created_at: data.created_at ?? data.CREATED_AT,
   });
