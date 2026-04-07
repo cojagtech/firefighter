@@ -129,6 +129,30 @@ try {
         null
     );
 
+
+    // =====================
+    // INSERT NOTIFICATION
+    // =====================
+    $notifMsg = "Maintenance scheduled for {$droneName} ({$droneCode}) on {$scheduledDate}";
+
+    $details = json_encode([
+        "drone_code" => $droneCode,
+        "drone_name" => $droneName,
+        "station" => $station,
+        "reported_by" => $reportedBy,
+        "issue_description" => $issue,
+        "scheduled_date" => $scheduledDate,
+        "status" => "scheduled"
+    ]);
+
+    $notif = $conn->prepare("
+        INSERT INTO notifications (type, message, created_by, data)
+        VALUES ('maintenance', ?, ?, ?)
+    ");
+
+    $notif->bind_param("sss", $notifMsg, $reportedBy, $details);
+    $notif->execute();
+
     // =====================
     // COMMIT
     // =====================

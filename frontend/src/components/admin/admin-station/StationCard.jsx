@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 
-export default function StationCard({ station, onViewMap, onEditStation }) {
-  // Theme observer
+export default function StationCard({ station, onViewMap, onEditStation, onDeleteStation }) {
   const [isDark, setIsDark] = useState(
     document.documentElement.classList.contains("dark")
   );
@@ -27,22 +26,13 @@ export default function StationCard({ station, onViewMap, onEditStation }) {
     >
       {/* Left - Station Info */}
       <div className="space-y-2">
-        <h2
-          className="text-xl font-semibold"
-          style={{ color: isDark ? "#ffffff" : "#000000" }}
-        >
+        <h2 className="text-xl font-semibold" style={{ color: isDark ? "#ffffff" : "#000000" }}>
           {station.name}
         </h2>
-        <p
-          className="text-sm"
-          style={{ color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)" }}
-        >
+        <p className="text-sm" style={{ color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)" }}>
           Station Code: {station.code}
         </p>
-        <div
-          className="flex gap-4 text-sm"
-          style={{ color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)" }}
-        >
+        <div className="flex gap-4 text-sm" style={{ color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)" }}>
           <p>Lat: {station.lat}</p>
           <p>Lng: {station.lng}</p>
         </div>
@@ -84,6 +74,18 @@ export default function StationCard({ station, onViewMap, onEditStation }) {
             className="px-4 py-2 rounded-lg hover:bg-red-600 hover:!text-white hover:!border-red-600 transition"
           >
             Edit
+          </button>
+
+          <button
+            onClick={() => onDeleteStation && onDeleteStation(station)}
+            style={{
+              border: `1px solid rgba(239,68,68,0.4)`,
+              color: "#ef4444",
+              backgroundColor: "transparent",
+            }}
+            className="px-4 py-2 rounded-lg hover:bg-red-600 hover:!text-white hover:!border-red-600 transition"
+          >
+            Delete
           </button>
         </div>
       </div>

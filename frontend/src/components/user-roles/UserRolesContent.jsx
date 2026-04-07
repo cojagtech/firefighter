@@ -240,6 +240,7 @@ export default function UserRoleManagementPage() {
         loading={loading}
         toggleUserStatus={toggleUserStatus}
         onEdit={handleEditUser}
+        onDeleted={fetchUsers} 
       />
 
       {totalPages > 1 && (

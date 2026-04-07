@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import SelectDroneDropDown from "../pilot-dashboard/SelectDroneDropdown";
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,7 +37,6 @@ export default function ScheduleMaintenance() {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Backend unchanged
   const handleSubmit = async () => {
     if (!selectedDrone || !maintenanceDate || !issue.trim()) {
       toast.error("Please fill all required fields");
@@ -59,6 +62,10 @@ export default function ScheduleMaintenance() {
 
       if (data.success) {
         toast.success("Maintenance scheduled successfully");
+
+        // 🔥 TRIGGER REAL-TIME UPDATE
+        window.dispatchEvent(new Event("new-notification"));
+
         setSelectedDrone(null);
         setMaintenanceDate("");
         setIssue("");
@@ -104,32 +111,42 @@ export default function ScheduleMaintenance() {
 
         {/* Form Section */}
         <Card className="border-none shadow-none bg-transparent">
-  <CardContent className="px-0 space-y-7">
+          <CardContent className="px-0 space-y-7">
 
             <SelectDroneDropDown
               selectedDrone={selectedDrone}
               setSelectedDrone={setSelectedDrone}
             />
 
-            {/* Date */}
+            {/* Maintenance Date */}
             <div>
               <label
-                className="text-base font-medium mb-2 block"
+                className="text-base font-medium mb-2 flex items-center gap-2"
                 style={labelStyle}
               >
                 Maintenance Date :
+                {/* <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z" />
+                </svg> */}
               </label>
               <input
                 type="date"
                 min={new Date().toISOString().split("T")[0]}
                 value={maintenanceDate}
                 onChange={(e) => setMaintenanceDate(e.target.value)}
-                style={inputStyle}
+                style={{
+                  ...inputStyle,
+                  colorScheme: isDark ? "dark" : "light",
+                }}
                 className="w-full rounded-md px-4 py-3 text-base focus:outline-none focus:ring-1 focus:ring-red-500"
               />
             </div>
 
-            {/* Issue */}
+            {/* Issue / Fault Description */}
             <div>
               <label
                 className="text-base font-medium mb-2 block"

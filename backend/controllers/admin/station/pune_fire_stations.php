@@ -5,14 +5,19 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
 $stations = [
-    ["name" => "Central Fire Brigade Pune", "lat" => 18.506453, "lng" => 73.865253],
-    ["name" => "Katraj Fire Station Pune", "lat" => 18.454919200249957, "lng" => 73.85691076631967],
-    ["name" => "Kasba Fire Station", "lat" => 18.522394, "lng" =>  73.856602], 
-    ["name" => "Kondhwa Khurd Fire Station", "lat" => 18.480530, "lng" => 73.891470], 
-    ["name" => "Hadapsar Fire Station", "lat" => 18.512236, "lng" => 73.915089],
-    ["name" => "Warje Fire Station", "lat" => 18.483330, "lng" => 73.802874],
-    ["name" => "Yerawada Fire Station", "lat" => 18.550397, "lng" => 73.879082],
-    ["name" => "Baner Fire Station", "lat" => 18.560381, "lng" => 73.776903]
+    ["name" => "Central Fire Brigade (Lohiya Nagar)", "lat" => 18.5065396, "lng" => 73.8656903],
+    ["name" => "Aundh Fire Station", "lat" => 18.5606921, "lng" => 73.8142792],
+    ["name" => "Kothrud Fire Station", "lat" => 18.4990632, "lng" => 73.8134913],
+    ["name" => "Yerwada Fire Station", "lat" => 18.5502944, "lng" => 73.8791084],
+    ["name" => "Camp Fire Station (Moledina Rd)", "lat" => 18.5203840, "lng" => 73.8731176],
+    ["name" => "Dayaram Rajguru Fire Station", "lat" => 18.5299150, "lng" => 73.8706020],
+    ["name" => "Kasba Peth Fire Station", "lat" => 18.5216312, "lng" => 73.8569992],
+    ["name" => "Dandekar Pool Fire Station", "lat" => 18.4996141, "lng" => 73.8478724],
+    ["name" => "Pashan Fire Station", "lat" => 18.5403089, "lng" => 73.8027597],
+    ["name" => "Sinhgad Road Fire Station", "lat" => 18.4755075, "lng" => 73.8156184],
+    ["name" => "Katraj Fire Station", "lat" => 18.4549341, "lng" => 73.8570094],
+    ["name" => "Amanora Fire Station (Hadapsar)", "lat" => 18.5147822, "lng" => 73.9453898],
+    ["name" => "Nanded City Fire Station", "lat" => 18.4602641, "lng" => 73.7966310]
 ];
 
 $query = isset($_GET['q']) ? strtolower($_GET['q']) : "";

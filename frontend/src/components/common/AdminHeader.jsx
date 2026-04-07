@@ -23,22 +23,103 @@ import SafeIcon from "@/components/common/SafeIcon";
 import logoutUser from "./auth/logout";
 import useUserInfo from "@/components/common/auth/useUserInfo";
 import ProfileDialog from "@/components/common/profile/ProfileDialog";
+import MaintenanceDetailDialog from "@/components/common/MaintenanceDetailDialog";
 
-export default function AdminHeader({ notificationCount = 0 }) {
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+export default function AdminHeader() {
   const [mounted, setMounted] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [prevCount, setPrevCount] = useState(0);
+
+  const [notifications, setNotifications] = useState([]);
+  const [anchorNotif, setAnchorNotif] = useState(null);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   const { isDark, toggleTheme } = useTheme();
   const { name, role, initials } = useUserInfo();
 
+  const fetchNotifications = () => {
+    fetch(`${API_BASE}/admin/admin-dashboard/get_notifications.php`, {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) setNotifications(data.notifications);
+      });
+  };
+
   useEffect(() => {
     setMounted(true);
+
+    // Initial fetch
+    fetchNotifications();
+
+    // 🔁 Auto refresh every 5 seconds
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const unreadCount = notifications.filter(
+      (n) => Number(n.is_read) === 0
+    ).length;
+
+    // 🔔 Play sound only if new notification comes
+    if (unreadCount > prevCount) {
+      notificationSound.play().catch(() => {});
+    }
+
+    setPrevCount(unreadCount);
+  }, [notifications]);
+
+  useEffect(() => {
+    const refresh = () => fetchNotifications();
+    window.addEventListener("new-notification", refresh);
+    return () => window.removeEventListener("new-notification", refresh);
   }, []);
 
   if (!mounted) return null;
 
-  // 🎨 Theme styles
+  const notificationSound = new Audio("sounds/notification_sound.mp3");
+
+  const notificationCount = notifications.filter(
+    (n) => Number(n.is_read) === 0
+  ).length;
+
+  const handleNotificationClick = async (notif) => {
+    try {
+      // ✅ Mark as read in backend
+      await fetch(`${API_BASE}/admin/admin-dashboard/mark_read.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: notif.id }),
+      });
+
+      // ✅ Update UI (DO NOT REMOVE)
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notif.id ? { ...n, is_read: 1 } : n
+        )
+      );
+
+      // ✅ Close dropdown
+      setAnchorNotif(null);
+
+      // ✅ Open popup
+      setSelectedNotification(notif);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // 🎨 Theme styles — same pattern as PilotHeader
   const headerBg = isDark ? "#0d0d0d" : "#ffffff";
   const headerBorder = isDark ? "#1f1f1f" : "#e2e8f0";
   const textColor = isDark ? "#ffffff" : "#000000";
@@ -72,7 +153,6 @@ export default function AdminHeader({ notificationCount = 0 }) {
             <Avatar sx={{ bgcolor: "#b71c1c" }}>
               <WhatshotIcon />
             </Avatar>
-
             <Box>
               <Typography variant="h6" fontWeight="bold" sx={{ color: "#ff5252" }}>
                 Fire Fighter
@@ -87,7 +167,7 @@ export default function AdminHeader({ notificationCount = 0 }) {
           <Box display="flex" alignItems="center" gap={2}>
 
             {/* 🔔 Notifications */}
-            <IconButton sx={{ color: textColor }}>
+            <IconButton sx={{ color: textColor }} onClick={(e) => setAnchorNotif(e.currentTarget)}>
               <Badge
                 badgeContent={notificationCount}
                 color="error"
@@ -97,14 +177,105 @@ export default function AdminHeader({ notificationCount = 0 }) {
               </Badge>
             </IconButton>
 
+            {/* NOTIFICATIONS MENU */}
+            <Menu
+              anchorEl={anchorNotif}
+              open={Boolean(anchorNotif)}
+              onClose={() => setAnchorNotif(null)}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+              PaperProps={{
+                sx: {
+                  background: headerBg,
+                  color: menuColor,
+                  width: 300,
+                  maxHeight: 400,
+                  overflowY: "auto",
+                  borderRadius: "7px",
+                  border: `1px solid ${dividerColor}`,
+                  mt: 1.5,
+                  px: 1,
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+                },
+              }}
+            >
+              <Box px={2} py={1}>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: subtitleColor,
+                    letterSpacing: 0.3,
+                  }}
+                >
+                  Notifications
+                </Typography>
+              </Box>
+              <Divider sx={{ borderColor: dividerColor, marginBottom: 1 }} />
+
+              {notifications.length === 0 ? (
+                <MenuItem sx={{ color: subtitleColor, fontSize: 14 }}>
+                  No notifications
+                </MenuItem>
+              ) : (
+                notifications.map((n) => (
+                  <MenuItem
+                    key={n.id}
+                    onClick={() => handleNotificationClick(n)}
+                    sx={{
+                      fontSize: 15,
+                      py: 1.4,
+                      borderRadius: "8px",
+                      whiteSpace: "normal",
+                      background: Number(n.is_read) === 0 ? menuHoverBg : "transparent",
+                      opacity: Number(n.is_read) === 0 ? 1 : 0.6,
+                      "&:hover": { background: menuHoverBg },
+                    }}
+                  >
+                    <Box display="flex" flexDirection="column" gap={0.5} width="100%">
+                      {/* MESSAGE */}
+                      <Typography
+                        fontSize={13}
+                        sx={{ color: menuColor, fontWeight: 500 }}
+                      >
+                        {n.message}
+                      </Typography>
+
+                      {/* CREATED BY */}
+                      <Typography fontSize={11} sx={{ color: subtitleColor }}>
+                        By {n.created_by}
+                      </Typography>
+                    </Box>
+
+                    {/* READ LABEL */}
+                    {Number(n.is_read) === 1 && (
+                      <Box
+                        sx={{
+                          fontSize: 10,
+                          px: 1,
+                          py: 0.3,
+                          borderRadius: "12px",
+                          background: "rgba(0, 255, 85, 0.88)",
+                          color: "#ffffff",
+                          fontWeight: 600,
+                          whiteSpace: "nowrap",
+                          ml: 1,
+                        }}
+                      >
+                        Read
+                      </Box>
+                    )}
+                  </MenuItem>
+                ))
+              )}
+            </Menu>
+
             {/* 👤 USER */}
             <Box
               onClick={(e) => setMenuAnchor(e.currentTarget)}
               sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}
             >
               <Avatar
-                src="https://spark-builder.s3.us-east-1.amazonaws.com/image/2025/11/20/382b2788-4a1a-42b3-ad58-7ff36533b34a.png"
-                alt={name}
                 sx={{ bgcolor: avatarBg, color: avatarColor }}
               >
                 {initials}
@@ -122,11 +293,13 @@ export default function AdminHeader({ notificationCount = 0 }) {
               <ExpandMoreIcon sx={{ color: textColor }} />
             </Box>
 
-            {/* DROPDOWN MENU */}
+            {/* USER MENU */}
             <Menu
               anchorEl={menuAnchor}
               open={Boolean(menuAnchor)}
               onClose={() => setMenuAnchor(null)}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
               PaperProps={{
                 sx: {
                   background: headerBg,
@@ -170,8 +343,6 @@ export default function AdminHeader({ notificationCount = 0 }) {
                 Profile
               </MenuItem>
 
-              {/* <Divider sx={{ borderColor: dividerColor, my: 1 }} /> */}
-
               {/* 🌗 THEME */}
               <MenuItem
                 onClick={toggleTheme}
@@ -190,8 +361,6 @@ export default function AdminHeader({ notificationCount = 0 }) {
                 {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
               </MenuItem>
 
-              {/* <Divider sx={{ borderColor: dividerColor, my: 1 }} /> */}
-
               {/* 🚪 LOGOUT */}
               <MenuItem
                 onClick={logoutUser}
@@ -209,6 +378,7 @@ export default function AdminHeader({ notificationCount = 0 }) {
                 Logout
               </MenuItem>
             </Menu>
+
           </Box>
         </Toolbar>
       </AppBar>
@@ -217,6 +387,12 @@ export default function AdminHeader({ notificationCount = 0 }) {
       <ProfileDialog
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
+      />
+
+      {/* ✅ Maintenance Detail Dialog */}
+      <MaintenanceDetailDialog
+        selectedNotification={selectedNotification}
+        onClose={() => setSelectedNotification(null)}
       />
     </>
   );

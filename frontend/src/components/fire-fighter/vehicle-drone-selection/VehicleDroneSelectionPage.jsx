@@ -298,39 +298,69 @@ export default function VehicleDroneSelectionPage() {
 
                 const selectedDrone = selectedDroneObjects[0];
                 const selectedVehicle = selectedVehicleObjects[0];
-                const droneId = selectedDrone?.drone_id;
+
+                const droneDbId = selectedDrone?.id; // ✅ IMPORTANT
+                const droneCode = selectedDrone?.drone_id;
                 const vehicleDeviceId = selectedVehicle?.device_id;
 
-                if (!droneId || !vehicleDeviceId) {
+                if (!droneDbId || !vehicleDeviceId) {
                   setSnack({ open: true, severity: "error", message: "Select both drone and vehicle" });
                   return;
                 }
 
                 try {
+                  // ✅ 1. START DRONE MISSION
+                  await fetch(`${API}/start_drone_mission.php`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      incident_id: incidentId,
+                      drone_id: droneDbId,
+                    }),
+                  });
+
+                  // ✅ 2. UPDATE INCIDENT STATUS (your existing API)
                   const res = await fetch(`${API}/update_incident_status.php`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ incidentId, droneId, vehicleDeviceId }),
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      incidentId,
+                      droneId: droneCode,
+                      vehicleDeviceId,
+                    }),
                   });
 
                   const data = await res.json();
                   if (!data.success) throw new Error(data.message);
 
+                  // ✅ 3. NAVIGATE
                   navigate(
-                    `/live-incident-command/${incidentId}/${droneId}/${vehicleDeviceId}`,
+                    `/live-incident-command/${incidentId}/${droneCode}/${vehicleDeviceId}`,
                     {
                       state: {
-                        incident: { ...incident, status: "in_progress", isNewAlert: 0 },
+                        incident: {
+                          ...incident,
+                          status: "in_progress",
+                          isNewAlert: 0,
+                        },
                         selectedVehicles: selectedVehicleObjects,
                         selectedDrones: selectedDroneObjects,
-                        droneId,
+                        droneId: droneCode,
                         vehicleDeviceId,
                       },
                     }
                   );
                 } catch (err) {
                   console.error(err);
-                  setSnack({ open: true, severity: "error", message: "Activation failed" });
+                  setSnack({
+                    open: true,
+                    severity: "error",
+                    message: "Activation failed",
+                  });
                 }
               }}
               onBack={() => navigate(-1)}
