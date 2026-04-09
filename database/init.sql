@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 07, 2026 at 10:55 AM
+-- Generation Time: Apr 09, 2026 at 02:00 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -61,7 +61,8 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `user_name`, `role`, `action`, `mo
 (30, NULL, 'SYSTEM', 'SYSTEM', 'DELETE_USER', 'USER', 'Deleted user Manoj Joshi (Role: Vehicle Driver ) from station Baner Fire Station', NULL, '::1', '2026-04-04 13:03:14'),
 (31, 1, 'Rahul Sharma', 'Admin', 'DELETE_STATION', 'STATION', 'Deleted station Kasba Peth Fire Station (STN-007)', NULL, '::1', '2026-04-04 13:04:51'),
 (32, 1, 'Rahul Sharma', 'Admin', 'DELETE_STATION', 'STATION', 'Deleted station Camp Fire Station (Moledina Rd) (STN-005)', NULL, '::1', '2026-04-04 13:08:23'),
-(33, 1, 'Rahul Sharma', 'Admin', 'DELETE_VEHICLE', 'VEHICLE', 'Deleted vehicle Rescue Van (MH-12-YD-7781) from station Yerwada Fire Station', NULL, '::1', '2026-04-04 13:08:50');
+(33, 1, 'Rahul Sharma', 'Admin', 'DELETE_VEHICLE', 'VEHICLE', 'Deleted vehicle Rescue Van (MH-12-YD-7781) from station Yerwada Fire Station', NULL, '::1', '2026-04-04 13:08:50'),
+(34, 1, 'Rahul Sharma', 'Admin', 'ASSIGN_PILOT', 'DRONE', 'Assigned pilot (Amit Verma) to drone DRN-001', 2, '::1', '2026-04-08 17:37:38');
 
 -- --------------------------------------------------------
 
@@ -94,7 +95,7 @@ CREATE TABLE `drones` (
 --
 
 INSERT INTO `drones` (`id`, `drone_code`, `drone_name`, `ward`, `status`, `battery`, `flight_hours`, `health_status`, `firmware_version`, `is_ready`, `station`, `pilot_id`, `pilot_name`, `pilot_email`, `pilot_phone`, `pilot_role`, `pilot_status`) VALUES
-(1, 'DRN-001', 'SkyGuard-01', '', 'Maintenance', 100, 20, 'Optimal', 'V3.4.5', 1, 'Katraj Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(1, 'DRN-001', 'SkyGuard-01', '', 'Active', 100, 20, 'Optimal', 'V3.4.5', 1, 'Katraj Fire Station', 2, 'Amit Verma', 'amit.verma@example.com', '9876501234', 'Pilot', 'assigned'),
 (2, 'DRN-002', 'SkyGuard-02', '', 'Active', 100, 13, 'Optimal', 'v1.0.0', 1, 'Katraj Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
 (3, 'DRN-003', 'FireScout', '', 'StandBy', 100, 37, 'Optimal', 'v3.6.3', 1, 'Warje Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
 (4, 'DRN-004', 'Falcon X2', '', 'StandBy', 100, 10, 'Optimal', 'v4.2.3', 1, 'Warje Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
@@ -113,6 +114,7 @@ INSERT INTO `drones` (`id`, `drone_code`, `drone_name`, `ward`, `status`, `batte
 CREATE TABLE `drone_gps_logs` (
   `id` int(10) UNSIGNED NOT NULL,
   `drone_code` varchar(50) NOT NULL,
+  `incident_id` varchar(50) DEFAULT NULL,
   `latitude` double NOT NULL,
   `longitude` double NOT NULL,
   `speed` double NOT NULL,
@@ -123,11 +125,18 @@ CREATE TABLE `drone_gps_logs` (
 -- Dumping data for table `drone_gps_logs`
 --
 
-INSERT INTO `drone_gps_logs` (`id`, `drone_code`, `latitude`, `longitude`, `speed`, `timestamp`) VALUES
-(1, 'DRN-001', 18.454593, 73.855582, 42, '2025-12-02 07:10:03'),
-(2, 'DRN-002', 18.493859, 73.835045, 45.5, '2026-02-18 06:59:57'),
-(3, 'DRN-005', 18.4545, 73.8603, 52.3, '2026-02-18 06:59:57'),
-(4, 'DRN-007', 18.4501, 73.851, 38.9, '2026-02-18 06:59:57');
+INSERT INTO `drone_gps_logs` (`id`, `drone_code`, `incident_id`, `latitude`, `longitude`, `speed`, `timestamp`) VALUES
+(1, 'DRN-001', NULL, 18.454593, 73.855582, 42, '2025-12-02 07:10:03'),
+(2, 'DRN-002', NULL, 18.493859, 73.835045, 45.5, '2026-02-18 06:59:57'),
+(3, 'DRN-005', NULL, 18.4545, 73.8603, 52.3, '2026-02-18 06:59:57'),
+(4, 'DRN-007', NULL, 18.4501, 73.851, 38.9, '2026-02-18 06:59:57'),
+(13, 'DRN-001', 'INC-20260115-003', 18.5204, 73.8567, 45.5, '2026-04-09 10:36:52'),
+(14, 'DRN-001', 'INC-20260115-003', 18.5204, 73.8567, 45.5, '2026-04-09 10:36:52'),
+(15, 'DRN-001', 'INC-20260115-003', 18.521, 73.857, 46, '2026-04-09 10:37:10'),
+(16, 'DRN-001', 'INC-20260115-003', 18.522, 73.8585, 44.8, '2026-04-09 10:37:30'),
+(17, 'DRN-001', 'INC-20260115-003', 18.5235, 73.86, 45.2, '2026-04-09 10:37:50'),
+(18, 'DRN-001', 'INC-20260115-003', 18.525, 73.8615, 45, '2026-04-09 10:38:10'),
+(19, 'DRN-001', 'INC-20260115-003', 18.526, 73.8625, 45.3, '2026-04-09 10:38:30');
 
 -- --------------------------------------------------------
 
@@ -151,7 +160,7 @@ CREATE TABLE `drone_missions` (
 --
 
 INSERT INTO `drone_missions` (`id`, `drone_id`, `incident_id`, `start_time`, `end_time`, `status`, `path_data`, `created_at`) VALUES
-(1, 1, 'INC-20260115-003', '2026-04-04 16:01:48', NULL, 'started', NULL, '2026-04-04 10:31:48');
+(19, 1, 'INC-20260115-003', '2026-04-09 17:09:22', '2026-04-09 17:09:30', 'completed', NULL, '2026-04-09 11:39:22');
 
 -- --------------------------------------------------------
 
@@ -228,7 +237,7 @@ CREATE TABLE `incidents` (
 INSERT INTO `incidents` (`id`, `name`, `location`, `latitude`, `longitude`, `stationName`, `timeReported`, `status`, `isNewAlert`) VALUES
 ('INC-20251122-001', 'Vehicle Accident & Fire', 'Paud Road, Near Signal, Kothrud', 18.5074, 73.8077, 'Baner Fire Station', '2025-11-22 15:25:00', 'new', 1),
 ('INC-20251122-002', 'Warehouse Fire - Industrial Zone', 'Plot No. 45, Industrial Area, Katraj', 18.4445, 73.8521, 'Yerwada Fire Station', '2026-01-02 14:10:00', 'new', 1),
-('INC-20260115-003', 'Residential Building Fire', 'Near Katraj Bus Depot, Pune', 18.45445378969955, 73.85859890802172, 'Katraj Fire Station', '2026-01-15 18:40:00', 'new', 1);
+('INC-20260115-003', 'Residential Building Fire', 'Near Katraj Bus Depot, Pune', 18.45445378969955, 73.85859890802172, 'Katraj Fire Station', '2026-01-15 18:40:00', 'completed', 0);
 
 -- --------------------------------------------------------
 
@@ -434,7 +443,7 @@ ALTER TABLE `vehicles`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `drones`
@@ -446,13 +455,13 @@ ALTER TABLE `drones`
 -- AUTO_INCREMENT for table `drone_gps_logs`
 --
 ALTER TABLE `drone_gps_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `drone_missions`
 --
 ALTER TABLE `drone_missions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `fire_detections`
