@@ -158,13 +158,21 @@ export default function VehicleDroneSelectionPage() {
         setVehicles(
           (vehJson || [])
             .map(normalizeVehicleRow)
-            .filter((v) => v.station === userStation)
+            .filter(
+              (v) =>
+                v.station === userStation &&
+                v.vehicle_status?.toLowerCase() === "available"
+            )
         );
 
         setDrones(
           (droneJson?.drones || [])
             .map(normalizeDroneRow)
-            .filter((d) => d.station === userStation)
+            .filter(
+              (d) =>
+                d.station === userStation &&
+                d.status?.toLowerCase() === "active"
+            )
         );
 
         setLoading(false);
@@ -292,24 +300,60 @@ export default function VehicleDroneSelectionPage() {
               canActivate={canActivate}
               onActivate={async () => {
                 if (!incidentId) {
-                  setSnack({ open: true, severity: "error", message: "Invalid Incident ID" });
+                  setSnack({
+                    open: true,
+                    severity: "error",
+                    message: "Invalid Incident ID",
+                  });
                   return;
                 }
 
                 const selectedDrone = selectedDroneObjects[0];
                 const selectedVehicle = selectedVehicleObjects[0];
 
-                const droneDbId = selectedDrone?.id; // ✅ IMPORTANT
+                const droneDbId = selectedDrone?.id;
                 const droneCode = selectedDrone?.drone_id;
                 const vehicleDeviceId = selectedVehicle?.device_id;
 
                 if (!droneDbId || !vehicleDeviceId) {
-                  setSnack({ open: true, severity: "error", message: "Select both drone and vehicle" });
+                  setSnack({
+                    open: true,
+                    severity: "error",
+                    message: "Select both drone and vehicle",
+                  });
+                  return;
+                }
+
+                // ✅ Extract lat/lng safely
+                const lat = incident?.latitude || incident?.lat;
+                const lng = incident?.longitude || incident?.lng;
+
+                if (!lat || !lng) {
+                  setSnack({
+                    open: true,
+                    severity: "error",
+                    message: "Incident location missing",
+                  });
                   return;
                 }
 
                 try {
-                  // ✅ 1. START DRONE MISSION
+                  console.log("Sending location:", { incidentId, lat, lng });
+
+                  // ✅ 1. SEND INCIDENT LOCATION
+                  await fetch("http://13.205.250.118:8082/api/incident_location", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      incident_id: incidentId,
+                      latitude: lat,
+                      longitude: lng,
+                    }),
+                  });
+
+                  // ✅ 2. START DRONE MISSION
                   await fetch(`${API}/start_drone_mission.php`, {
                     method: "POST",
                     headers: {
@@ -321,7 +365,7 @@ export default function VehicleDroneSelectionPage() {
                     }),
                   });
 
-                  // ✅ 2. UPDATE INCIDENT STATUS (your existing API)
+                  // ✅ 3. UPDATE INCIDENT STATUS
                   const res = await fetch(`${API}/update_incident_status.php`, {
                     method: "POST",
                     headers: {
@@ -337,7 +381,7 @@ export default function VehicleDroneSelectionPage() {
                   const data = await res.json();
                   if (!data.success) throw new Error(data.message);
 
-                  // ✅ 3. NAVIGATE
+                  // ✅ 4. NAVIGATE
                   navigate(
                     `/live-incident-command/${incidentId}/${droneCode}/${vehicleDeviceId}`,
                     {

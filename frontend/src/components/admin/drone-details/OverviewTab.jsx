@@ -328,7 +328,7 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
 
       {/* Map */}
       <Card
-        className="aspect-video rounded-lg relative z-10"
+        className="rounded-lg relative z-10 h-[400px]"
         style={{ border: `1px solid ${isDark ? "#404040" : "#e2e8f0"}` }}
       >
         <MapContainer

@@ -11,6 +11,7 @@ import HistoryTab from "./HistoryTab";
 import MaintenanceTab from "./MaintenanceTab";
 import AddDroneDialog from "./AddDroneDialog";
 import EditDroneDialog from "./EditDroneDialog";
+import DroneList from "./DroneList";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const API = `${API_BASE}/admin/admin-drone-details`;
@@ -303,6 +304,7 @@ export default function DroneDetailsContent() {
           onSuccess={() => fetchDroneDetails(selectedDrone.drone_code)}
         />
       )}
+       <DroneList />
     </div>
   );
 }

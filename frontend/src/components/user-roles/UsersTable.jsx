@@ -83,16 +83,9 @@ export default function UsersTable({ isDark, users, toggleUserStatus, onEdit, on
                 <td className="p-2">{u.station}</td>
 
                 <td className="p-2">
-                  <button
+                                    <button
                     onClick={() => toggleUserStatus(u)}
-                    className={`
-                      px-3 py-1 rounded text-white text-xs
-                      transition-all duration-200 active:scale-[0.95]
-                      ${u.active
-                        ? "bg-green-600 hover:bg-green-700 active:bg-green-800"
-                        : "bg-red-600 hover:bg-red-700 active:bg-red-800"
-                      }
-                    `}
+                    className="px-3 py-1 rounded text-xs border border-green-500/50 text-green-500 hover:bg-green-500/10 transition-all duration-200 active:scale-[0.95] disabled:opacity-50"
                   >
                     {u.active ? "Active" : "Inactive"}
                   </button>
@@ -100,12 +93,13 @@ export default function UsersTable({ isDark, users, toggleUserStatus, onEdit, on
 
                 <td className="p-2">
                   <div className="flex gap-2">
-                    <button
+                                        <button
                       onClick={() => onEdit(u.id)}
-                      className="px-3 py-1 rounded text-white text-xs bg-blue-600 hover:bg-blue-700 active:bg-blue-800 active:scale-[0.95] transition-all duration-200"
+                       className="px-3 py-1 rounded text-xs border border-blue-500/50 text-blue-500 hover:bg-blue-500/10 transition-all duration-200 active:scale-[0.95] disabled:opacity-50"
                     >
                       Edit
                     </button>
+
 
                     <button
                       disabled={deletingId === u.id}

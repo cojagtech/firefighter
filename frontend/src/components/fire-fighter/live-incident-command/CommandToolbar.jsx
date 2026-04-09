@@ -12,6 +12,11 @@ import {
   IconButton,
 } from "@mui/material";
 
+// ✅ API CONFIG ADDED
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API =
+  `${API_BASE}/fire-fighter/live-incident-command/end_mission.php`;
+
 export default function CommandToolbar({
   layout,
   onLayoutChange,
@@ -24,6 +29,39 @@ export default function CommandToolbar({
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+
+  // ✅ LOADING STATE ADDED
+  const [loading, setLoading] = useState(false);
+
+  // ✅ END MISSION FUNCTION ADDED
+  const handleEndMission = async () => {
+    if (!window.confirm("Are you sure you want to end this mission?")) return;
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ incidentId }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Mission Ended ✅");
+      } else {
+        alert(data.error || "Failed to end mission ❌");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error ending mission ❌");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Theme observer
   const [isDark, setIsDark] = useState(
@@ -43,25 +81,25 @@ export default function CommandToolbar({
 
   const C = isDark
     ? {
-        toolbarBg: "#141414",
-        toolbarBorder: "#1f1f1f",
-        iconBoxBg: "#291818",
-        iconBoxBorder: "#dc2626",
-        menuBg: "#1a1a1a",
-        menuColor: "#ffffff",
-        menuHover: "#2a2a2a",
-        menuBorder: "#2E2E2E",
-      }
+      toolbarBg: "#141414",
+      toolbarBorder: "#1f1f1f",
+      iconBoxBg: "#291818",
+      iconBoxBorder: "#dc2626",
+      menuBg: "#1a1a1a",
+      menuColor: "#ffffff",
+      menuHover: "#2a2a2a",
+      menuBorder: "#2E2E2E",
+    }
     : {
-        toolbarBg: "#ffffff",
-        toolbarBorder: "#e2e8f0",
-        iconBoxBg: "#fff1f2",
-        iconBoxBorder: "#dc2626",
-        menuBg: "#ffffff",
-        menuColor: "#111827",
-        menuHover: "#f3f4f6",
-        menuBorder: "#e2e8f0",
-      };
+      toolbarBg: "#ffffff",
+      toolbarBorder: "#e2e8f0",
+      iconBoxBg: "#fff1f2",
+      iconBoxBorder: "#dc2626",
+      menuBg: "#ffffff",
+      menuColor: "#111827",
+      menuHover: "#f3f4f6",
+      menuBorder: "#e2e8f0",
+    };
 
   return (
     <div
@@ -118,7 +156,11 @@ export default function CommandToolbar({
               color: layout === "split"
                 ? "#ffffff"
                 : isDark ? "#ffffff" : "#111827",
-              "&:hover": { backgroundColor: layout === "split" ? "#b91c1c" : isDark ? "#2a2a2a" : "#f3f4f6" },
+              "&:hover": {
+                backgroundColor: layout === "split"
+                  ? "#b91c1c"
+                  : isDark ? "#2a2a2a" : "#f3f4f6",
+              },
             }}
           >
             <SafeIcon name="LayoutGrid" className="mr-2 h-4 w-4" />
@@ -135,7 +177,11 @@ export default function CommandToolbar({
               color: layout === "full"
                 ? "#ffffff"
                 : isDark ? "#ffffff" : "#111827",
-              "&:hover": { backgroundColor: layout === "full" ? "#b91c1c" : isDark ? "#2a2a2a" : "#f3f4f6" },
+              "&:hover": {
+                backgroundColor: layout === "full"
+                  ? "#b91c1c"
+                  : isDark ? "#2a2a2a" : "#f3f4f6",
+              },
             }}
           >
             <SafeIcon name="Maximize2" className="mr-2 h-4 w-4" />
@@ -152,7 +198,11 @@ export default function CommandToolbar({
               color: layout === "focus"
                 ? "#ffffff"
                 : isDark ? "#ffffff" : "#111827",
-              "&:hover": { backgroundColor: layout === "focus" ? "#b91c1c" : isDark ? "#2a2a2a" : "#f3f4f6" },
+              "&:hover": {
+                backgroundColor: layout === "focus"
+                  ? "#b91c1c"
+                  : isDark ? "#2a2a2a" : "#f3f4f6",
+              },
             }}
           >
             <SafeIcon name="Focus" className="mr-2 h-4 w-4" />
@@ -223,46 +273,44 @@ export default function CommandToolbar({
             </span>
             <Divider sx={{ borderColor: C.menuBorder }} />
 
+            {/* Export Report */}
             <MenuItem
-              onClick={() => setAnchorEl(null)}
-              sx={{
-                color: C.menuColor,
-                "&:hover": { background: C.menuHover },
-              }}
-            >
-              <SafeIcon name="Download" className="mr-2 h-4 w-4" /> Export Report
-            </MenuItem>
+              onClick={() => {
+                setAnchorEl(null);
 
-            <MenuItem
-              onClick={() => setAnchorEl(null)}
-              sx={{
-                color: C.menuColor,
-                "&:hover": { background: C.menuHover },
-              }}
-            >
-              <SafeIcon name="Share2" className="mr-2 h-4 w-4" /> Share Feed
-            </MenuItem>
+                const phpUrl = `http://localhost/fire-fighter/backend/controllers/fire-fighter/live-incident-command/export-report.php?incidentId=${incidentId}`;
+                const printWindow = window.open(phpUrl, "_blank");
 
-            <MenuItem
-              onClick={() => setAnchorEl(null)}
-              sx={{
-                color: C.menuColor,
-                "&:hover": { background: C.menuHover },
+                printWindow.onload = () => {
+                  printWindow.focus();
+                  printWindow.print();
+                };
+
+                printWindow.onafterprint = () => {
+                  printWindow.close();
+                };
               }}
             >
-              <SafeIcon name="Settings" className="mr-2 h-4 w-4" /> Panel Settings
+              <SafeIcon name="Download" className="mr-2 h-4 w-4" />
+              Export Report
             </MenuItem>
 
             <Divider sx={{ borderColor: C.menuBorder }} />
 
+            {/* End Mission */}
             <MenuItem
               sx={{
                 color: "error.main",
                 "&:hover": { background: C.menuHover },
               }}
-              onClick={() => setAnchorEl(null)}
+              onClick={() => {
+                setAnchorEl(null);
+                handleEndMission();
+              }}
+              disabled={loading}
             >
-              <SafeIcon name="LogOut" className="mr-2 h-4 w-4" /> End Mission
+              <SafeIcon name="LogOut" className="mr-2 h-4 w-4" />
+              {loading ? "Ending..." : "End Mission"}
             </MenuItem>
           </Menu>
 
