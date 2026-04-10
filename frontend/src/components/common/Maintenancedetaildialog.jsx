@@ -171,7 +171,7 @@ export default function MaintenanceDetailDialog({ selectedNotification, onClose 
 
         {/* RIGHT PANEL */}
         <Box sx={{ flex: 1, px: 3.5, py: 4 }}>
-          <Typography fontSize={17} fontWeight={500} sx={{ color: "#ff5252", textTransform: "uppercase", letterSpacing: 1, mb: 2 }}>
+          <Typography fontSize={16} fontWeight={500} sx={{ color: "#ff5252", textTransform: "uppercase", letterSpacing: 1, mb: 2 }}>
             Maintenance Details
           </Typography>
 
