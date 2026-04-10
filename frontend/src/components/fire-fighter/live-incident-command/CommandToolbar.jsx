@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import SafeIcon from "@/components/common/SafeIcon";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import {
   Button,
@@ -10,9 +11,14 @@ import {
   MenuItem,
   Divider,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
 } from "@mui/material";
 
-// ✅ API CONFIG ADDED
+// API CONFIG
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const API =
   `${API_BASE}/fire-fighter/live-incident-command/end_mission.php`;
@@ -27,16 +33,15 @@ export default function CommandToolbar({
   incidentName,
 }) {
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  // ✅ LOADING STATE ADDED
   const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  // ✅ END MISSION FUNCTION ADDED
+  // 🔥 End Mission API
   const handleEndMission = async () => {
-    if (!window.confirm("Are you sure you want to end this mission?")) return;
-
     try {
       setLoading(true);
 
@@ -51,13 +56,14 @@ export default function CommandToolbar({
       const data = await res.json();
 
       if (data.success) {
-        alert("Mission Ended ✅");
+        toast.success("Mission Ended ✅");
+        setConfirmOpen(false);
       } else {
-        alert(data.error || "Failed to end mission ❌");
+        toast.error(data.error || "Failed to end mission ❌");
       }
     } catch (err) {
       console.error(err);
-      alert("Error ending mission ❌");
+      toast.error("Error ending mission ❌");
     } finally {
       setLoading(false);
     }
@@ -81,252 +87,194 @@ export default function CommandToolbar({
 
   const C = isDark
     ? {
-      toolbarBg: "#141414",
-      toolbarBorder: "#1f1f1f",
-      iconBoxBg: "#291818",
-      iconBoxBorder: "#dc2626",
-      menuBg: "#1a1a1a",
-      menuColor: "#ffffff",
-      menuHover: "#2a2a2a",
-      menuBorder: "#2E2E2E",
-    }
+        toolbarBg: "#141414",
+        toolbarBorder: "#1f1f1f",
+        iconBoxBg: "#291818",
+        iconBoxBorder: "#dc2626",
+        menuBg: "#1a1a1a",
+        menuColor: "#ffffff",
+        menuHover: "#2a2a2a",
+        menuBorder: "#2E2E2E",
+      }
     : {
-      toolbarBg: "#ffffff",
-      toolbarBorder: "#e2e8f0",
-      iconBoxBg: "#fff1f2",
-      iconBoxBorder: "#dc2626",
-      menuBg: "#ffffff",
-      menuColor: "#111827",
-      menuHover: "#f3f4f6",
-      menuBorder: "#e2e8f0",
-    };
+        toolbarBg: "#ffffff",
+        toolbarBorder: "#e2e8f0",
+        iconBoxBg: "#fff1f2",
+        iconBoxBorder: "#dc2626",
+        menuBg: "#ffffff",
+        menuColor: "#111827",
+        menuHover: "#f3f4f6",
+        menuBorder: "#e2e8f0",
+      };
 
   return (
-    <div
-      className="backdrop-blur-sm p-4"
-      style={{
-        backgroundColor: C.toolbarBg,
-        borderBottom: `1px solid ${C.toolbarBorder}`,
-      }}
-    >
-      <div className="flex items-center justify-between gap-4">
+    <>
+      <div
+        className="backdrop-blur-sm p-4"
+        style={{
+          backgroundColor: C.toolbarBg,
+          borderBottom: `1px solid ${C.toolbarBorder}`,
+        }}
+      >
+        <div className="flex items-center justify-between gap-4">
 
-        {/* Left — Incident Info */}
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-lg"
-            style={{
-              backgroundColor: C.iconBoxBg,
-              border: `1px solid ${C.iconBoxBorder}`,
-            }}
-          >
-            <SafeIcon name="AlertTriangle" className="h-5 w-5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {incidentName}
-            </p>
-            <p className="text-xs text-muted-foreground font-mono">
-              {incidentId}
-            </p>
-          </div>
+          {/* Left */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-lg"
+              style={{
+                backgroundColor: C.iconBoxBg,
+                border: `1px solid ${C.iconBoxBorder}`,
+              }}
+            >
+              <SafeIcon name="AlertTriangle" className="h-5 w-5 text-primary" />
+            </div>
 
-          <Chip
-            label={
-              <span className="flex items-center gap-1">
-                <span className="mr-1.5 h-2 w-2 rounded-full bg-white"></span>
-                LIVE
-              </span>
-            }
-            color="error"
-            className="ml-2 animate-pulse"
-            size="small"
-          />
-        </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate">
+                {incidentName}
+              </p>
+              <p className="text-xs font-mono">
+                {incidentId}
+              </p>
+            </div>
 
-        {/* Center — Layout Buttons */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant={layout === "split" ? "contained" : "outlined"}
-            size="small"
-            onClick={() => onLayoutChange("split")}
-            sx={{
-              backgroundColor: layout === "split" ? "#dc2626" : "transparent",
-              borderColor: isDark ? "#2E2E2E" : "#e2e8f0",
-              color: layout === "split"
-                ? "#ffffff"
-                : isDark ? "#ffffff" : "#111827",
-              "&:hover": {
-                backgroundColor: layout === "split"
-                  ? "#b91c1c"
-                  : isDark ? "#2a2a2a" : "#f3f4f6",
-              },
-            }}
-          >
-            <SafeIcon name="LayoutGrid" className="mr-2 h-4 w-4" />
-            Split
-          </Button>
-
-          <Button
-            variant={layout === "full" ? "contained" : "outlined"}
-            size="small"
-            onClick={() => onLayoutChange("full")}
-            sx={{
-              backgroundColor: layout === "full" ? "#dc2626" : "transparent",
-              borderColor: isDark ? "#2E2E2E" : "#e2e8f0",
-              color: layout === "full"
-                ? "#ffffff"
-                : isDark ? "#ffffff" : "#111827",
-              "&:hover": {
-                backgroundColor: layout === "full"
-                  ? "#b91c1c"
-                  : isDark ? "#2a2a2a" : "#f3f4f6",
-              },
-            }}
-          >
-            <SafeIcon name="Maximize2" className="mr-2 h-4 w-4" />
-            Full
-          </Button>
-
-          <Button
-            variant={layout === "focus" ? "contained" : "outlined"}
-            size="small"
-            onClick={() => onLayoutChange("focus")}
-            sx={{
-              backgroundColor: layout === "focus" ? "#dc2626" : "transparent",
-              borderColor: isDark ? "#2E2E2E" : "#e2e8f0",
-              color: layout === "focus"
-                ? "#ffffff"
-                : isDark ? "#ffffff" : "#111827",
-              "&:hover": {
-                backgroundColor: layout === "focus"
-                  ? "#b91c1c"
-                  : isDark ? "#2a2a2a" : "#f3f4f6",
-              },
-            }}
-          >
-            <SafeIcon name="Focus" className="mr-2 h-4 w-4" />
-            Focus
-          </Button>
-
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => { window.location.href = "http://43.205.31.167:8081/"; }}
-            sx={{
-              ml: 1,
-              borderColor: isDark ? "#2E2E2E" : "#e2e8f0",
-              color: isDark ? "#ffffff" : "#111827",
-              "&:hover": { backgroundColor: isDark ? "#2a2a2a" : "#f3f4f6" },
-            }}
-          >
-            Control Panel
-          </Button>
-        </div>
-
-        {/* Right — Actions */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={isFullscreen ? onExitFullscreen : onFullscreen}
-            sx={{
-              borderColor: isDark ? "#2E2E2E" : "#e2e8f0",
-              color: isDark ? "#ffffff" : "#111827",
-              "&:hover": { backgroundColor: isDark ? "#2a2a2a" : "#f3f4f6" },
-            }}
-          >
-            <SafeIcon
-              name={isFullscreen ? "Minimize2" : "Maximize"}
-              className="h-4 w-4"
+            <Chip
+              label={
+                <span className="flex items-center gap-1">
+                  <span className="mr-1.5 h-2 w-2 rounded-full bg-white"></span>
+                  LIVE
+                </span>
+              }
+              color="error"
+              className="ml-2 animate-pulse"
+              size="small"
             />
-          </Button>
+          </div>
 
-          <IconButton
-            size="small"
-            onClick={(e) => setAnchorEl(e.currentTarget)}
-            sx={{ color: isDark ? "#ffffff" : "#111827" }}
-          >
-            <SafeIcon name="MoreVertical" className="h-4 w-4" />
-          </IconButton>
+          {/* Center */}
+          <div className="flex items-center gap-2">
+            {["split", "full", "focus"].map((type) => (
+              <Button
+                key={type}
+                variant={layout === type ? "contained" : "outlined"}
+                size="small"
+                onClick={() => onLayoutChange(type)}
+                sx={{
+                  backgroundColor: layout === type ? "#dc2626" : "transparent",
+                  color: layout === type ? "#fff" : undefined,
+                }}
+              >
+                {type}
+              </Button>
+            ))}
 
-          <Menu
-            anchorEl={anchorEl}
-            open={open}
-            onClose={() => setAnchorEl(null)}
-            PaperProps={{
-              sx: {
-                background: C.menuBg,
-                color: C.menuColor,
-                border: `1px solid ${C.menuBorder}`,
-                boxShadow: isDark
-                  ? "0 4px 12px rgba(0,0,0,0.5)"
-                  : "0 4px 12px rgba(0,0,0,0.1)",
-              },
-            }}
-          >
-            <span
-              className="px-4 py-2 text-xs font-semibold"
-              style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
-            >
-              Command Options
-            </span>
-            <Divider sx={{ borderColor: C.menuBorder }} />
-
-            {/* Export Report */}
-            <MenuItem
+            <Button
+              variant="outlined"
+              size="small"
               onClick={() => {
-                setAnchorEl(null);
-
-                const phpUrl = `http://localhost/fire-fighter/backend/controllers/fire-fighter/live-incident-command/export-report.php?incidentId=${incidentId}`;
-                const printWindow = window.open(phpUrl, "_blank");
-
-                printWindow.onload = () => {
-                  printWindow.focus();
-                  printWindow.print();
-                };
-
-                printWindow.onafterprint = () => {
-                  printWindow.close();
-                };
+                window.location.href = "http://43.205.31.167:8081/";
               }}
             >
-              <SafeIcon name="Download" className="mr-2 h-4 w-4" />
-              Export Report
-            </MenuItem>
+              Control Panel
+            </Button>
+          </div>
 
-            <Divider sx={{ borderColor: C.menuBorder }} />
+          {/* Right */}
+          <div className="flex items-center gap-2">
 
-            {/* End Mission */}
-            <MenuItem
-              sx={{
-                color: "error.main",
-                "&:hover": { background: C.menuHover },
-              }}
-              onClick={() => {
-                setAnchorEl(null);
-                handleEndMission();
-              }}
-              disabled={loading}
+            <Button
+              size="small"
+              onClick={isFullscreen ? onExitFullscreen : onFullscreen}
             >
-              <SafeIcon name="LogOut" className="mr-2 h-4 w-4" />
-              {loading ? "Ending..." : "End Mission"}
-            </MenuItem>
-          </Menu>
+              <SafeIcon
+                name={isFullscreen ? "Minimize2" : "Maximize"}
+                className="h-4 w-4"
+              />
+            </Button>
 
-          <Button
-            size="small"
-            startIcon={<ArrowBackIcon />}
-            sx={{
-              color: isDark ? "#9ca3af" : "#6b7280",
-              ":hover": { backgroundColor: "#dc2626", color: "white" },
-            }}
-            onClick={() => navigate(-1)}
-          >
-            Back
-          </Button>
+            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+              <SafeIcon name="MoreVertical" className="h-4 w-4" />
+            </IconButton>
+
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={() => setAnchorEl(null)}
+            >
+              <MenuItem
+                onClick={() => {
+                  setAnchorEl(null);
+
+                  const phpUrl = `http://localhost/fire-fighter/backend/controllers/fire-fighter/live-incident-command/export-report.php?incidentId=${incidentId}`;
+                  const win = window.open(phpUrl, "_blank");
+
+                  win.onload = () => {
+                    win.print();
+                  };
+                }}
+              >
+                Export Report
+              </MenuItem>
+
+              <Divider />
+
+              <MenuItem
+                onClick={() => {
+                  setAnchorEl(null);
+                  setConfirmOpen(true);
+                }}
+                sx={{ color: "red" }}
+                disabled={loading}
+              >
+                {loading ? "Ending..." : "End Mission"}
+              </MenuItem>
+            </Menu>
+
+            <Button
+              size="small"
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate(-1)}
+            >
+              Back
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* 🔥 CONFIRM DIALOG */}
+      <Dialog
+        open={confirmOpen}
+        onClose={() => !loading && setConfirmOpen(false)}
+      >
+        <DialogTitle>⚠️ End Mission</DialogTitle>
+
+        <DialogContent>
+          <Typography>
+            Are you sure you want to end this mission?
+            <br />
+            <b>{incidentName}</b>
+          </Typography>
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            onClick={() => setConfirmOpen(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            onClick={handleEndMission}
+            color="error"
+            variant="contained"
+            disabled={loading}
+          >
+            {loading ? "Ending..." : "Confirm"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }

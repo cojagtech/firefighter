@@ -341,7 +341,7 @@ export default function VehicleDroneSelectionPage() {
                   console.log("Sending location:", { incidentId, lat, lng });
 
                   // ✅ 1. SEND INCIDENT LOCATION
-                  await fetch("http://13.205.250.118:8082/api/incident_location", {
+                  await fetch("http://43.205.31.167:8082/api/incident_location", {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
