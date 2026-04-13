@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Radio, CalendarClock, Plane } from "lucide-react";
+import { Radio, CalendarClock, Plane, ClipboardList } from "lucide-react";
 import "./Sidebar.css";
 
 const Sidebar = () => {
@@ -7,6 +7,7 @@ const Sidebar = () => {
     { name: "Drones",icon: Plane,link: "/pilot-dashboard" },
     { name: "Live Incident Command",icon: Radio,link: "/pilot-live-incident-command" },
     { name: "Schedule Maintenance",icon: CalendarClock,link: "/schedule-maintenance" },
+    { name: "Maintenance Record", icon: ClipboardList, link: "/maintenance-record" },
   ];
 
   return (

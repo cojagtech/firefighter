@@ -3,29 +3,19 @@ require_once __DIR__ . "/../../../config/db.php";
 
 $incidentId = isset($_GET['incidentId']) ? trim($_GET['incidentId']) : '';
 
-// Correct JOIN (IMPORTANT FIX APPLIED)
 if ($incidentId) {
     $sql = "
         SELECT 
             dm.start_time,
             dm.end_time,
             dm.status AS mission_status,
-
             d.drone_name,
             d.drone_code,
             d.station,
             d.pilot_name,
-            d.pilot_email,
-            d.pilot_phone,
-
             i.id AS incident_id,
             i.name AS incident_name,
-            i.location AS incident_location,
-            i.latitude,
-            i.longitude,
-            i.timeReported,
-            i.status AS incident_status
-
+            i.location AS incident_location
         FROM drone_missions dm
         LEFT JOIN drones d ON dm.drone_id = d.id
         LEFT JOIN incidents i ON dm.incident_id = i.id
@@ -36,126 +26,202 @@ if ($incidentId) {
     $stmt->execute();
     $result = $stmt->get_result();
 } else {
-    $sql = "
+    $result = $conn->query("
         SELECT 
             dm.start_time,
             dm.end_time,
             dm.status AS mission_status,
-
             d.drone_name,
             d.drone_code,
             d.station,
             d.pilot_name,
-            d.pilot_email,
-            d.pilot_phone,
-
             i.id AS incident_id,
             i.name AS incident_name,
-            i.location AS incident_location,
-            i.latitude,
-            i.longitude,
-            i.timeReported,
-            i.status AS incident_status
-
+            i.location AS incident_location
         FROM drone_missions dm
         LEFT JOIN drones d ON dm.drone_id = d.id
         LEFT JOIN incidents i ON dm.incident_id = i.id
-    ";
-    $result = $conn->query($sql);
+    ");
 }
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Drone Mission Report</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <style>
-body { font-family: Arial; margin: 30px; color: #333; }
-h1 { text-align: center; }
-.section { border: 1px solid #888; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-.section h3 { background: #2196F3; color: white; padding: 8px; margin: -15px -15px 15px -15px; }
-.field { display: flex; margin-bottom: 6px; }
-.field label { width: 180px; font-weight: bold; }
-.status { padding: 3px 8px; border-radius: 4px; color: #fff; }
-.status-completed { background: #4CAF50; }
-.status-ongoing { background: #FFC107; }
-.status-failed { background: #F44336; }
-button { margin-bottom: 20px; }
-@media print { button { display:none; } }
-body.hidden { display:none; }
+
+@page {
+    size: A4;
+    margin: 10mm;
+}
+
+body {
+    font-family: Arial;
+    margin: 0 auto;
+    width: 210mm;
+}
+
+h1 {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.section {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    page-break-inside: avoid;
+}
+
+.section-title {
+    font-weight: bold;
+    border-bottom: 1px solid #000;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.row {
+    display: flex;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.label {
+    width: 180px;
+    font-weight: bold;
+}
+
+.value {
+    flex: 1;
+}
+
+/* ✅ MAP FIX */
+.map-box {
+    width: 100%;
+    height: 260px;
+    border: 1px solid #000;
+    overflow: hidden;
+}
+
+.leaflet-container {
+    width: 100% !important;
+}
+
+/* ✅ PRINT FIX */
+@media print {
+
+    body {
+        margin: 0;
+        zoom: 0.9;
+    }
+
+    button {
+        display: none;
+    }
+
+    .map-box {
+        height: 240px !important;
+    }
+}
+
 </style>
 </head>
-<body class="hidden">
 
-<h1>🚁 Drone Mission Report</h1>
+<body>
 
-<button onclick="window.print()">🖨️ Download PDF</button>
+<h1>DRONE MISSION REPORT</h1>
+
+<button onclick="window.print()">Print / Save PDF</button>
 
 <?php
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
 
-        $start = strtotime($row['start_time']);
-        $end = $row['end_time'] ? strtotime($row['end_time']) : time();
-        $duration = gmdate("H:i:s", $end - $start);
+        $gpsLogs = [];
+        $gpsSql = "SELECT latitude, longitude FROM drone_gps_logs WHERE incident_id = ? ORDER BY timestamp ASC";
 
-        $statusClass = 'status-ongoing';
-        if (strtolower($row['mission_status']) === 'completed') $statusClass = 'status-completed';
-        elseif (strtolower($row['mission_status']) === 'failed') $statusClass = 'status-failed';
+        $gpsStmt = $conn->prepare($gpsSql);
+        $gpsStmt->bind_param("s", $row['incident_id']);
+        $gpsStmt->execute();
+        $gpsResult = $gpsStmt->get_result();
+
+        while ($g = $gpsResult->fetch_assoc()) {
+            $gpsLogs[] = [(float)$g['latitude'], (float)$g['longitude']];
+        }
+        $gpsStmt->close();
 ?>
 
-<!-- 🔵 INCIDENT SECTION -->
+<!-- INCIDENT -->
 <div class="section">
-    <h3>📍 Incident Information</h3>
-    <div class="field"><label>Incident Name:</label> <div><?php echo $row['incident_name']; ?></div></div>
-    <div class="field"><label>Location:</label> <div><?php echo $row['incident_location']; ?></div></div>
-    <div class="field"><label>Coordinates:</label> <div><?php echo $row['latitude']; ?>, <?php echo $row['longitude']; ?></div></div>
-    <div class="field"><label>Reported Time:</label> <div><?php echo $row['timeReported']; ?></div></div>
-    <div class="field"><label>Status:</label> <div><?php echo $row['incident_status']; ?></div></div>
+    <div class="section-title">Incident Details</div>
+    <div class="row"><div class="label">Name</div><div class="value"><?= $row['incident_name']; ?></div></div>
+    <div class="row"><div class="label">Location</div><div class="value"><?= $row['incident_location']; ?></div></div>
 </div>
 
-<!-- 🟢 DRONE + PILOT SECTION -->
+<!-- DRONE -->
 <div class="section">
-    <h3>🚁 Drone & Pilot Information</h3>
-    <div class="field"><label>Drone:</label> 
-        <div>
-            <?php echo $row['drone_name'] 
-                ? $row['drone_name']." (".$row['drone_code'].")" 
-                : "Unassigned Drone"; ?>
-        </div>
-    </div>
-    <div class="field"><label>Station:</label> <div><?php echo $row['station'] ?: 'N/A'; ?></div></div>
-
-    <div class="field"><label>Pilot Name:</label> <div><?php echo $row['pilot_name'] ?: 'N/A'; ?></div></div>
+    <div class="section-title">Drone & Pilot</div>
+    <div class="row"><div class="label">Drone</div><div class="value"><?= $row['drone_name']." (".$row['drone_code'].")"; ?></div></div>
+    <div class="row"><div class="label">Pilot</div><div class="value"><?= $row['pilot_name']; ?></div></div>
 </div>
 
-<!-- 🟠 MISSION SECTION -->
+<!-- MISSION -->
 <div class="section">
-    <h3>🛰️ Mission Details</h3>
-    <div class="field"><label>Start Time:</label> <div><?php echo $row['start_time']; ?></div></div>
-    <div class="field"><label>End Time:</label> <div><?php echo $row['end_time'] ?: '-'; ?></div></div>
-    <div class="field"><label>Status:</label> 
-        <div class="status <?php echo $statusClass; ?>">
-            <?php echo ucfirst($row['mission_status']); ?>
-        </div>
-    </div>
-    <div class="field"><label>Duration:</label> <div><?php echo $duration; ?></div></div>
+    <div class="section-title">Mission Details</div>
+    <div class="row"><div class="label">Start Time</div><div class="value"><?= $row['start_time']; ?></div></div>
+    <div class="row"><div class="label">End Time</div><div class="value"><?= $row['end_time']; ?></div></div>
+    <div class="row"><div class="label">Status</div><div class="value"><?= $row['mission_status']; ?></div></div>
 </div>
 
-<?php
-    }
-} else {
-    echo "<p>No missions found</p>";
-}
-$conn->close();
-?>
+<!-- MAP -->
+<?php if (!empty($gpsLogs)) { ?>
+<div class="section">
+    <div class="section-title">Flight Path</div>
+    <div id="map-<?= $row['incident_id']; ?>" class="map-box"></div>
+</div>
 
 <script>
-window.addEventListener('DOMContentLoaded', () => {
-    document.body.classList.remove('hidden');
-    window.print();
-});
+(function () {
+
+    const path = <?= json_encode($gpsLogs); ?>;
+    const mapId = "map-<?= $row['incident_id']; ?>";
+
+    const map = L.map(mapId);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+    L.polyline(path, { color: "black", weight: 4 }).addTo(map);
+
+    // Start marker
+    L.marker(path[0]).addTo(map);
+
+    // Fit properly
+    map.fitBounds(path, { padding: [30, 30] });
+
+    function fixMap() {
+        setTimeout(() => {
+            map.invalidateSize();
+            map.fitBounds(path, { padding: [30, 30] });
+        }, 800);
+    }
+
+    fixMap();
+
+    window.addEventListener('beforeprint', fixMap);
+    window.addEventListener('afterprint', fixMap);
+
+})();
 </script>
+<?php } ?>
+
+<?php } } ?>
 
 </body>
 </html>

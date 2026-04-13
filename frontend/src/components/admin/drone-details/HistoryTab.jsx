@@ -10,7 +10,7 @@ export default function HistoryTab({ droneId }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedPath, setSelectedPath] = useState(null); // GPS logs for selected incident
+  const [selectedPath, setSelectedPath] = useState(null);
   const [pathLoading, setPathLoading] = useState(false);
 
   useEffect(() => {
@@ -37,7 +37,6 @@ export default function HistoryTab({ droneId }) {
     fetchHistory();
   }, [droneId]);
 
-  // Fetch GPS path for an incident
   const viewPath = async (incidentId) => {
     setPathLoading(true);
     try {
@@ -50,7 +49,7 @@ export default function HistoryTab({ droneId }) {
 
       setSelectedPath({
         incidentId,
-        gpsLogs: data.gps_logs, // expect [{lat, lng, timestamp}, ...]
+        gpsLogs: data.gps_logs,
       });
     } catch (err) {
       alert("Error fetching path: " + err.message);
@@ -59,7 +58,6 @@ export default function HistoryTab({ droneId }) {
     }
   };
 
-  // Close map view handler
   const closePath = () => {
     setSelectedPath(null);
   };
@@ -76,7 +74,7 @@ export default function HistoryTab({ droneId }) {
             key={idx}
             className="flex justify-between border-b pb-4 last:border-0 items-center"
           >
-            {/* LEFT SIDE */}
+            {/* LEFT */}
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <SafeIcon name="Plane" size={20} className="text-primary" />
@@ -85,69 +83,78 @@ export default function HistoryTab({ droneId }) {
                 </p>
               </div>
               {log.incident_location && (
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <p className="text-sm text-muted-foreground">
                   📍 {log.incident_location}
                 </p>
               )}
-              <p className="text-xs text-muted-foreground">ID: {log.incident_id}</p>
+              <p className="text-xs text-muted-foreground">
+                ID: {log.incident_id}
+              </p>
             </div>
 
-            {/* CENTER: View Path / Close Button */}
+            {/* CENTER */}
             <div>
               {selectedPath?.incidentId === log.incident_id ? (
                 <button
-                  type="button"
                   onClick={closePath}
-                  className="px-3 py-1 border border-red-500 rounded text-red-500 text-sm font-medium hover:bg-red-50 active:bg-red-100 transition cursor-pointer"
+                  className="px-3 py-1 border border-red-500 rounded text-red-500 text-sm hover:bg-red-50"
                 >
                   Close Path
                 </button>
               ) : (
                 <button
-                  type="button"
                   onClick={() => viewPath(log.incident_id)}
-                  disabled={pathLoading && selectedPath?.incidentId === log.incident_id}
-                  className={`px-3 py-1 border border-blue-500 rounded text-blue-500 text-sm font-medium hover:bg-blue-50 active:bg-blue-100 transition
-                    ${
-                      pathLoading && selectedPath?.incidentId === log.incident_id
-                        ? "opacity-50 cursor-not-allowed"
-                        : "cursor-pointer"
-                    }
-                  `}
+                  className="px-3 py-1 border border-blue-500 rounded text-blue-500 text-sm hover:bg-blue-50"
                 >
-                  {pathLoading && selectedPath?.incidentId === log.incident_id
-                    ? "Loading..."
-                    : "View Path"}
+                  View Path
                 </button>
               )}
             </div>
 
-            {/* RIGHT SIDE */}
+            {/* RIGHT */}
             <div className="text-right text-xs text-muted-foreground">
               <p>{new Date(log.start_time).toLocaleString()}</p>
-              {log.end_time && <p>→ {new Date(log.end_time).toLocaleString()}</p>}
+              {log.end_time && (
+                <p>→ {new Date(log.end_time).toLocaleString()}</p>
+              )}
             </div>
           </div>
         ))}
 
-        {/* MAP SECTION */}
+        {/* MAP */}
         {selectedPath && selectedPath.gpsLogs.length > 0 && (
-          <div className="mt-4 h-96 rounded overflow-hidden border border-gray-300">
+          <div className="mt-4 h-96 rounded overflow-hidden border">
             <MapContainer
-              center={[selectedPath.gpsLogs[0].lat, selectedPath.gpsLogs[0].lng]}
+              center={[
+                selectedPath.gpsLogs[0].lat,
+                selectedPath.gpsLogs[0].lng,
+              ]}
               zoom={15}
               style={{ height: "100%", width: "100%" }}
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+              {/* BLACK PATH */}
               <Polyline
                 positions={selectedPath.gpsLogs.map((p) => [p.lat, p.lng])}
-                color="blue"
+                color="black"
+                weight={4}
               />
-              {selectedPath.gpsLogs.map((p, idx) => (
-                <Marker key={idx} position={[p.lat, p.lng]}>
-                  <Popup>{new Date(p.timestamp).toLocaleString()}</Popup>
-                </Marker>
-              ))}
+
+              {/* START POINT ONLY */}
+              <Marker
+                position={[
+                  selectedPath.gpsLogs[0].lat,
+                  selectedPath.gpsLogs[0].lng,
+                ]}
+              >
+                <Popup>
+                  Start:{" "}
+                  {new Date(
+                    selectedPath.gpsLogs[0].timestamp
+                  ).toLocaleString()}
+                </Popup>
+              </Marker>
             </MapContainer>
           </div>
         )}

@@ -3,7 +3,7 @@ import AdminLayout from "./layout/AdminLayout";
 import FireFighterLayout from "./layout/FireFighterLayout";
 import PilotLayout from "./layout/PilotLayout";
 
-///common
+//common
 
 import LoginForm from "./components/common/login/LoginForm";
 import ProtectedRoute from "./components/common/auth/ProtectedRoute";
@@ -39,6 +39,7 @@ import Vehicle from "./pages/vehicle-driver/vehicle";
 import PilotDashboard from "./pages/pilot/PilotDashboard";
 import ScheduleMaintenance from "./pages/pilot/SheduleMaintenance";
 import PilotLiveIncidentCommand from "./pages/pilot/PilotLiveIncidentCommand";
+import PilotMaintenanceRecord from "./pages/pilot/MaintenanceRecord";
 
 function App() {
   return (
@@ -135,6 +136,7 @@ function App() {
             <Route path="/pilot-dashboard" element={<PilotDashboard />} />
             <Route path="/schedule-maintenance" element={<ScheduleMaintenance />} />
             <Route path="/pilot-live-incident-command/:droneId" element={<PilotLiveIncidentCommand />} />
+            <Route path="/maintenance-record" element={<PilotMaintenanceRecord />} />
 
             {/* optional fallback without param */}
             <Route path="/pilot-live-incident-command" element={<PilotLiveIncidentCommand />} />

@@ -41,7 +41,7 @@ export default function AdminHeader() {
   const { name, role, initials } = useUserInfo();
 
   const fetchNotifications = () => {
-    fetch(`${API_BASE}/admin/admin-dashboard/get_notifications.php`, {
+    fetch(`${API_BASE}/common/get_notifications.php`, {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -94,7 +94,7 @@ export default function AdminHeader() {
   const handleNotificationClick = async (notif) => {
     try {
       // ✅ Mark as read in backend
-      await fetch(`${API_BASE}/admin/admin-dashboard/mark_read.php`, {
+      await fetch(`${API_BASE}/common/mark_read.php`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -213,60 +213,52 @@ export default function AdminHeader() {
               </Box>
               <Divider sx={{ borderColor: dividerColor, marginBottom: 1 }} />
 
-              {notifications.length === 0 ? (
+              {notifications.filter((n) => Number(n.is_read) === 0).length === 0 ? (
                 <MenuItem sx={{ color: subtitleColor, fontSize: 14 }}>
-                  No notifications
+                  No unread notifications
                 </MenuItem>
               ) : (
-                notifications.map((n) => (
-                  <MenuItem
-                    key={n.id}
-                    onClick={() => handleNotificationClick(n)}
-                    sx={{
-                      fontSize: 15,
-                      py: 1.4,
-                      borderRadius: "8px",
-                      whiteSpace: "normal",
-                      background: Number(n.is_read) === 0 ? menuHoverBg : "transparent",
-                      opacity: Number(n.is_read) === 0 ? 1 : 0.6,
-                      "&:hover": { background: menuHoverBg },
-                    }}
-                  >
-                    <Box display="flex" flexDirection="column" gap={0.5} width="100%">
-                      {/* MESSAGE */}
-                      <Typography
-                        fontSize={13}
-                        sx={{ color: menuColor, fontWeight: 500 }}
-                      >
-                        {n.message}
-                      </Typography>
+                notifications
+                  .filter((n) => Number(n.is_read) === 0)
+                  .map((n) => (
+                    <MenuItem
+                      key={n.id}
+                      onClick={() => handleNotificationClick(n)}
+                      sx={{
+                        fontSize: 15,
+                        marginBottom: "5px",
+                        py: 1.4,
+                        borderRadius: "8px",
+                        whiteSpace: "normal",
+                        background: Number(n.is_read) === 0 ? menuHoverBg : "transparent",
+                        "&:hover": { background: menuHoverBg },
+                      }}
+                    >
+                      <Box display="flex" flexDirection="column" gap={0.5} width="100%">
+                        {/* MESSAGE */}
+                        <Typography
+                          fontSize={13}
+                          sx={{ color: menuColor, fontWeight: 500 }}
+                        >
+                          {n.message}
+                        </Typography>
 
-                      {/* CREATED BY */}
-                      <Typography fontSize={11} sx={{ color: subtitleColor }}>
-                        By {n.created_by}
-                      </Typography>
-                    </Box>
+                        {/* CREATED BY */}
+                        <Box display="flex" justifyContent="space-between" alignItems="center">
 
-                    {/* READ LABEL */}
-                    {Number(n.is_read) === 1 && (
-                      <Box
-                        sx={{
-                          fontSize: 10,
-                          px: 1,
-                          py: 0.3,
-                          borderRadius: "12px",
-                          background: "rgba(0, 255, 85, 0.88)",
-                          color: "#ffffff",
-                          fontWeight: 600,
-                          whiteSpace: "nowrap",
-                          ml: 1,
-                        }}
-                      >
-                        Read
+                          <Typography fontSize={11} sx={{ color: subtitleColor }}>
+                            By {n.created_by}
+                          </Typography>
+                          <Typography fontSize={11} sx={{ color: subtitleColor }}>
+                            {new Date(n.created_at).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </Typography>
+                        </Box>
                       </Box>
-                    )}
-                  </MenuItem>
-                ))
+                    </MenuItem>
+                  ))
               )}
             </Menu>
 

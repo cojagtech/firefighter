@@ -39,29 +39,29 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
 
   const DARK = isDark
     ? {
-        base: "#121314",
-        card: "#17181A",
-        border: "#222427",
-        hover: "#1f2023",
-        text: "#e6e6e6",
-        muted: "#8f8f8f",
-        dialogBg: "#141516",
-        dialogBorder: "#2a2c30",
-        sectionBg: "#18191b",
-        sectionBorder: "#24262a",
-      }
+      base: "#121314",
+      card: "#17181A",
+      border: "#222427",
+      hover: "#1f2023",
+      text: "#e6e6e6",
+      muted: "#8f8f8f",
+      dialogBg: "#141516",
+      dialogBorder: "#2a2c30",
+      sectionBg: "#18191b",
+      sectionBorder: "#24262a",
+    }
     : {
-        base: "#f8fafc",
-        card: "#ffffff",
-        border: "#e2e8f0",
-        hover: "#f1f5f9",
-        text: "#111827",
-        muted: "#6b7280",
-        dialogBg: "#ffffff",
-        dialogBorder: "#e2e8f0",
-        sectionBg: "#f8fafc",
-        sectionBorder: "#e2e8f0",
-      };
+      base: "#f8fafc",
+      card: "#ffffff",
+      border: "#e2e8f0",
+      hover: "#f1f5f9",
+      text: "#111827",
+      muted: "#6b7280",
+      dialogBg: "#ffffff",
+      dialogBorder: "#e2e8f0",
+      sectionBg: "#f8fafc",
+      sectionBorder: "#e2e8f0",
+    };
 
   const navigate = useNavigate();
   const audioRef = useRef(null);
@@ -95,7 +95,7 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
 
     if (newAlerts.length > 0 && !isMuted) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch(() => { });
     } else {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -104,7 +104,7 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
 
   useEffect(() => {
     const unlock = () => {
-      audioRef.current?.play().catch(() => {});
+      audioRef.current?.play().catch(() => { });
       document.removeEventListener("click", unlock);
     };
     document.addEventListener("click", unlock);
@@ -142,13 +142,22 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
   };
 
   const acknowledge = (id) => {
-    navigate(`/confirm-location/${id}`);
+    const incident = incidents.find((i) => i.id === id);
+
+    if (!incident) return;
+
+    navigate(`/confirm-location/${id}`, {
+      state: {
+        incident,
+        station, // 🔥 CRITICAL FIX
+      },
+    });
   };
 
   const toggleSiren = () => {
     if (!audioRef.current) return;
     if (isMuted) {
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch(() => { });
     } else {
       audioRef.current.pause();
     }

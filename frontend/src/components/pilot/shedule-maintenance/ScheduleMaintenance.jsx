@@ -46,7 +46,7 @@ export default function ScheduleMaintenance() {
     try {
       setLoading(true);
 
-      const res = await fetch(`${API_BASE}/pilot/schedule_maintenance.php`, {
+      const res = await fetch(`${API_BASE}/pilot/pilot_schedule_maintenance.php`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -125,13 +125,6 @@ export default function ScheduleMaintenance() {
                 style={labelStyle}
               >
                 Maintenance Date :
-                {/* <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z" />
-                </svg> */}
               </label>
               <input
                 type="date"

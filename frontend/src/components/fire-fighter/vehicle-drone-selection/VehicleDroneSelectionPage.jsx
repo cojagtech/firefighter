@@ -341,17 +341,43 @@ export default function VehicleDroneSelectionPage() {
                   console.log("Sending location:", { incidentId, lat, lng });
 
                   // ✅ 1. SEND INCIDENT LOCATION
-                  await fetch("http://43.205.31.167:8082/api/incident_location", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      incident_id: incidentId,
-                      latitude: lat,
-                      longitude: lng,
-                    }),
-                  });
+                  // Generate random height between 60–80
+                  const altitude = Math.floor(Math.random() * (100 - 2 + 1)) + 2;
+
+                  // ✅ 1. SEND INCIDENT LOCATION (NON-BLOCKING)
+                  try {
+                    await fetch("http://43.205.31.167:8082/api/incident_location", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        incident_id: incidentId,
+                        latitude: lat,
+                        longitude: lng,
+                        altitude: altitude, 
+                      }),
+                    });
+                  } catch (err) {
+                    console.warn("Incident location API failed, continuing...", err);
+                  }
+
+                  // 🔥 2. SEND INCIDENT TO PYTHON (NON-BLOCKING)
+                  try {
+                    await fetch("http://65.2.23.154:5001/api/incident", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        incident_id: incidentId,
+                        drone_id: droneCode,
+                      }),
+                    });
+                  } catch (err) {
+                    console.warn("Python incident API failed, continuing...", err);
+                  }
+
 
                   // ✅ 2. START DRONE MISSION
                   await fetch(`${API}/start_drone_mission.php`, {
