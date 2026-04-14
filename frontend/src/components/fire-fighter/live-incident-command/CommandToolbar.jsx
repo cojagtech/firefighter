@@ -206,7 +206,7 @@ export default function CommandToolbar({
                 onClick={() => {
                   setAnchorEl(null);
 
-                  const phpUrl = `http://localhost/fire-fighter/backend/controllers/fire-fighter/live-incident-command/export-report.php?incidentId=${incidentId}`;
+                  const phpUrl = `${API_BASE}/fire-fighter/live-incident-command/export-report.php?incidentId=${incidentId}`;
                   const win = window.open(phpUrl, "_blank");
 
                   win.onload = () => {

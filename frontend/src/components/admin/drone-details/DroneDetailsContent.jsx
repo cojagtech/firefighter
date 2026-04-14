@@ -304,7 +304,6 @@ export default function DroneDetailsContent() {
           onSuccess={() => fetchDroneDetails(selectedDrone.drone_code)}
         />
       )}
-       <DroneList />
     </div>
   );
 }

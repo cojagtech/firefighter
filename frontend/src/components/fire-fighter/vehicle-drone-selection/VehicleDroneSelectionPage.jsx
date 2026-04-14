@@ -342,7 +342,7 @@ export default function VehicleDroneSelectionPage() {
 
                   // ✅ 1. SEND INCIDENT LOCATION
                   // Generate random height between 60–80
-                  const altitude = Math.floor(Math.random() * (100 - 2 + 1)) + 2;
+                  const altitude = Math.floor(Math.random() * (70 - 50 + 1)) + 50;
 
                   // ✅ 1. SEND INCIDENT LOCATION (NON-BLOCKING)
                   try {

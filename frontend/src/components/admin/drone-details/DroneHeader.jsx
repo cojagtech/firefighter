@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import SafeIcon from "@/components/common/SafeIcon";
 import StatusBadge from "@/components/common/StatusBadge";
+import { useNavigate } from "react-router-dom";
 
-export default function DroneHeader({ selectedDrone, onAddClick, onEditClick }) {
+export default function DroneHeader({ selectedDrone }) {
+  const navigate = useNavigate();
+
   const getStatusVariant = (status) => {
     switch (status) {
       case "Active": return "active";
@@ -10,6 +13,10 @@ export default function DroneHeader({ selectedDrone, onAddClick, onEditClick }) 
       case "Maintenance": return "maintenance";
       default: return "offline";
     }
+  };
+
+  const handleManageDrone = () => {
+    navigate("/manage-drones");
   };
 
   return (
@@ -26,11 +33,8 @@ export default function DroneHeader({ selectedDrone, onAddClick, onEditClick }) 
       </div>
 
       <div className="flex gap-3">
-        <Button variant="outline" className="gap-2" onClick={onAddClick}>
-          <SafeIcon name="Plus" size={16} /> Add Drone
-        </Button>
-        <Button variant="outline" className="gap-2" onClick={onEditClick}>
-          <SafeIcon name="Edit" size={16} /> Edit Drone
+        <Button variant="outline" className="gap-2" onClick={handleManageDrone}>
+          <SafeIcon name="Settings" size={16} /> Manage Drone
         </Button>
       </div>
     </div>

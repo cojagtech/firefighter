@@ -23,6 +23,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserRoles from "./pages/admin/UserRole";
 import AdminLog from "./pages/admin/AdminLog";
 import StationContext from "./components/admin/admin-station/StationContext";
+import AdminDroneManagement from "./components/admin/drone-details/ManageAllDrone";
 
 // Fire Fighter Pages
 import ConfirmLocation from "./pages/fire-fighter/ConfirmLocation";
@@ -73,6 +74,7 @@ function App() {
             <Route path="/logs" element={<AdminLog />} />
             <Route path="/sops" element={<SOPManagement />} />
             <Route path="/user-roles" element={<UserRoles />} />
+            <Route path="/manage-drones" element={<AdminDroneManagement />} />
           </Route>
 
           {/* Firefighter UI */}

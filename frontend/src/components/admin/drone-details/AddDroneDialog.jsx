@@ -1,45 +1,29 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
-import { FiSearch } from "react-icons/fi";
 
-const API_ENDPOINT = `${import.meta.env.VITE_API_BASE_URL}/admin/admin-drone-details/addDrone.php`;
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-const INITIAL_DRONE = {
-  drone_code: "",
-  drone_name: "",
-  status: "standby",
-  flight_hours: 0,
-  health_status: "Optimal",
-  firmware_version: "",
-  is_ready: 1,
-  station: "",
-};
-
-export default function AddDroneDialog({ open, onOpenChange, stations, onSuccess }) {
-  const [drone, setDrone] = useState(INITIAL_DRONE);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [stationOpen, setStationOpen] = useState(false);
-  const [stationSearch, setStationSearch] = useState("");
-  const [stationSearchMode, setStationSearchMode] = useState(false);
+export default function AddDroneDialog({ isOpen, onClose, stations, onSuccess }) {
+  const [formData, setFormData] = useState({
+    drone_code: "",
+    drone_name: "",
+    status: "standby",
+    station: "",
+    flight_hours: 0,
+    health_status: "Optimal",
+    firmware_version: "",
+    is_ready: 1,
+  });
 
   const [statusOpen, setStatusOpen] = useState(false);
   const [healthOpen, setHealthOpen] = useState(false);
-  const [isReadyOpen, setIsReadyOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const stationRef = useRef(null);
   const statusRef = useRef(null);
   const healthRef = useRef(null);
-  const isReadyRef = useRef(null);
 
-  // Theme observer
   const [isDark, setIsDark] = useState(
     document.documentElement.classList.contains("dark")
   );
@@ -55,368 +39,254 @@ export default function AddDroneDialog({ open, onOpenChange, stations, onSuccess
     return () => observer.disconnect();
   }, []);
 
-  const dropdownBg = isDark ? "#0D0F12" : "#ffffff";
-  const dropdownColor = isDark ? "#FAFAFA" : "#000000";
-  const dropdownBorder = isDark ? "#2E2E2E" : "#e2e8f0";
-  const dropdownStyle = {
-    backgroundColor: dropdownBg,
-    color: dropdownColor,
-    border: `1px solid ${dropdownBorder}`,
-  };
-  const inputStyle = {
-    backgroundColor: isDark ? "#0D0F12" : "#ffffff",
-    color: isDark ? "#FAFAFA" : "#000000",
-    border: `1px solid ${isDark ? "#2E2E2E" : "#e2e8f0"}`,
-  };
-
-  // Close all dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (stationRef.current && !stationRef.current.contains(e.target)) {
-        setStationOpen(false);
-        setStationSearch("");
-        setStationSearchMode(false);
+      if (statusRef.current && !statusRef.current.contains(e.target)) {
+        setStatusOpen(false);
       }
-      if (statusRef.current && !statusRef.current.contains(e.target)) setStatusOpen(false);
-      if (healthRef.current && !healthRef.current.contains(e.target)) setHealthOpen(false);
-      if (isReadyRef.current && !isReadyRef.current.contains(e.target)) setIsReadyOpen(false);
+      if (healthRef.current && !healthRef.current.contains(e.target)) {
+        setHealthOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredStations = stationSearchMode
-    ? stations.filter((s) =>
-        s.name.toLowerCase().includes(stationSearch.toLowerCase())
-      )
-    : stations;
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({
+        drone_code: "",
+        drone_name: "",
+        status: "standby",
+        station: "",
+        flight_hours: 0,
+        health_status: "Optimal",
+        firmware_version: "",
+        is_ready: 1,
+      });
+    }
+  }, [isOpen]);
 
-  const isFormValid =
-    drone.drone_code &&
-    drone.drone_name &&
-    drone.station &&
-    drone.firmware_version;
+  if (!isOpen) return null;
 
-  const updateField = (field, value) => {
-    setDrone((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "flight_hours") {
+      const num = Number(value);
+      if (num > 100) {
+        toast.error("Flight hours cannot exceed 100");
+        return;
+      }
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = useCallback(async () => {
-    if (!isFormValid) {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (
+      !formData.drone_code.trim() ||
+      !formData.drone_name.trim() ||
+      !formData.station ||
+      !formData.firmware_version.trim()
+    ) {
       toast.error("Please fill all required fields");
       return;
     }
 
-    setIsSubmitting(true);
+    setSaving(true);
+
+    const form = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      form.append(key, value);
+    });
 
     try {
-      const formData = new FormData();
-      Object.entries(drone).forEach(([key, value]) =>
-        formData.append(key, value)
+      const response = await fetch(
+        `${API_BASE}/admin/admin-drone-details/addDrone.php`,
+        {
+          method: "POST",
+          credentials: "include",
+          body: form,
+        }
       );
 
-      const res = await fetch(API_ENDPOINT, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
+      const result = await response.json();
 
-      const result = await res.json();
-
-      if (res.status === 409) {
-        toast.error(result.message || "Drone code already exists");
-        return;
-      }
-
-      if (!res.ok || !result.success) {
+      if (result.success) {
+        toast.success("Drone added successfully");
+        onClose();
+        onSuccess && onSuccess();
+      } else {
         toast.error(result.message || "Failed to add drone");
-        return;
       }
-
-      toast.success("Drone added successfully");
-      setDrone(INITIAL_DRONE);
-      onOpenChange(false);
-      onSuccess();
     } catch (error) {
       toast.error("Server error");
     } finally {
-      setIsSubmitting(false);
+      setSaving(false);
     }
-  }, [drone, isFormValid, onOpenChange, onSuccess]);
+  };
+
+  const inputStyle = {
+    backgroundColor: isDark ? "#141414" : "#ffffff",
+    color: isDark ? "#ffffff" : "#000000",
+    borderColor: isDark ? "#2E2E2E" : "#e5e7eb",
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="max-w-lg border"
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm ">
+      <div
+        className="w-full max-w-lg rounded-lg p-5 mt-[40px]"
         style={{
-          backgroundColor: isDark ? "#0D0F12" : "#ffffff",
-          borderColor: isDark ? "#2E2E2E" : "#e2e8f0",
+          backgroundColor: isDark ? "#1d1f22" : "#ffffff",
           color: isDark ? "#FAFAFA" : "#000000",
         }}
       >
-        <DialogHeader>
-          <DialogTitle style={{ color: isDark ? "#FAFAFA" : "#000000" }}>
-            Add New Drone
-          </DialogTitle>
-        </DialogHeader>
+        <h2 className="text-lg text-[#dc2626] font-semibold mb-4">Add New Drone</h2>
 
-        <div className="grid grid-cols-2 gap-4 py-4">
+        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
           {/* Drone Code */}
           <div>
-            <label className="text-sm text-muted-foreground">Drone Code</label>
+            <label className="text-sm mb-1 block">Drone Code</label>
             <input
-              type="text"
-              value={drone.drone_code}
-              placeholder="DRN-001"
-              onChange={(e) => updateField("drone_code", e.target.value)}
+              name="drone_code"
+              value={formData.drone_code}
+              onChange={handleChange}
               style={inputStyle}
-              className="w-full mt-1 h-9 rounded-md px-3 focus:outline-none focus:border-red-600"
+              className="h-9 px-2.5 rounded border w-full text-sm"
             />
           </div>
 
           {/* Drone Name */}
           <div>
-            <label className="text-sm text-muted-foreground">Drone Name</label>
+            <label className="text-sm mb-1 block">Drone Name</label>
             <input
-              type="text"
-              value={drone.drone_name}
-              placeholder="Phantom X"
-              onChange={(e) => updateField("drone_name", e.target.value)}
+              name="drone_name"
+              value={formData.drone_name}
+              onChange={handleChange}
               style={inputStyle}
-              className="w-full mt-1 h-9 rounded-md px-3 focus:outline-none focus:border-red-600"
+              className="h-9 px-2.5 rounded border w-full text-sm"
             />
           </div>
 
           {/* Flight Hours */}
           <div>
-            <label className="text-sm text-muted-foreground">Flight Hours</label>
+            <label className="text-sm mb-1 block">Flight Hours</label>
             <input
               type="number"
-              value={drone.flight_hours}
-              onChange={(e) => {
-                const num = Number(e.target.value);
-                if (num > 100) {
-                  toast.error("Flight hours cannot exceed 100");
-                  return;
-                }
-                updateField("flight_hours", num);
-              }}
+              name="flight_hours"
+              value={formData.flight_hours}
+              onChange={handleChange}
               style={inputStyle}
-              className="w-full mt-1 h-9 rounded-md px-3 focus:outline-none focus:border-red-600"
+              className="h-9 px-2.5 rounded border w-full text-sm"
             />
           </div>
 
           {/* Firmware */}
           <div>
-            <label className="text-sm text-muted-foreground">Firmware</label>
+            <label className="text-sm mb-1 block">Firmware Version</label>
             <input
-              type="text"
-              value={drone.firmware_version}
-              placeholder="v1.0.0"
-              onChange={(e) => updateField("firmware_version", e.target.value)}
+              name="firmware_version"
+              value={formData.firmware_version}
+              onChange={handleChange}
               style={inputStyle}
-              className="w-full mt-1 h-9 rounded-md px-3 focus:outline-none focus:border-red-600"
+              className="h-9 px-2.5 rounded border w-full text-sm"
             />
           </div>
 
-          {/* Status - Custom Dropdown */}
-          <div className="relative" ref={statusRef}>
-            <label className="text-sm text-muted-foreground">Status</label>
-            <div
-              onClick={() => setStatusOpen((p) => !p)}
+          {/* Status */}
+          <div>
+            <label className="text-sm mb-1 block">Status</label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
               style={inputStyle}
-              className="w-full mt-1 h-9 rounded-md px-3 flex items-center justify-between cursor-pointer"
+              className="h-9 px-2.5 rounded border w-full text-sm"
             >
-              <span className="text-sm">{drone.status || "Select Status"}</span>
-              <span className="text-xs opacity-60">▼</span>
-            </div>
-            {statusOpen && (
-              <div
-                className="absolute z-50 mt-1 w-full rounded-md shadow-lg overflow-hidden"
-                style={dropdownStyle}
-              >
-                {["Active", "StandBy", "Maintenance"].map((opt) => (
-                  <div
-                    key={opt}
-                    onClick={() => {
-                      updateField("status", opt);
-                      setStatusOpen(false);
-                    }}
-                    style={{
-                      backgroundColor:
-                        drone.status === opt
-                          ? isDark ? "#1A1D23" : "#f1f5f9"
-                          : dropdownBg,
-                      color: dropdownColor,
-                    }}
-                    className="px-3 py-2 text-sm cursor-pointer hover:opacity-75"
-                  >
-                    {opt}
-                  </div>
-                ))}
-              </div>
-            )}
+              <option value="Active">Active</option>
+              <option value="StandBy">StandBy</option>
+              <option value="Maintenance">Maintenance</option>
+            </select>
           </div>
 
-          {/* Health Status - Custom Dropdown */}
-          <div className="relative" ref={healthRef}>
-            <label className="text-sm text-muted-foreground">Health Status</label>
-            <div
-              onClick={() => setHealthOpen((p) => !p)}
+          {/* Health */}
+          <div>
+            <label className="text-sm mb-1 block">Health Status</label>
+            <select
+              name="health_status"
+              value={formData.health_status}
+              onChange={handleChange}
               style={inputStyle}
-              className="w-full mt-1 h-9 rounded-md px-3 flex items-center justify-between cursor-pointer"
+              className="h-9 px-2.5 rounded border w-full text-sm"
             >
-              <span className="text-sm">{drone.health_status || "Select Health"}</span>
-              <span className="text-xs opacity-60">▼</span>
-            </div>
-            {healthOpen && (
-              <div
-                className="absolute z-50 mt-1 w-full rounded-md shadow-lg overflow-hidden"
-                style={dropdownStyle}
-              >
-                {["Optimal", "Degraded", "Require Service"].map((opt) => (
-                  <div
-                    key={opt}
-                    onClick={() => {
-                      updateField("health_status", opt);
-                      setHealthOpen(false);
-                    }}
-                    style={{
-                      backgroundColor:
-                        drone.health_status === opt
-                          ? isDark ? "#1A1D23" : "#f1f5f9"
-                          : dropdownBg,
-                      color: dropdownColor,
-                    }}
-                    className="px-3 py-2 text-sm cursor-pointer hover:opacity-75"
-                  >
-                    {opt}
-                  </div>
-                ))}
-              </div>
-            )}
+              <option value="Optimal">Optimal</option>
+              <option value="Degraded">Degraded</option>
+              <option value="Require Service">Require Service</option>
+            </select>
           </div>
 
-          {/* Is Ready - Custom Dropdown */}
-          <div className="relative" ref={isReadyRef}>
-            <label className="text-sm text-muted-foreground">Is Ready</label>
-            <div
-              onClick={() => setIsReadyOpen((p) => !p)}
+          {/* Ready */}
+          <div>
+            <label className="text-sm mb-1 block">Ready</label>
+            <select
+              name="is_ready"
+              value={formData.is_ready}
+              onChange={(e) =>
+                setFormData({ ...formData, is_ready: Number(e.target.value) })
+              }
               style={inputStyle}
-              className="w-full mt-1 h-9 rounded-md px-3 flex items-center justify-between cursor-pointer"
+              className="h-9 px-2.5 rounded border w-full text-sm"
             >
-              <span className="text-sm">{drone.is_ready ? "Yes" : "No"}</span>
-              <span className="text-xs opacity-60">▼</span>
-            </div>
-            {isReadyOpen && (
-              <div
-                className="absolute z-50 mt-1 w-full rounded-md shadow-lg overflow-hidden"
-                style={dropdownStyle}
-              >
-                {["Yes", "No"].map((opt) => (
-                  <div
-                    key={opt}
-                    onClick={() => {
-                      updateField("is_ready", opt === "Yes" ? 1 : 0);
-                      setIsReadyOpen(false);
-                    }}
-                    style={{
-                      backgroundColor:
-                        (drone.is_ready ? "Yes" : "No") === opt
-                          ? isDark ? "#1A1D23" : "#f1f5f9"
-                          : dropdownBg,
-                      color: dropdownColor,
-                    }}
-                    className="px-3 py-2 text-sm cursor-pointer hover:opacity-75"
-                  >
-                    {opt}
-                  </div>
-                ))}
-              </div>
-            )}
+              <option value={1}>Yes</option>
+              <option value={0}>No</option>
+            </select>
           </div>
 
-          {/* Station - Searchable Custom Dropdown */}
-          <div className="relative" ref={stationRef}>
-            <label className="text-sm text-muted-foreground">Station</label>
-            <div
-              onClick={() => setStationOpen((p) => !p)}
+          {/* Station */}
+          <div className="col-span-2">
+            <label className="text-sm mb-1 block">Station</label>
+            <select
+              name="station"
+              value={formData.station}
+              onChange={handleChange}
               style={inputStyle}
-              className="w-full mt-1 h-9 flex items-center px-3 rounded-md cursor-pointer"
+              className="h-9 px-2.5 rounded border w-full text-sm"
             >
-              <div className="flex-1">
-                {stationSearchMode ? (
-                  <input
-                    autoFocus
-                    value={stationSearch}
-                    onChange={(e) => setStationSearch(e.target.value)}
-                    placeholder="Search station..."
-                    onClick={(e) => e.stopPropagation()}
-                    style={{ backgroundColor: "transparent", color: dropdownColor }}
-                    className="text-sm outline-none w-full"
-                  />
-                ) : (
-                  <span className="text-sm truncate">
-                    {drone.station || "Select Station"}
-                  </span>
-                )}
-              </div>
-              <FiSearch
-                size={16}
-                className="ml-2 opacity-60 hover:opacity-100"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setStationSearchMode(true);
-                  setStationOpen(true);
-                }}
-              />
-            </div>
-
-            {stationOpen && (
-              <div
-                className="absolute z-50 mt-1 w-full rounded-md shadow-lg max-h-[120px] overflow-y-auto"
-                style={dropdownStyle}
-              >
-                {filteredStations.length ? (
-                  filteredStations.map((s) => (
-                    <div
-                      key={s.id}
-                      onClick={() => {
-                        updateField("station", s.name);
-                        setStationOpen(false);
-                        setStationSearch("");
-                        setStationSearchMode(false);
-                      }}
-                      style={{
-                        backgroundColor:
-                          drone.station === s.name
-                            ? isDark ? "#1A1D23" : "#f1f5f9"
-                            : dropdownBg,
-                        color: dropdownColor,
-                      }}
-                      className="px-3 py-2 text-sm cursor-pointer hover:opacity-75"
-                    >
-                      {s.name}
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">
-                    No stations found
-                  </div>
-                )}
-              </div>
-            )}
+              <option value="">Select Station</option>
+              {stations.map((s) => (
+                <option key={s.id} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
 
-        <Button
-          disabled={!isFormValid || isSubmitting}
-          className="w-full bg-red-600 hover:bg-red-700 text-white"
-          onClick={handleSubmit}
-        >
-          {isSubmitting ? "Saving..." : "Save Drone"}
-        </Button>
-      </DialogContent>
-    </Dialog>
+          {/* Buttons */}
+          <div className="col-span-2 flex gap-3 mt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 border rounded h-9 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 bg-red-600 text-white rounded h-9 text-sm"
+            >
+              {saving ? "Adding..." : "Add Drone"}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
   );
 }
