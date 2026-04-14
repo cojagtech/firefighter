@@ -1,10 +1,11 @@
 <?php
-require_once realpath(__DIR__ . "/../../config/db.php");
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
+
+require_once realpath(__DIR__ . "/../../config/db.php");
 
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
