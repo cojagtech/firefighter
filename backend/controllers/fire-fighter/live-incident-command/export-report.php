@@ -1,5 +1,5 @@
 <?php
-header("Content-Type: application/pdf");
+header("Content-Type: text/html");
 header("Content-Disposition: inline; filename=report.pdf");
 
 require_once __DIR__ . "/../../../config/db.php";
