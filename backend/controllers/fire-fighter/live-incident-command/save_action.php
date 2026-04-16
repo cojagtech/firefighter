@@ -19,7 +19,7 @@ $response = $data['response'] ?? '';
 // Example: store in file (you can use DB later)
 $log = "[$timestamp] IP:$ip | Incident:$incident_id | Action:$action | Response:$response\n";
 
-file_put_contents("action_history.txt", $log, FILE_APPEND);
+file_put_contents(__DIR__ . "/action_history.txt", $log, FILE_APPEND);
 
 // ✅ Response
 echo json_encode([
