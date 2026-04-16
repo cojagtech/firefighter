@@ -1,11 +1,17 @@
 <?php
 header("Content-Type: application/json");
 
+// DB connection
+require_once realpath(__DIR__ . "/../../../config/db.php");
+
 // Get JSON input
 $data = json_decode(file_get_contents("php://input"), true);
 
 if (!$data) {
-    echo json_encode(["status" => "error", "message" => "No data"]);
+    echo json_encode([
+        "status" => "error",
+        "message" => "Invalid JSON"
+    ]);
     exit;
 }
 
@@ -16,13 +22,22 @@ $incident_id = $data['incident_id'] ?? 'None';
 $action = $data['action'] ?? '';
 $response = $data['response'] ?? '';
 
-// Example: store in file (you can use DB later)
-$log = "[$timestamp] IP:$ip | Incident:$incident_id | Action:$action | Response:$response\n";
+// Prepare query (SAFE 🔐)
+$stmt = $conn->prepare("INSERT INTO action_logs (timestamp, ip, incident_id, action, response) VALUES (?, ?, ?, ?, ?)");
 
-file_put_contents(__DIR__ . "/action_history.txt", $log, FILE_APPEND);
+$stmt->bind_param("sssss", $timestamp, $ip, $incident_id, $action, $response);
 
-// ✅ Response
-echo json_encode([
-    "status" => "success",
-    "message" => "Action stored"
-]);
+if ($stmt->execute()) {
+    echo json_encode([
+        "status" => "success",
+        "message" => "Saved to DB"
+    ]);
+} else {
+    echo json_encode([
+        "status" => "error",
+        "message" => "DB insert failed"
+    ]);
+}
+
+$stmt->close();
+$conn->close();

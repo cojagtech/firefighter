@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 10, 2026 at 09:32 AM
+-- Generation Time: Apr 16, 2026 at 09:15 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -62,7 +62,10 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `user_name`, `role`, `action`, `mo
 (31, 1, 'Rahul Sharma', 'Admin', 'DELETE_STATION', 'STATION', 'Deleted station Kasba Peth Fire Station (STN-007)', NULL, '::1', '2026-04-04 13:04:51'),
 (32, 1, 'Rahul Sharma', 'Admin', 'DELETE_STATION', 'STATION', 'Deleted station Camp Fire Station (Moledina Rd) (STN-005)', NULL, '::1', '2026-04-04 13:08:23'),
 (33, 1, 'Rahul Sharma', 'Admin', 'DELETE_VEHICLE', 'VEHICLE', 'Deleted vehicle Rescue Van (MH-12-YD-7781) from station Yerwada Fire Station', NULL, '::1', '2026-04-04 13:08:50'),
-(34, 1, 'Rahul Sharma', 'Admin', 'ASSIGN_PILOT', 'DRONE', 'Assigned pilot (Amit Verma) to drone DRN-001', 2, '::1', '2026-04-08 17:37:38');
+(34, 1, 'Rahul Sharma', 'Admin', 'ASSIGN_PILOT', 'DRONE', 'Assigned pilot (Amit Verma) to drone DRN-001', 2, '::1', '2026-04-08 17:37:38'),
+(35, 2, 'Amit Verma', 'Pilot', 'SCHEDULE_MAINTENANCE', 'MAINTENANCE', 'Scheduled maintenance for drone SkyGuard-02 (DRN-002) at station Katraj Fire Station. Issue: battery replacement. Scheduled date: 2026-04-10', 0, '::1', '2026-04-10 12:44:06'),
+(36, 2, 'Amit Verma', 'Pilot', 'MAINTENANCE_COMPLETED', 'MAINTENANCE', 'Maintenance completed for SkyGuard-02 (DRN-002) at Katraj Fire Station on 10-04-2026', NULL, '::1', '2026-04-10 12:47:27'),
+(37, NULL, 'SYSTEM', 'SYSTEM', 'DELETE_DRONE', 'DRONE', 'Deleted drone (SkyGuard-24) with code DRN-024', NULL, '::1', '2026-04-14 06:30:17');
 
 -- --------------------------------------------------------
 
@@ -95,15 +98,45 @@ CREATE TABLE `drones` (
 --
 
 INSERT INTO `drones` (`id`, `drone_code`, `drone_name`, `ward`, `status`, `battery`, `flight_hours`, `health_status`, `firmware_version`, `is_ready`, `station`, `pilot_id`, `pilot_name`, `pilot_email`, `pilot_phone`, `pilot_role`, `pilot_status`) VALUES
-(1, 'DRN-001', 'SkyGuard-01', '', 'Active', 100, 20, 'Optimal', 'V3.4.5', 1, 'Katraj Fire Station', 2, 'Amit Verma', 'amit.verma@example.com', '9876501234', 'Pilot', 'assigned'),
-(2, 'DRN-002', 'SkyGuard-02', '', 'Active', 100, 13, 'Optimal', 'v1.0.0', 1, 'Katraj Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(3, 'DRN-003', 'FireScout', '', 'StandBy', 100, 37, 'Optimal', 'v3.6.3', 1, 'Warje Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(4, 'DRN-004', 'Falcon X2', '', 'StandBy', 100, 10, 'Optimal', 'v4.2.3', 1, 'Warje Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(5, 'DRN-005', 'air2s', '', 'Active', 100, 5, 'Optimal', 'v2.0.0', 1, 'Yerwada Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(6, 'DRN-006', 'phantomX', '', 'StandBy', 100, 0, 'Optimal', 'V.2.3.4', 1, 'Yerwada Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(7, 'DRN-007', 'DJI FPV', '', 'StandBy', 100, 2, 'Optimal', 'V.1.2.6', 1, 'Baner Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(8, 'DRN-008', 'Parrot Anafi', '', 'Active', 100, 18, 'Optimal', 'V.1.2.6', 1, 'Baner Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
-(9, 'DRN-009', 'Autel Robotics EVO Lite+', '', 'StandBy', 100, 15, 'Optimal', 'V.1.4.7', 1, 'Kothrud Station', NULL, NULL, NULL, NULL, NULL, 'available');
+(1, 'DRN-001', 'SkyGuard-01', NULL, 'Active', 100, 20, 'Optimal', 'V3.4.5', 1, 'Katraj Fire Station', 1, 'Amit Verma', 'amit.verma@example.com', '9876501234', 'Pilot', 'assigned'),
+(2, 'DRN-002', 'SkyGuard-02', NULL, 'StandBy', 100, 13, 'Optimal', 'v1.0.0', 1, 'Katraj Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(3, 'DRN-003', 'SkyGuard-03', NULL, 'Active', 100, 37, 'Optimal', 'v3.6.3', 1, 'Central Fire Brigade (Lohiya Nagar)', NULL, NULL, NULL, NULL, NULL, 'available'),
+(4, 'DRN-004', 'SkyGuard-04', NULL, 'StandBy', 100, 10, 'Optimal', 'v4.2.3', 1, 'Central Fire Brigade (Lohiya Nagar)', NULL, NULL, NULL, NULL, NULL, 'available'),
+(5, 'DRN-005', 'SkyGuard-05', NULL, 'Active', 100, 5, 'Optimal', 'v2.0.0', 1, 'Aundh Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(6, 'DRN-006', 'SkyGuard-06', NULL, 'StandBy', 100, 0, 'Optimal', 'V.2.3.4', 1, 'Aundh Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(7, 'DRN-007', 'SkyGuard-07', NULL, 'Active', 100, 2, 'Optimal', 'V.1.2.6', 1, 'Kothrud Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(8, 'DRN-008', 'SkyGuard-08', NULL, 'StandBy', 100, 18, 'Optimal', 'V.1.2.6', 1, 'Kothrud Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(9, 'DRN-009', 'SkyGuard-09', NULL, 'Active', 100, 15, 'Optimal', 'V.1.4.7', 1, 'Yerwada Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(10, 'DRN-010', 'SkyGuard-10', NULL, 'StandBy', 100, 0, 'Optimal', 'v1.0.0', 1, 'Yerwada Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(11, 'DRN-011', 'SkyGuard-11', NULL, 'Active', 100, 0, 'Optimal', 'v1.0.0', 1, 'Kasba Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(12, 'DRN-012', 'SkyGuard-12', NULL, 'StandBy', 100, 0, 'Optimal', 'v1.0.0', 1, 'Kasba Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(13, 'DRN-013', 'SkyGuard-13', NULL, 'Active', 100, 0, 'Optimal', 'v1.0.0', 1, 'Dayaram Rajguru Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(14, 'DRN-014', 'SkyGuard-14', NULL, 'StandBy', 100, 0, 'Optimal', 'v1.0.0', 1, 'Dayaram Rajguru Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(15, 'DRN-015', 'SkyGuard-15', NULL, 'Active', 100, 0, 'Optimal', 'v1.0.0', 1, 'Dandekar Pool Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(16, 'DRN-016', 'SkyGuard-16', NULL, 'StandBy', 100, 0, 'Optimal', 'v1.0.0', 1, 'Dandekar Pool Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(17, 'DRN-017', 'SkyGuard-17', NULL, 'Active', 100, 0, 'Optimal', 'v1.0.0', 1, 'Pashan Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(18, 'DRN-018', 'SkyGuard-18', NULL, 'StandBy', 100, 0, 'Optimal', 'v1.0.0', 1, 'Pashan Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(19, 'DRN-019', 'SkyGuard-19', NULL, 'Active', 100, 0, 'Optimal', 'v1.0.0', 1, 'Sinhgad Road Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(20, 'DRN-020', 'SkyGuard-20', NULL, 'StandBy', 100, 0, 'Optimal', 'v1.0.0', 1, 'Sinhgad Road Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
+(21, 'DRN-021', 'SkyGuard-21', NULL, 'Active', 100, 0, 'Optimal', 'v1.0.0', 1, 'Amanora Fire Station (Hadapsar)', NULL, NULL, NULL, NULL, NULL, 'available'),
+(22, 'DRN-022', 'SkyGuard-22', NULL, 'StandBy', 100, 0, 'Optimal', 'v1.0.0', 1, 'Amanora Fire Station (Hadapsar)', NULL, NULL, NULL, NULL, NULL, 'available'),
+(23, 'DRN-023', 'SkyGuard-23', NULL, 'Active', 100, 0, 'Optimal', 'v1.0.0', 1, 'Nanded City Fire Station', NULL, NULL, NULL, NULL, NULL, 'available');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drone_action_logs`
+--
+
+CREATE TABLE `drone_action_logs` (
+  `id` int(11) NOT NULL,
+  `timestamp` varchar(50) DEFAULT NULL,
+  `ip` varchar(50) DEFAULT NULL,
+  `incident_id` varchar(50) DEFAULT NULL,
+  `action` text DEFAULT NULL,
+  `response` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -160,7 +193,7 @@ CREATE TABLE `drone_missions` (
 --
 
 INSERT INTO `drone_missions` (`id`, `drone_id`, `incident_id`, `start_time`, `end_time`, `status`, `path_data`, `created_at`) VALUES
-(20, 1, 'INC-20260115-003', '2026-04-10 12:57:07', '2026-04-10 12:58:08', 'completed', NULL, '2026-04-10 07:27:07');
+(2, 1, 'INC-20260115-003', '2026-04-14 12:23:31', '2026-04-14 12:24:01', 'completed', NULL, '2026-04-14 06:53:31');
 
 -- --------------------------------------------------------
 
@@ -200,17 +233,18 @@ CREATE TABLE `fire_station` (
 --
 
 INSERT INTO `fire_station` (`id`, `station_name`, `station_code`, `latitude`, `longitude`, `created_at`) VALUES
-(21, 'Central Fire Brigade (Lohiya Nagar)', 'STN-001', 18.5065396, 73.8656903, '2026-04-04 10:53:28'),
-(22, 'Aundh Fire Station', 'STN-002', 18.5606921, 73.8142792, '2026-04-04 10:53:28'),
-(23, 'Kothrud Fire Station', 'STN-003', 18.4990632, 73.8134913, '2026-04-04 10:53:28'),
-(24, 'Yerwada Fire Station', 'STN-004', 18.5502944, 73.8791084, '2026-04-04 10:53:28'),
-(26, 'Dayaram Rajguru Fire Station', 'STN-006', 18.5299150, 73.8706020, '2026-04-04 10:53:28'),
-(28, 'Dandekar Pool Fire Station', 'STN-008', 18.4996141, 73.8478724, '2026-04-04 10:53:28'),
-(29, 'Pashan Fire Station', 'STN-009', 18.5403089, 73.8027597, '2026-04-04 10:53:28'),
-(30, 'Sinhgad Road Fire Station', 'STN-010', 18.4755075, 73.8156184, '2026-04-04 10:53:28'),
-(31, 'Katraj Fire Station', 'STN-011', 18.4549341, 73.8570094, '2026-04-04 10:53:28'),
-(32, 'Amanora Fire Station (Hadapsar)', 'STN-012', 18.5147822, 73.9453898, '2026-04-04 10:53:28'),
-(33, 'Nanded City Fire Station', 'STN-013', 18.4602641, 73.7966310, '2026-04-04 10:53:28');
+(1, 'Central Fire Brigade (Lohiya Nagar)', 'STN-001', 18.5065396, 73.8656903, '2026-04-04 10:53:28'),
+(2, 'Aundh Fire Station', 'STN-002', 18.5606921, 73.8142792, '2026-04-04 10:53:28'),
+(3, 'Kothrud Fire Station', 'STN-003', 18.4990632, 73.8134913, '2026-04-04 10:53:28'),
+(4, 'Yerwada Fire Station', 'STN-004', 18.5502944, 73.8791084, '2026-04-04 10:53:28'),
+(5, 'Kasba Fire Station', 'STN-005', 18.5216312, 73.8569992, '2026-04-13 09:42:03'),
+(6, 'Dayaram Rajguru Fire Station', 'STN-006', 18.5299150, 73.8706020, '2026-04-04 10:53:28'),
+(7, 'Dandekar Pool Fire Station', 'STN-008', 18.4996141, 73.8478724, '2026-04-04 10:53:28'),
+(8, 'Pashan Fire Station', 'STN-009', 18.5403089, 73.8027597, '2026-04-04 10:53:28'),
+(9, 'Sinhgad Road Fire Station', 'STN-010', 18.4755075, 73.8156184, '2026-04-04 10:53:28'),
+(10, 'Katraj Fire Station', 'STN-011', 18.4549341, 73.8570094, '2026-04-04 10:53:28'),
+(11, 'Amanora Fire Station (Hadapsar)', 'STN-012', 18.5147822, 73.9453898, '2026-04-04 10:53:28'),
+(12, 'Nanded City Fire Station', 'STN-013', 18.4602641, 73.7966310, '2026-04-04 10:53:28');
 
 -- --------------------------------------------------------
 
@@ -237,7 +271,7 @@ CREATE TABLE `incidents` (
 INSERT INTO `incidents` (`id`, `name`, `location`, `latitude`, `longitude`, `stationName`, `timeReported`, `status`, `isNewAlert`) VALUES
 ('INC-20251122-001', 'Vehicle Accident & Fire', 'Paud Road, Near Signal, Kothrud', 18.5074, 73.8077, 'Baner Fire Station', '2026-04-09 15:25:00', 'new', 1),
 ('INC-20251122-002', 'Warehouse Fire - Industrial Zone', 'Plot No. 45, Industrial Area, Katraj', 18.4445, 73.8521, 'Katraj Fire Station', '2026-04-09 14:10:00', 'completed', 0),
-('INC-20260115-003', 'Residential Building Fire', 'Near Katraj Bus Depot, Pune', 18.45445378969955, 73.85859890802172, 'Katraj Fire Station', '2026-04-10 18:40:00', 'new', 1);
+('INC-20260115-003', 'Residential Building Fire', 'Near Katraj Bus Depot, Pune', 18.454224, 73.858513, 'Katraj Fire Station', '2026-04-10 18:40:00', 'completed', 0);
 
 -- --------------------------------------------------------
 
@@ -254,16 +288,18 @@ CREATE TABLE `maintenance_requests` (
   `scheduled_date` date NOT NULL,
   `reported_by` varchar(150) NOT NULL,
   `status` varchar(50) DEFAULT 'scheduled',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `scheduled_by` enum('Admin','Pilot') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `maintenance_requests`
 --
 
-INSERT INTO `maintenance_requests` (`id`, `drone_code`, `drone_name`, `station`, `issue_description`, `scheduled_date`, `reported_by`, `status`, `created_at`) VALUES
-(9, 'DRN-001', 'SkyGuard-01', 'Katraj Fire Station', 'battery replacement', '2026-04-04', 'Amit Verma', 'scheduled', '2026-04-04 05:58:14'),
-(10, 'DRN-001', 'SkyGuard-01', 'Katraj Fire Station', 'battery replacement', '2026-04-08', 'Amit Verma', 'scheduled', '2026-04-04 06:05:52');
+INSERT INTO `maintenance_requests` (`id`, `drone_code`, `drone_name`, `station`, `issue_description`, `scheduled_date`, `reported_by`, `status`, `created_at`, `scheduled_by`) VALUES
+(0, 'DRN-005', 'air2s', 'Yerwada Fire Station', 'Battery Issue', '2026-05-08', 'Rakesh Malhotra', 'completed', '2026-04-09 12:00:19', 'Pilot'),
+(0, 'DRN-001', 'DJI Mini 2', 'Katraj Fire Station', 'asdfghjkl;', '2026-04-17', 'Amit Verma', 'scheduled', '2026-04-10 12:38:18', 'Pilot'),
+(0, 'DRN-002', 'SkyGuard-02', 'Katraj Fire Station', 'battery replacement', '2026-04-10', 'Amit Verma', 'completed', '2026-04-10 12:44:06', 'Pilot');
 
 -- --------------------------------------------------------
 
@@ -286,7 +322,8 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `type`, `message`, `created_by`, `is_read`, `created_at`, `data`) VALUES
-(16, 'maintenance', 'Maintenance scheduled for SkyGuard-01 (DRN-001) on 2026-04-08', 'Amit Verma', 1, '2026-04-04 06:05:52', '{\"drone_code\":\"DRN-001\",\"drone_name\":\"SkyGuard-01\",\"station\":\"Katraj Fire Station\",\"reported_by\":\"Amit Verma\",\"issue_description\":\"battery replacement\",\"scheduled_date\":\"2026-04-08\",\"status\":\"scheduled\"}');
+(17, 'maintenance', 'Maintenance scheduled for SkyGuard-02 (DRN-002) at Katraj Fire Station', 'Amit Verma', 1, '2026-04-10 12:44:06', '{\"drone_code\":\"DRN-002\",\"drone_name\":\"SkyGuard-02\",\"station\":\"Katraj Fire Station\",\"issue_description\":\"battery replacement\",\"reported_by\":\"Amit Verma\",\"scheduled_date\":\"2026-04-10\",\"status\":\"scheduled\",\"scheduled_by\":\"Pilot\"}'),
+(18, 'maintenance', 'Maintenance completed for SkyGuard-02 (DRN-002) at Katraj Fire Station', 'Amit Verma', 1, '2026-04-10 12:47:27', '{\"drone_code\":\"DRN-002\",\"drone_name\":\"SkyGuard-02\",\"station\":\"Katraj Fire Station\",\"reported_by\":\"Amit Verma\",\"issue_description\":\"battery replacement\",\"scheduled_date\":\"2026-04-10\",\"status\":\"completed\"}');
 
 -- --------------------------------------------------------
 
@@ -349,11 +386,24 @@ CREATE TABLE `vehicles` (
 --
 
 INSERT INTO `vehicles` (`id`, `name`, `type`, `registration`, `device_id`, `location`, `status`, `created_at`, `station`) VALUES
-(1, 'Rescue Van', 'Hydraulic Rescue Vehicle', 'MH-12-KJ-1001', 'VTS-HRV-001', 'Katraj Fire Station', 'maintenance', '2025-12-05 09:47:34', 'Katraj Fire Station'),
 (3, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-KJ-1003', '0453aa40-80a0-11f0-902d-59ff54eea995', 'Katraj Fire Station', 'available', '2025-12-05 09:47:34', 'Katraj Fire Station'),
 (6, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-BN-2343', 'VTS-QRV-103', 'Baner Fire Station', 'available', '2025-12-05 09:47:34', 'Baner Fire Station'),
 (9, 'Quick Response Vehicle', 'Fire QRV', 'MH-14-WJ-4513', 'VTS-QRV-203', 'Warje Fire Station', 'available', '2025-12-05 09:47:34', 'Warje Fire Station'),
-(12, 'Quick Response Vehicles', 'Fire QRV', 'MH-12-YD-7783', 'VTS-QRV-303', 'Yerwada Fire Station', 'available', '2025-12-05 09:47:34', 'Yerwada Fire Station');
+(12, 'Quick Response Vehicles', 'Fire QRV', 'MH-12-YD-7783', 'VTS-QRV-303', 'Yerwada Fire Station', 'available', '2025-12-05 09:47:34', 'Yerwada Fire Station'),
+(373, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-KJ-1003', 'VTS-QRV-103', 'Katraj Fire Station', 'available', '2026-04-13 10:27:06', 'Katraj Fire Station'),
+(374, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-CF-1001', 'VTS-QRV-104', 'Central Fire Brigade (Lohiya Nagar)', 'available', '2026-04-13 10:27:06', 'Central Fire Brigade (Lohiya Nagar)'),
+(375, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-AU-1002', 'VTS-QRV-105', 'Aundh Fire Station', 'available', '2026-04-13 10:27:06', 'Aundh Fire Station'),
+(376, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-BN-2343', 'VTS-QRV-106', 'Baner Fire Station', 'available', '2026-04-13 10:27:06', 'Baner Fire Station'),
+(377, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-WJ-4513', 'VTS-QRV-107', 'Warje Fire Station', 'available', '2026-04-13 10:27:06', 'Warje Fire Station'),
+(378, 'Quick Response Vehicle', 'Fire QRV', 'MH-14-YD-7783', 'VTS-QRV-108', 'Yerwada Fire Station', 'available', '2026-04-13 10:27:06', 'Yerwada Fire Station'),
+(379, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-KO-1101', 'VTS-QRV-109', 'Kothrud Fire Station', 'available', '2026-04-13 10:27:06', 'Kothrud Fire Station'),
+(380, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-KS-1102', 'VTS-QRV-110', 'Kasba Fire Station', 'available', '2026-04-13 10:27:06', 'Kasba Fire Station'),
+(381, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-DR-1103', 'VTS-QRV-111', 'Dayaram Rajguru Fire Station', 'available', '2026-04-13 10:27:06', 'Dayaram Rajguru Fire Station'),
+(382, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-DP-1104', 'VTS-QRV-112', 'Dandekar Pool Fire Station', 'available', '2026-04-13 10:27:06', 'Dandekar Pool Fire Station'),
+(383, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-PS-1105', 'VTS-QRV-113', 'Pashan Fire Station', 'available', '2026-04-13 10:27:06', 'Pashan Fire Station'),
+(384, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-SR-1106', 'VTS-QRV-114', 'Sinhgad Road Fire Station', 'available', '2026-04-13 10:27:06', 'Sinhgad Road Fire Station'),
+(385, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-AM-1107', 'VTS-QRV-115', 'Amanora Fire Station (Hadapsar)', 'available', '2026-04-13 10:27:06', 'Amanora Fire Station (Hadapsar)'),
+(386, 'Quick Response Vehicle', 'Fire QRV', 'MH-12-NC-1108', 'VTS-QRV-116', 'Nanded City Fire Station', 'available', '2026-04-13 10:27:06', 'Nanded City Fire Station');
 
 --
 -- Indexes for dumped tables
@@ -371,6 +421,12 @@ ALTER TABLE `activity_logs`
 ALTER TABLE `drones`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `drone_code` (`drone_code`);
+
+--
+-- Indexes for table `drone_action_logs`
+--
+ALTER TABLE `drone_action_logs`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `drone_gps_logs`
@@ -407,15 +463,6 @@ ALTER TABLE `incidents`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `maintenance_requests`
---
-ALTER TABLE `maintenance_requests`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_drone_code` (`drone_code`),
-  ADD KEY `idx_station` (`station`),
-  ADD KEY `idx_status` (`status`);
-
---
 -- Indexes for table `notifications`
 --
 ALTER TABLE `notifications`
@@ -443,13 +490,19 @@ ALTER TABLE `vehicles`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `drones`
 --
 ALTER TABLE `drones`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
+--
+-- AUTO_INCREMENT for table `drone_action_logs`
+--
+ALTER TABLE `drone_action_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `drone_gps_logs`
@@ -461,7 +514,7 @@ ALTER TABLE `drone_gps_logs`
 -- AUTO_INCREMENT for table `drone_missions`
 --
 ALTER TABLE `drone_missions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `fire_detections`
@@ -473,19 +526,13 @@ ALTER TABLE `fire_detections`
 -- AUTO_INCREMENT for table `fire_station`
 --
 ALTER TABLE `fire_station`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
-
---
--- AUTO_INCREMENT for table `maintenance_requests`
---
-ALTER TABLE `maintenance_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -497,7 +544,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `vehicles`
 --
 ALTER TABLE `vehicles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=373;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=387;
 
 --
 -- Constraints for dumped tables
