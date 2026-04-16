@@ -1,8 +1,7 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Search, Plus } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import AddDroneDialog from "@/components/admin/drone-details/AddDroneDialog";
 import EditDroneDialog from "@/components/admin/drone-details/EditDroneDialog";
 
@@ -39,6 +38,8 @@ export default function DronesList() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingDrone, setEditingDrone] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const navigate = useNavigate();
 
   // ✅ SAME THEME SYSTEM AS DIALOGS
   const [isDark, setIsDark] = useState(
@@ -94,10 +95,14 @@ export default function DronesList() {
   const handleDelete = (drone) => {
     fetch(`${API_BASE}/admin/admin-drone-details/deleteDrone.php`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `drone_code=${drone.drone_code}`,
+      body: new URLSearchParams({
+        drone_code: drone.drone_code,
+        station: drone.station, // ✅ ADD THIS
+      }),
     })
       .then((r) => r.json())
       .then((res) => {
@@ -144,13 +149,27 @@ export default function DronesList() {
       <div className="flex justify-between mb-6">
         <h1 className="text-3xl font-bold">Drones Management</h1>
 
-        <button
-          onClick={() => setIsAddDialogOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#dc2626] text-white"
-        >
-          <Plus size={16} />
-          Add Drone
-        </button>
+        <div className="flex gap-3">
+          {/* Add Drone Button */}
+          <button
+            onClick={() => setIsAddDialogOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#dc2626] text-white"
+          >
+            <Plus size={16} />
+            Add Drone
+          </button>
+          {/* Back Button */}
+          <button
+            onClick={() => navigate("/drones")}
+            className="px-4 py-2 rounded-lg border border-[#2E2E2E] text-sm font- hover:bg-[#2c2c2c] active:scale-95"
+            style={{
+              backgroundColor: isDark ? "none" : "#e5e7eb",
+              color: isDark ? "#FAFAFA" : "#111827",
+            }}
+          >
+            ← Back
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -229,8 +248,8 @@ export default function DronesList() {
                   <StatusBadge status={drone.status} />
                 </td>
                 <td className="px-4 py-3">{drone.station}</td>
-
-                <div className="px-4 py-3 flex gap-2 justify-end">
+                <td>
+                  <div className="px-4 py-3 flex gap-2 justify-end">
                     {/* Edit Button */}
                     <button
                         onClick={() => {
@@ -303,7 +322,8 @@ export default function DronesList() {
                         </svg>
                         Delete
                     </button>
-                    </div>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

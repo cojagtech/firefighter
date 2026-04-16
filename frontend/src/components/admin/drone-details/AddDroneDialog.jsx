@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -9,24 +9,28 @@ export default function AddDroneDialog({ isOpen, onClose, stations, onSuccess })
   const [formData, setFormData] = useState({
     drone_code: "",
     drone_name: "",
-    status: "standby",
+    status: "",
     station: "",
     flight_hours: 0,
-    health_status: "Optimal",
+    health_status: "",
     firmware_version: "",
     is_ready: 1,
   });
 
-  const [statusOpen, setStatusOpen] = useState(false);
-  const [healthOpen, setHealthOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const statusRef = useRef(null);
-  const healthRef = useRef(null);
 
   const [isDark, setIsDark] = useState(
     document.documentElement.classList.contains("dark")
   );
+
+  // ✅ Check if all required fields are filled
+  const isAllFieldsFilled =
+    formData.drone_code.trim() &&
+    formData.drone_name.trim() &&
+    formData.station &&
+    formData.firmware_version.trim() &&
+    formData.status &&
+    formData.health_status;
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
@@ -40,27 +44,14 @@ export default function AddDroneDialog({ isOpen, onClose, stations, onSuccess })
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (statusRef.current && !statusRef.current.contains(e.target)) {
-        setStatusOpen(false);
-      }
-      if (healthRef.current && !healthRef.current.contains(e.target)) {
-        setHealthOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
     if (!isOpen) {
       setFormData({
         drone_code: "",
         drone_name: "",
-        status: "standby",
+        status: "",
         station: "",
         flight_hours: 0,
-        health_status: "Optimal",
+        health_status: "",
         firmware_version: "",
         is_ready: 1,
       });
@@ -69,16 +60,16 @@ export default function AddDroneDialog({ isOpen, onClose, stations, onSuccess })
 
   if (!isOpen) return null;
 
+  // ✅ delayed close
+  const closeWithDelay = (callback) => {
+    setTimeout(() => {
+      callback && callback();
+      onClose();
+    }, 200);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name === "flight_hours") {
-      const num = Number(value);
-      if (num > 100) {
-        toast.error("Flight hours cannot exceed 100");
-        return;
-      }
-    }
 
     setFormData((prev) => ({
       ...prev,
@@ -93,7 +84,9 @@ export default function AddDroneDialog({ isOpen, onClose, stations, onSuccess })
       !formData.drone_code.trim() ||
       !formData.drone_name.trim() ||
       !formData.station ||
-      !formData.firmware_version.trim()
+      !formData.firmware_version.trim() ||
+      !formData.status ||
+      !formData.health_status
     ) {
       toast.error("Please fill all required fields");
       return;
@@ -120,8 +113,7 @@ export default function AddDroneDialog({ isOpen, onClose, stations, onSuccess })
 
       if (result.success) {
         toast.success("Drone added successfully");
-        onClose();
-        onSuccess && onSuccess();
+        closeWithDelay(onSuccess);
       } else {
         toast.error(result.message || "Failed to add drone");
       }
@@ -133,160 +125,242 @@ export default function AddDroneDialog({ isOpen, onClose, stations, onSuccess })
   };
 
   const inputStyle = {
-    backgroundColor: isDark ? "#141414" : "#ffffff",
+    backgroundColor: isDark ? "#1a1a1a" : "#ffffff",
     color: isDark ? "#ffffff" : "#000000",
-    borderColor: isDark ? "#2E2E2E" : "#e5e7eb",
+    borderColor: isDark ? "#333333" : "#e5e7eb",
   };
 
+  const labelBg = isDark ? "#2c2c2c" : "#ffffff";
+  const labelColor = isDark ? "#9ca3af" : "#6b7280";
+  const secondaryBorderColor = isDark ? "#3a3a3a" : "#f0f0f0";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm ">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm mt-[25px]"
+      onClick={() => closeWithDelay()} // ✅ outside click
+    >
       <div
-        className="w-full max-w-lg rounded-lg p-5 mt-[40px]"
+        onClick={(e) => e.stopPropagation()} // ✅ prevent inside click
+        className="w-full max-w-xl rounded-xl shadow-lg overflow-hidden"
         style={{
-          backgroundColor: isDark ? "#1d1f22" : "#ffffff",
-          color: isDark ? "#FAFAFA" : "#000000",
+          backgroundColor: isDark ? "#1d1d1d" : "#ffffff",
         }}
       >
-        <h2 className="text-lg text-[#dc2626] font-semibold mb-4">Add New Drone</h2>
+        {/* Header */}
+        <div
+          className="px-6 py-5 border-b"
+          style={{ borderColor: secondaryBorderColor }}
+        >
+          <h2 className="text-lg font-bold text-[#dc2626]">
+            Add New Drone
+          </h2>
+          <p className="text-sm mt-1 text-gray-400">
+            Register a new drone to your fleet
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
-          {/* Drone Code */}
-          <div>
-            <label className="text-sm mb-1 block">Drone Code</label>
-            <input
-              name="drone_code"
-              value={formData.drone_code}
-              onChange={handleChange}
-              style={inputStyle}
-              className="h-9 px-2.5 rounded border w-full text-sm"
-            />
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="px-6 py-6">
+
+          <div className="mb-4 px-4 py-2 rounded-lg text-sm border"
+            style={{
+              background: isDark ? "#2a2a2a" : "#f9fafb",
+              borderColor: secondaryBorderColor,
+              color: labelColor,
+            }}>
+            ⚠️ All fields are required to add a drone.
           </div>
 
-          {/* Drone Name */}
-          <div>
-            <label className="text-sm mb-1 block">Drone Name</label>
-            <input
-              name="drone_name"
-              value={formData.drone_name}
-              onChange={handleChange}
-              style={inputStyle}
-              className="h-9 px-2.5 rounded border w-full text-sm"
-            />
-          </div>
+          <div className="grid grid-cols-2 gap-4 mt-6">
+            {/* Row 1 */}
+            {/* Drone Code */}
+            <div className="relative">
+              <span className="absolute -top-2 left-3 px-1 text-xs"
+                style={{ background: labelBg, color: labelColor }}>
+                Drone Code *
+              </span>
+              <input
+                type="text"
+                name="drone_code"
+                value={formData.drone_code}
+                onChange={handleChange}
+                className="w-full h-10 px-3 rounded-lg border text-base placeholder:text-xs focus:outline-none focus:ring-1 focus:ring-[#dc2626]"
+                style={inputStyle}
+                placeholder="e.g., DRONE-001"
+              />
+            </div>
 
-          {/* Flight Hours */}
-          <div>
-            <label className="text-sm mb-1 block">Flight Hours</label>
-            <input
-              type="number"
-              name="flight_hours"
-              value={formData.flight_hours}
-              onChange={handleChange}
-              style={inputStyle}
-              className="h-9 px-2.5 rounded border w-full text-sm"
-            />
-          </div>
+            {/* Drone Name */}
+            <div className="relative">
+              <span className="absolute -top-2 left-3 px-1 text-xs"
+                style={{ background: labelBg, color: labelColor }}>
+                Drone Name *
+              </span>
+              <input
+                type="text"
+                name="drone_name"
+                value={formData.drone_name}
+                onChange={handleChange}
+                className="w-full h-10 px-3 rounded-lg border text-base placeholder:text-xs focus:outline-none focus:ring-1 focus:ring-[#dc2626]"
+                style={inputStyle}
+                placeholder="e.g., DJI Phantom 4"
+              />
+            </div>
 
-          {/* Firmware */}
-          <div>
-            <label className="text-sm mb-1 block">Firmware Version</label>
-            <input
-              name="firmware_version"
-              value={formData.firmware_version}
-              onChange={handleChange}
-              style={inputStyle}
-              className="h-9 px-2.5 rounded border w-full text-sm"
-            />
-          </div>
+            {/* Row 2 */}
+            {/* Flight Hours */}
+            <div className="relative">
+              <span className="absolute -top-2 left-3 px-1 text-xs"
+                style={{ background: labelBg, color: labelColor }}>
+                Flight Hours
+              </span>
+              <input
+                type="number"
+                name="flight_hours"
+                value={formData.flight_hours}
+                onChange={handleChange}
+                className="w-full h-10 px-3 rounded-lg border text-base placeholder:text-xs focus:outline-none focus:ring-1 focus:ring-[#dc2626]"
+                style={inputStyle}
+                placeholder="0"
+              />
+            </div>
 
-          {/* Status */}
-          <div>
-            <label className="text-sm mb-1 block">Status</label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              style={inputStyle}
-              className="h-9 px-2.5 rounded border w-full text-sm"
-            >
-              <option value="Active">Active</option>
-              <option value="StandBy">StandBy</option>
-              <option value="Maintenance">Maintenance</option>
-            </select>
-          </div>
+            {/* Firmware Version */}
+            <div className="relative">
+              <span className="absolute -top-2 left-3 px-1 text-xs"
+                style={{ background: labelBg, color: labelColor }}>
+                Firmware Version *
+              </span>
+              <input
+                type="text"
+                name="firmware_version"
+                value={formData.firmware_version}
+                onChange={handleChange}
+                className="w-full h-10 px-3 rounded-lg border text-base placeholder:text-xs focus:outline-none focus:ring-1 focus:ring-[#dc2626]"
+                style={inputStyle}
+                placeholder="e.g., v2.1.0"
+              />
+            </div>
 
-          {/* Health */}
-          <div>
-            <label className="text-sm mb-1 block">Health Status</label>
-            <select
-              name="health_status"
-              value={formData.health_status}
-              onChange={handleChange}
-              style={inputStyle}
-              className="h-9 px-2.5 rounded border w-full text-sm"
-            >
-              <option value="Optimal">Optimal</option>
-              <option value="Degraded">Degraded</option>
-              <option value="Require Service">Require Service</option>
-            </select>
-          </div>
+            {/* Row 3 */}
+            {/* Status */}
+            <div className="relative">
+              <span className="absolute -top-2 left-3 px-1 text-xs"
+                style={{ background: labelBg, color: labelColor }}>
+                Operation *
+              </span>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full h-10 px-3 rounded-lg border text-base focus:outline-none focus:ring-1 focus:ring-[#dc2626]"
+                style={inputStyle}
+              >
+                <option value="Active">Active</option>
+                <option value="StandBy">StandBy</option>
+                <option value="Maintenance">Maintenance</option>
+              </select>
+            </div>
 
-          {/* Ready */}
-          <div>
-            <label className="text-sm mb-1 block">Ready</label>
-            <select
-              name="is_ready"
-              value={formData.is_ready}
-              onChange={(e) =>
-                setFormData({ ...formData, is_ready: Number(e.target.value) })
-              }
-              style={inputStyle}
-              className="h-9 px-2.5 rounded border w-full text-sm"
-            >
-              <option value={1}>Yes</option>
-              <option value={0}>No</option>
-            </select>
-          </div>
+            {/* Health */}
+            <div className="relative">
+              <span className="absolute -top-2 left-3 px-1 text-xs"
+                style={{ background: labelBg, color: labelColor }}>
+                Health *
+              </span>
+              <select
+                name="health_status"
+                value={formData.health_status}
+                onChange={handleChange}
+                className="w-full h-10 px-3 rounded-lg border text-base focus:outline-none focus:ring-1 focus:ring-[#dc2626]"
+                style={inputStyle}
+              >
+                <option value="Optimal">Optimal</option>
+                <option value="Degraded">Degraded</option>
+                <option value="Require Service">Require Service</option>
+              </select>
+            </div>
 
-          {/* Station */}
-          <div className="col-span-2">
-            <label className="text-sm mb-1 block">Station</label>
-            <select
-              name="station"
-              value={formData.station}
-              onChange={handleChange}
-              style={inputStyle}
-              className="h-9 px-2.5 rounded border w-full text-sm"
-            >
-              <option value="">Select Station</option>
-              {stations.map((s) => (
-                <option key={s.id} value={s.name}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+            {/* Row 4 */}
+            {/* Station */}
+            <div className="relative">
+              <span className="absolute -top-2 left-3 px-1 text-xs"
+                style={{ background: labelBg, color: labelColor }}>
+                Station *
+              </span>
+              <select
+                name="station"
+                value={formData.station}
+                onChange={handleChange}
+                className="w-full h-10 px-3 rounded-lg border text-base focus:outline-none focus:ring-1 focus:ring-[#dc2626]"
+                style={inputStyle}
+              >
+                <option value="" disabled>Select Station</option>
+                {stations.map((s) => (
+                  <option key={s.id} value={s.name}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Ready */}
+            <div className="relative">
+              <span className="absolute -top-2 left-3 px-1 text-xs"
+                style={{ background: labelBg, color: labelColor }}>
+                Ready
+              </span>
+              <select
+                name="is_ready"
+                value={formData.is_ready}
+                onChange={(e) =>
+                  setFormData({ ...formData, is_ready: Number(e.target.value) })
+                }
+                className="w-full h-10 px-3 rounded-lg border text-base focus:outline-none focus:ring-1 focus:ring-[#dc2626]"
+                style={inputStyle}
+              >
+                <option value={1}>Yes</option>
+                <option value={0}>No</option>
+              </select>
+            </div>
           </div>
 
           {/* Buttons */}
-          <div className="col-span-2 flex gap-3 mt-4">
+          <div className="flex gap-3 pt-4 border-t"
+               style={{ borderColor: secondaryBorderColor }}>
+
+            {/* Cancel */}
             <button
               type="button"
-              onClick={onClose}
-              className="flex-1 border rounded h-9 text-sm"
+              onClick={() => closeWithDelay()}
+              className="flex-1 px-4 py-2.5 rounded-lg text-sm text-gray-300 border 
+                         transition-all duration-150 
+                         hover:bg-[#2c2c2c] 
+                         active:scale-95"
+              style={{ borderColor: secondaryBorderColor }}
             >
               Cancel
             </button>
+
+            {/* Add Drone */}
             <button
               type="submit"
-              disabled={saving}
-              className="flex-1 bg-red-600 text-white rounded h-9 text-sm"
+              disabled={saving || !isAllFieldsFilled}
+              className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium
+                transition-all duration-150 active:scale-95 shadow-sm
+                ${
+                  isAllFieldsFilled && !saving
+                    ? "bg-red-600 text-white hover:bg-red-700 hover:shadow-md"
+                    : "bg-red-500 text-white cursor-not-allowed opacity-50"
+                }`}
             >
               {saving ? "Adding..." : "Add Drone"}
             </button>
-          </div>
-        </form>
 
+          </div>
+
+        </form>
       </div>
     </div>
   );
-}
+} 
