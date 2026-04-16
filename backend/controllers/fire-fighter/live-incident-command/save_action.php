@@ -23,7 +23,7 @@ $action = $data['action'] ?? '';
 $response = $data['response'] ?? '';
 
 // Prepare query (SAFE 🔐)
-$stmt = $conn->prepare("INSERT INTO action_logs (timestamp, ip, incident_id, action, response) VALUES (?, ?, ?, ?, ?)");
+$stmt = $conn->prepare("INSERT INTO drone_action_logs (timestamp, ip, incident_id, action, response) VALUES (?, ?, ?, ?, ?)");
 
 $stmt->bind_param("sssss", $timestamp, $ip, $incident_id, $action, $response);
 
