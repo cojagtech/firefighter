@@ -173,7 +173,7 @@ export default function CommandToolbar({
               variant="outlined"
               size="small"
               onClick={() => {
-                window.location.href = "http://43.205.31.167:8081/";
+                window.location.href = "";
               }}
             >
               Control Panel

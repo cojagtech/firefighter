@@ -169,7 +169,7 @@ export default function CommandToolbar({
           <Button
             variant="outlined"
             size="small"
-            onClick={() => { window.location.href = "http://43.205.31.167:8081/"; }}
+            onClick={() => { window.location.href = ""; }}
             sx={{
               ml: 1,
               borderColor: C.btnBorder,
