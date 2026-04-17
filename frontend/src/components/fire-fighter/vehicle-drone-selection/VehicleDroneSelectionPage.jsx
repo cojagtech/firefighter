@@ -351,23 +351,23 @@ export default function VehicleDroneSelectionPage() {
                   };
 
                   // ✅ 1. SEND INCIDENT LOCATION TO BOTH APIs (NON-BLOCKING SAFE)
-                  // await Promise.allSettled([
-                  //   fetch("http://43.205.31.167:8082/api/incident_location", {
-                  //     method: "POST",
-                  //     headers: {
-                  //       "Content-Type": "application/json",
-                  //     },
-                  //     body: JSON.stringify(payload),
-                  //   }),
+                  await Promise.allSettled([
+                    fetch("http://43.205.31.167:8082/api/incident_location", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify(payload),
+                    }),
 
-                  //   fetch("http://43.205.31.167:8081/api/incident_location", {
-                  //     method: "POST",
-                  //     headers: {
-                  //       "Content-Type": "application/json",
-                  //     },
-                  //     body: JSON.stringify(payload),
-                  //   }),
-                  // ]);
+                    fetch("http://43.205.31.167:8081/api/incident_location", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify(payload),
+                    }),
+                  ]);
 
                   // // 🔥 2. SEND INCIDENT TO PYTHON (NON-BLOCKING) // try { // await fetch("http://65.2.23.154:5001/api/incident", { // method: "POST", // headers: { // "Content-Type": "application/json", // }, // body: JSON.stringify({ // incident_id: incidentId, // drone_id: droneCode, // }), // }); // } catch (err) { // console.warn("Python incident API failed, continuing...", err); // }
 

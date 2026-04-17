@@ -281,6 +281,25 @@ body {
         while ($row = $result->fetch_assoc()):
             $missionIdx++;
 
+                    $actionLogs = [];
+
+        $logStmt = $conn->prepare("
+            SELECT timestamp, ip, action, response
+            FROM drone_action_logs
+            WHERE incident_id = ?
+            ORDER BY timestamp ASC
+        ");
+
+        $logStmt->bind_param("s", $row['incident_id']);
+        $logStmt->execute();
+        $logResult = $logStmt->get_result();
+
+        while ($log = $logResult->fetch_assoc()) {
+            $actionLogs[] = $log;
+        }
+
+        $logStmt->close();
+
             $duration    = calcDuration($row['start_time'], $row['end_time']);
             $statusUpper = strtoupper($row['mission_status'] ?? 'UNKNOWN');
             $sBadge      = statusStyle($row['mission_status']);
@@ -449,6 +468,31 @@ body {
         <div class="no-gps">NO GPS DATA LOGGED FOR THIS MISSION YET</div>
         <?php endif; ?>
 
+        <!-- F. Drone Action Logs -->
+<div class="sec-hdr">F. &nbsp; Drone Action Logs</div>
+
+<?php if (!empty($actionLogs)): ?>
+<table class="info-tbl">
+    <tr>
+        <td style="width:20%"><span class="lbl">Time</span></td>
+        <td style="width:15%"><span class="lbl">IP</span></td>
+        <td style="width:25%"><span class="lbl">Action</span></td>
+        <td style="width:40%"><span class="lbl">Response</span></td>
+    </tr>
+
+    <?php foreach ($actionLogs as $log): ?>
+    <tr>
+        <td><span class="val mono"><?= htmlspecialchars($log['timestamp']) ?></span></td>
+        <td><span class="val mono"><?= htmlspecialchars($log['ip']) ?></span></td>
+        <td><span class="val"><?= htmlspecialchars($log['action']) ?></span></td>
+        <td><span class="val"><?= htmlspecialchars($log['response']) ?></span></td>
+    </tr>
+    <?php endforeach; ?>
+</table>
+<?php else: ?>
+<div class="no-gps">NO ACTION LOGS FOUND</div>
+<?php endif; ?>
+
     </div><!-- /mission-block -->
 
     <?php endwhile;
@@ -456,7 +500,7 @@ body {
     <div class="no-data">NO MISSION RECORDS FOUND</div>
     <?php endif; ?>
     </div><!-- /missions-wrap -->
-
+        
     <!-- FOOTER -->
     <div class="gov-footer">
         <span>Total Missions: <?= $missionIdx ?> &nbsp;|&nbsp; <?= htmlspecialchars($docRef) ?></span>
