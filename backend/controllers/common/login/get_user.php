@@ -11,6 +11,18 @@ $stmt->bind_param("s", $phone);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
+$userId = $user["id"];
+$userName = $user["fullName"];
+$role = $user["role"];
+$ip = $_SERVER['REMOTE_ADDR'];
+
+$stmtLog = $conn->prepare("INSERT INTO activity_logs 
+(user_id, user_name, role, action, module, description, ip_address, created_at)
+VALUES (?, ?, ?, 'LOGIN', 'AUTH', 'User logged in successfully', ?, NOW())");
+
+$stmtLog->bind_param("isss", $userId, $userName, $role, $ip);
+$stmtLog->execute();
+
 
 if (!$user) {
     echo json_encode(["success" => false]);

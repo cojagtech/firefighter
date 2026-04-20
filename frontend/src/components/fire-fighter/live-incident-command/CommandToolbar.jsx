@@ -58,6 +58,16 @@ export default function CommandToolbar({
       if (data.success) {
         toast.success("Mission Ended ✅");
         setConfirmOpen(false);
+        if (data.success) {
+          await logActivity(
+            "END_MISSION",
+            `Mission ended for Incident ${incidentId}`,
+            incidentId
+          );
+
+          toast.success("Mission Ended ✅");
+          setConfirmOpen(false);
+        }
       } else {
         toast.error(data.error || "Failed to end mission ❌");
       }
@@ -87,25 +97,49 @@ export default function CommandToolbar({
 
   const C = isDark
     ? {
-        toolbarBg: "#141414",
-        toolbarBorder: "#1f1f1f",
-        iconBoxBg: "#291818",
-        iconBoxBorder: "#dc2626",
-        menuBg: "#1a1a1a",
-        menuColor: "#ffffff",
-        menuHover: "#2a2a2a",
-        menuBorder: "#2E2E2E",
-      }
+      toolbarBg: "#141414",
+      toolbarBorder: "#1f1f1f",
+      iconBoxBg: "#291818",
+      iconBoxBorder: "#dc2626",
+      menuBg: "#1a1a1a",
+      menuColor: "#ffffff",
+      menuHover: "#2a2a2a",
+      menuBorder: "#2E2E2E",
+    }
     : {
-        toolbarBg: "#ffffff",
-        toolbarBorder: "#e2e8f0",
-        iconBoxBg: "#fff1f2",
-        iconBoxBorder: "#dc2626",
-        menuBg: "#ffffff",
-        menuColor: "#111827",
-        menuHover: "#f3f4f6",
-        menuBorder: "#e2e8f0",
-      };
+      toolbarBg: "#ffffff",
+      toolbarBorder: "#e2e8f0",
+      iconBoxBg: "#fff1f2",
+      iconBoxBorder: "#dc2626",
+      menuBg: "#ffffff",
+      menuColor: "#111827",
+      menuHover: "#f3f4f6",
+      menuBorder: "#e2e8f0",
+    };
+  const logActivity = async (action, description, incidentId) => {
+    try {
+      const session = JSON.parse(sessionStorage.getItem("fireOpsSession"));
+
+      await fetch(`${API_BASE}/fire-fighter/confirm-forward/confirm_location_logs.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: session.userId,
+          user_name: session.name,
+          role: session.role,
+          action,
+          module: "INCIDENT",
+          description,
+          incident_id: incidentId,
+        }),
+      });
+    } catch (err) {
+      console.error("Log error", err);
+    }
+  };
+
 
   return (
     <>
@@ -203,8 +237,14 @@ export default function CommandToolbar({
               onClose={() => setAnchorEl(null)}
             >
               <MenuItem
-                onClick={() => {
+                onClick={async () => {
                   setAnchorEl(null);
+
+                  await logActivity(
+                    "EXPORT_REPORT",
+                    `Exported report for Incident ${incidentId}`,
+                    incidentId
+                  );
 
                   const phpUrl = `${API_BASE}/fire-fighter/live-incident-command/export-report.php?incidentId=${incidentId}`;
                   const win = window.open(phpUrl, "_blank");

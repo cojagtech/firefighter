@@ -1,10 +1,27 @@
 import toast from "react-hot-toast";
 
-export default function logoutUser() {
-  toast.success("Logged out successfully!");
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-  setTimeout(() => {
+export default async function logoutUser() {
+  try {
+    // 🔥 backend call
+    await fetch(`${API_BASE}/common/login/logout.php`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    // 🔥 clear session
     sessionStorage.removeItem("fireOpsSession");
-    window.location.href = "/";
-  }, 500);  
+
+    toast.success("Logged out successfully!");
+
+    // 🔥 redirect
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 500);
+
+  } catch (error) {
+    toast.error("Logout failed");
+    console.error(error);
+  }
 }

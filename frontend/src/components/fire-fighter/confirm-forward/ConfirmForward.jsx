@@ -26,6 +26,31 @@ export default function ConfirmForwardIncidence() {
     document.documentElement.classList.contains("dark")
   );
 
+  const logActivity = async (action, description, incidentId) => {
+    try {
+      const session = JSON.parse(sessionStorage.getItem("fireOpsSession"));
+
+      await fetch(`${API_BASE}/fire-fighter/confirm-forward/confirm_location_logs.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: session.userId,
+          user_name: session.name,
+          role: session.role,
+          action,
+          module: "INCIDENT",
+          description,
+          incident_id: incidentId,
+        }),
+      });
+    } catch (err) {
+      console.error("Log error", err);
+    }
+  };
+
+
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains("dark"));
@@ -39,14 +64,24 @@ export default function ConfirmForwardIncidence() {
 
   // ✅ Backend unchanged
   const handleFinalConfirm = async () => {
+    const decodedStation = decodeURIComponent(stationName);
+
     await fetch(`${API}/forward_incident.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         incidentId,
-        stationName: decodeURIComponent(stationName),
+        stationName: decodedStation,
+
       }),
     });
+
+    await logActivity(
+      "CONFIRM_FORWARD",
+      `Confirmed and shared incident to ${decodedStation}`,
+      incidentId
+    );
+
 
     alert("Incident forwarded successfully");
     navigate("/fire-fighter-dashboard");

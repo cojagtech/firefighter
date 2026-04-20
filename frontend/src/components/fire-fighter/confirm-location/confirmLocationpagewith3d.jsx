@@ -24,7 +24,7 @@ import { createTheme, ThemeProvider, CssBaseline } from "@mui/material";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-// 🔥 script loader
+// ---------------- SCRIPT LOADER ----------------
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     if (document.querySelector(`script[src="${src}"]`)) {
@@ -50,29 +50,42 @@ export default function ConfirmLocationPage() {
 
   const [currentLat, setCurrentLat] = useState(null);
   const [currentLng, setCurrentLng] = useState(null);
+
   const [hasMarkerMoved, setHasMarkerMoved] = useState(false);
+
+  // ✅ FIX: this is now REAL source of truth
   const [selectedStationName, setSelectedStationName] = useState(null);
+
+  const [stateStations, setStateStations] = useState(
+    state?.station || null
+  );
+
   const [assets, setAssets] = useState([]);
 
   const [isDark, setIsDark] = useState(
     document.documentElement.classList.contains("dark")
   );
 
+  const [flyingHeight, setFlyingHeight] = useState(null);
+  const [fireStationCoords, setFireStationCoords] = useState(null);
+
   const cesiumLoadedRef = useRef(false);
 
-  // ---------------- THEME ----------------
+  // ---------------- DARK MODE ----------------
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains("dark"));
     });
+
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],
     });
+
     return () => observer.disconnect();
   }, []);
 
-  // ---------------- LOAD INCIDENT ----------------
+  // ---------------- INCIDENT LOAD ----------------
   useEffect(() => {
     if (incident) {
       setLoading(false);
@@ -97,7 +110,7 @@ export default function ConfirmLocationPage() {
       });
   }, [id, incident, navigate]);
 
-  // ---------------- SET COORDS ----------------
+  // ---------------- COORDS ----------------
   useEffect(() => {
     if (!incident) return;
 
@@ -110,7 +123,7 @@ export default function ConfirmLocationPage() {
     }
   }, [incident]);
 
-  // ---------------- FETCH ASSETS ----------------
+  // ---------------- ASSETS ----------------
   useEffect(() => {
     if (!incident?.id) return;
 
@@ -119,65 +132,97 @@ export default function ConfirmLocationPage() {
     )
       .then((res) => res.json())
       .then((data) => setAssets(data.assets || []))
-      .catch((err) => console.error("Assets API Error:", err));
+      .catch((err) => console.error(err));
   }, [incident]);
 
-  // 🔥 ---------------- CESIUM HIDDEN LOAD ----------------
+  // ---------------- FIRE STATION (NOW BASED ON SELECTION) ----------------
+  useEffect(() => {
+    if (!stateStations) return;
+
+    fetch(
+      `${API_BASE}/fire-fighter/confirm-location/get_fire_station.php?station_name=${encodeURIComponent(
+        stateStations
+      )}`
+    )
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.success) {
+          setFireStationCoords(response.data);
+        }
+      })
+      .catch((err) => console.error(err));
+  }, [stateStations]);
+
+  // ---------------- HEIGHT CALC ----------------
+  const calculateHeight = (lat, lng) => {
+    if (!window.viewer || !window.getFlyingHeight) return;
+
+    const fireLat = Number(fireStationCoords?.latitude);
+    const fireLon = Number(fireStationCoords?.longitude);
+
+    if (!Number.isFinite(fireLat) || !Number.isFinite(fireLon)) return;
+
+    window.getFlyingHeight(fireLon, fireLat, lng, lat, (height) => {
+      setFlyingHeight(height);
+    });
+  };
+
+  useEffect(() => {
+    if (!currentLat || !currentLng) return;
+    if (!fireStationCoords) return;
+
+    const interval = setInterval(() => {
+      if (window.viewer && window.getFlyingHeight) {
+        clearInterval(interval);
+        calculateHeight(currentLat, currentLng);
+      }
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [currentLat, currentLng, fireStationCoords]);
+
+  // ---------------- CESIUM ----------------
   useEffect(() => {
     let waitViewer;
     let waitInit;
 
     async function initCesium() {
       try {
-        console.log("🚀 Starting Cesium load...");
-
         if (!cesiumLoadedRef.current) {
-          // CSS
           const link = document.createElement("link");
           link.rel = "stylesheet";
           link.href =
             "https://cesium.com/downloads/cesiumjs/releases/1.96/Build/Cesium/Widgets/widgets.css";
           document.head.appendChild(link);
 
-          // Scripts
           await loadScript(
             "https://cdnjs.cloudflare.com/ajax/libs/cesium/1.96.0/Cesium.js"
           );
-          console.log("✅ Cesium script loaded");
 
           await loadScript("/assets/js/globel.js");
-          console.log("✅ globel.js loaded");
-
           await loadScript("/assets/js/map.js");
-          console.log("✅ map.js loaded");
 
           cesiumLoadedRef.current = true;
         }
 
         const container = document.getElementById("map-container");
-        console.log("📦 Container:", container);
-
         if (container) container.innerHTML = "";
 
-        // 🔥 WAIT FOR initMap (IMPORTANT FIX)
         waitInit = setInterval(() => {
           if (!window.initMap) return;
 
-          console.log("🧠 initMap found, initializing...");
           window.initMap();
-
           clearInterval(waitInit);
 
-          // 🔥 WAIT FOR VIEWER
           waitViewer = setInterval(() => {
             if (!window.Cesium || !window.viewer) return;
 
-            console.log("🌍 Cesium Hidden Loaded ✅");
+            console.log("🌍 Cesium Loaded");
             clearInterval(waitViewer);
           }, 200);
         }, 100);
       } catch (err) {
-        console.error("❌ Cesium load error:", err);
+        console.error(err);
       }
     }
 
@@ -190,12 +235,36 @@ export default function ConfirmLocationPage() {
       if (window.viewer) {
         window.viewer.destroy();
         window.viewer = null;
-        console.log("🧹 Cesium destroyed");
       }
     };
   }, []);
 
-  // ---------------- THEME ----------------
+  // ---------------- CONFIRM FIX (IMPORTANT PART) ----------------
+  const confirmAndProceed = () => {
+    const finalStation = selectedStationName;
+
+    const payload = {
+      ...incident,
+      latitude: currentLat,
+      longitude: currentLng,
+      coordinates: { lat: currentLat, lng: currentLng },
+      locationAdjusted: hasMarkerMoved,
+      selectedStationName: finalStation,
+      flyingHeight, // ✅ ADD THIS
+    };
+
+    if (finalStation) {
+      navigate(
+        `/confirm-forward-incidence/${incident.id}/${encodeURIComponent(finalStation)}`,
+        { state: { incident: payload } }
+      );
+    } else {
+      navigate(`/vehicle-drone-selection/${incident.id}`, {
+        state: { incident: payload },
+      });
+    }
+  };
+
   const incidentTheme = createTheme({
     palette: {
       mode: isDark ? "dark" : "light",
@@ -207,35 +276,10 @@ export default function ConfirmLocationPage() {
     return <p style={{ padding: 40 }}>Loading...</p>;
   }
 
-  const confirmAndProceed = () => {
-    const payload = {
-      ...incident,
-      latitude: currentLat,
-      longitude: currentLng,
-      coordinates: { lat: currentLat, lng: currentLng },
-      locationAdjusted: hasMarkerMoved,
-      selectedStationName: selectedStationName || null,
-    };
-
-    if (selectedStationName) {
-      navigate(
-        `/confirm-forward-incidence/${incident.id}/${encodeURIComponent(
-          selectedStationName
-        )}`,
-        { state: { incident: payload } }
-      );
-    } else {
-      navigate(`/vehicle-drone-selection/${incident.id}`, {
-        state: { incident: payload },
-      });
-    }
-  };
-
   return (
     <ThemeProvider theme={incidentTheme}>
       <CssBaseline />
 
-      {/* 🔥 HIDDEN CESIUM */}
       <div
         id="map-container"
         style={{
@@ -244,31 +288,32 @@ export default function ConfirmLocationPage() {
           left: 0,
           width: "100vw",
           height: "100vh",
-          opacity: 0,          // 👈 invisible
+          opacity: 0,
           pointerEvents: "none",
-          zIndex: -1,          // 👈 behind everything
+          zIndex: -1,
         }}
       />
 
       <Box sx={{ minHeight: "100vh", p: 3 }}>
-        <Stack spacing={4} maxWidth="1200px" mx="auto">
-          <Stack direction="row" spacing={2} alignItems="center">
-            <PlaceIcon color="primary" />
-            <Typography variant="h5" fontWeight={700}>
-              Confirm Incident Location
-            </Typography>
-          </Stack>
+        <Stack spacing={3} maxWidth="1200px" mx="auto">
 
           <Card>
             <CardHeader title={incident.name} />
             <CardContent>
-              <Typography variant="body2">
+              <Typography>
                 Coordinates: {currentLat}, {currentLng}
               </Typography>
+
+              {flyingHeight !== null && (
+                <Typography color="primary" fontWeight={600}>
+                  🚁 Flying Height: {flyingHeight} meters
+                </Typography>
+              )}
             </CardContent>
           </Card>
 
           <Stack direction={{ xs: "column", lg: "row" }} spacing={3}>
+
             <Box flex={2}>
               {currentLat && currentLng && (
                 <MapWithDraggableMarker
@@ -284,8 +329,10 @@ export default function ConfirmLocationPage() {
             </Box>
 
             <Stack flex={1} spacing={3}>
+
               <NearbyAssetsPanel assets={assets} />
 
+              {/* ✅ FIXED CONNECTION */}
               <SuggestedStationsPanel
                 incidentId={incident.id}
                 selectedStationName={selectedStationName}
@@ -313,19 +360,17 @@ export default function ConfirmLocationPage() {
                   <CardContent>
                     <Stack direction="row" spacing={2}>
                       <InfoIcon color="primary" />
-                      <Typography variant="body2">
-                        Location adjusted — assets should be recalculated
-                      </Typography>
+                      <Typography>Location adjusted</Typography>
                     </Stack>
                   </CardContent>
                 </Card>
               )}
+
             </Stack>
           </Stack>
+
         </Stack>
       </Box>
     </ThemeProvider>
   );
 }
-
-//getFlyingHeight(18.454224, 73.858513, 18.45498, 73.85698)

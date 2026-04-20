@@ -141,18 +141,39 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
     return d.toLocaleDateString();
   };
 
-  const acknowledge = (id) => {
-    const incident = incidents.find((i) => i.id === id);
+const acknowledge = async (id) => {
+  const incident = incidents.find((i) => i.id === id);
+  if (!incident) return;
 
-    if (!incident) return;
+  try {
+    const session = JSON.parse(sessionStorage.getItem("fireOpsSession"));
 
+    // 🔥 API call (LOG INSERT)
+    await fetch(`${IncidentAPI_BASE}/acknowledge_incident.php`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        incident_id: id,
+        user_id: session.userId,
+        user_name: session.name,
+        role: session.role,
+      }),
+    });
+
+    // 👉 navigation baad me
     navigate(`/confirm-location/${id}`, {
       state: {
         incident,
-        station, // 🔥 CRITICAL FIX
+        station,
       },
     });
-  };
+
+  } catch (err) {
+    console.error("Acknowledge error", err);
+  }
+};
 
   const toggleSiren = () => {
     if (!audioRef.current) return;
@@ -164,13 +185,35 @@ export default function IncidentAlertFeed({ IncidentAPI_BASE, station }) {
     setIsMuted(!isMuted);
   };
 
-  const viewDetails = (id) => {
-    const incident = incidents.find((i) => i.id === id);
-    if (incident) {
-      setSelectedIncident(incident);
-      setOpenDialog(true);
-    }
-  };
+const viewDetails = async (id) => {
+  const incident = incidents.find((i) => i.id === id);
+  if (!incident) return;
+
+  try {
+    const session = JSON.parse(sessionStorage.getItem("fireOpsSession"));
+
+    // 🔥 API call (LOG INSERT)
+    await fetch(`${IncidentAPI_BASE}/view_incident.php`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        incident_id: id,
+        user_id: session.userId,
+        user_name: session.name,
+        role: session.role,
+      }),
+    });
+
+  } catch (err) {
+    console.error("View log error", err);
+  }
+
+  // 👉 existing UI logic
+  setSelectedIncident(incident);
+  setOpenDialog(true);
+};
 
   const closeDialog = () => {
     setOpenDialog(false);

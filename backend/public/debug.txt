@@ -1,0 +1,3 @@
+{"user_id":4,"user_name":"Suresh Yadav","role":"Fire Station Command Control","action":"ACTIVATE_DRONE_MISSION","module":"INCIDENT","description":"Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-02","incident_id":"INC-20260115-003"}
+{"user_id":4,"user_name":"Suresh Yadav","role":"Fire Station Command Control","action":"ACTIVATE_DRONE_MISSION","module":"INCIDENT","description":"Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-02","incident_id":"INC-20260115-003"}
+{"user_id":4,"user_name":"Suresh Yadav","role":"Fire Station Command Control","action":"ACTIVATE_DRONE_MISSION","module":"INCIDENT","description":"Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-02","incident_id":"INC-20260115-003"}

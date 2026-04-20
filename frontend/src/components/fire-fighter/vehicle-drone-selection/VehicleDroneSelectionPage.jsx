@@ -57,6 +57,30 @@ const normalizeDroneRow = (row = {}) => ({
   is_ready: Boolean(row.is_ready),
 });
 
+const logActivity = async (action, description, incidentId) => {
+  try {
+    const session = JSON.parse(sessionStorage.getItem("fireOpsSession"));
+
+    await fetch(`${API_BASE}/fire-fighter/confirm-forward/confirm_location_logs.php`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: session.userId,
+        user_name: session.name,
+        role: session.role,
+        action,
+        module: "INCIDENT",
+        description,
+        incident_id: incidentId,
+      }),
+    });
+  } catch (err) {
+    console.error("Log error", err);
+  }
+};
+
 export default function VehicleDroneSelectionPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -64,6 +88,8 @@ export default function VehicleDroneSelectionPage() {
   const incident = state?.incident;
   const incidentId =
     incident?.id ?? incident?.incident_id ?? incident?.incidentId ?? null;
+
+  const flyingHeight = incident?.flyingHeight;
 
   const session = JSON.parse(sessionStorage.getItem("fireOpsSession") || "{}");
   const userStation = session.station;
@@ -217,9 +243,16 @@ export default function VehicleDroneSelectionPage() {
                 <Typography variant="h4" fontWeight={800}>
                   Vehicle & Drone Selection
                 </Typography>
+
                 <Typography variant="body2" color="text.secondary">
                   Station: {userStation}
                 </Typography>
+
+                {flyingHeight !== undefined && flyingHeight !== null && (
+                  <Typography variant="body2" color="primary" fontWeight={600}>
+                    🚁 Flying Height: {flyingHeight} m
+                  </Typography>
+                )}
               </Box>
             </Stack>
 
@@ -311,6 +344,15 @@ export default function VehicleDroneSelectionPage() {
                 const selectedDrone = selectedDroneObjects[0];
                 const selectedVehicle = selectedVehicleObjects[0];
 
+                const vehicleNames = selectedVehicleObjects
+                  .map(v => v.name)
+                  .join(", ");
+
+                const droneNames = selectedDroneObjects
+                  .map(d => d.name || d.drone_id)
+                  .join(", ");
+
+
                 const droneDbId = selectedDrone?.id;
                 const droneCode = selectedDrone?.drone_id;
                 const vehicleDeviceId = selectedVehicle?.device_id;
@@ -341,7 +383,7 @@ export default function VehicleDroneSelectionPage() {
                   console.log("Sending location:", { incidentId, lat, lng });
 
                   // ✅ Generate altitude (50–70)
-                  const altitude = Math.floor(Math.random() * (70 - 50 + 1)) + 50;
+                  const altitude = Math.round(flyingHeight ?? 50);
 
                   const payload = {
                     incident_id: incidentId,
@@ -352,7 +394,7 @@ export default function VehicleDroneSelectionPage() {
 
                   // ✅ 1. SEND INCIDENT LOCATION TO BOTH APIs (NON-BLOCKING SAFE)
                   await Promise.allSettled([
-                    fetch("http://43.205.31.167:8082/api/incident_location", {
+                    fetch("http://13.205.250.118:8082/api/incident_location", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
@@ -398,6 +440,12 @@ export default function VehicleDroneSelectionPage() {
 
                   const data = await res.json();
                   if (!data.success) throw new Error(data.message);
+                  await logActivity(
+                    "ACTIVATE_DRONE_MISSION",
+                    `Activated with Vehicles: ${vehicleNames} | Drones: ${droneNames}`,
+                    incidentId
+                  );
+
 
                   // ✅ 4. NAVIGATE
                   navigate(
