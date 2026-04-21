@@ -352,7 +352,6 @@ export default function VehicleDroneSelectionPage() {
                   .map(d => d.name || d.drone_id)
                   .join(", ");
 
-
                 const droneDbId = selectedDrone?.id;
                 const droneCode = selectedDrone?.drone_id;
                 const vehicleDeviceId = selectedVehicle?.device_id;
@@ -366,7 +365,6 @@ export default function VehicleDroneSelectionPage() {
                   return;
                 }
 
-                // ✅ Extract lat/lng safely
                 const lat = incident?.latitude || incident?.lat;
                 const lng = incident?.longitude || incident?.lng;
 
@@ -382,7 +380,6 @@ export default function VehicleDroneSelectionPage() {
                 try {
                   console.log("Sending location:", { incidentId, lat, lng });
 
-                  // ✅ Generate altitude (50–70)
                   const altitude = Math.round(flyingHeight ?? 50);
 
                   const payload = {
@@ -392,26 +389,36 @@ export default function VehicleDroneSelectionPage() {
                     altitude: altitude,
                   };
 
-                  // ✅ 1. SEND INCIDENT LOCATION TO BOTH APIs (NON-BLOCKING SAFE)
-                  await Promise.allSettled([
-                    fetch("http://13.205.250.118:8082/api/incident_location", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify(payload),
-                    }),
+                  // 🔥 Drone → Port Mapping
+                  const DRONE_PORT_MAP = {
+                    "DRN-001": 8081,
+                    "DRN-002": 8082,
+                  };
 
-                    fetch("http://43.205.31.167:8081/api/incident_location", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify(payload),
-                    }),
-                  ]);
+                  const normalizedCode = droneCode?.toUpperCase();
+                  const port = DRONE_PORT_MAP[normalizedCode];
 
-                  // // 🔥 2. SEND INCIDENT TO PYTHON (NON-BLOCKING) // try { // await fetch("http://65.2.23.154:5001/api/incident", { // method: "POST", // headers: { // "Content-Type": "application/json", // }, // body: JSON.stringify({ // incident_id: incidentId, // drone_id: droneCode, // }), // }); // } catch (err) { // console.warn("Python incident API failed, continuing...", err); // }
+                  if (!port) {
+                    setSnack({
+                      open: true,
+                      severity: "error",
+                      message: `No server mapped for ${normalizedCode}`,
+                    });
+                    return;
+                  }
+
+                  const apiUrl = `http://43.205.31.167:${port}/api/incident_location`;
+
+                  console.log("🚁 Sending to:", apiUrl);
+
+                  // ✅ 1. SEND ONLY SELECTED DRONE
+                  await fetch(apiUrl, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                  });
 
                   // ✅ 2. START DRONE MISSION
                   await fetch(`${API}/start_drone_mission.php`, {
@@ -440,12 +447,12 @@ export default function VehicleDroneSelectionPage() {
 
                   const data = await res.json();
                   if (!data.success) throw new Error(data.message);
+
                   await logActivity(
                     "ACTIVATE_DRONE_MISSION",
                     `Activated with Vehicles: ${vehicleNames} | Drones: ${droneNames}`,
                     incidentId
                   );
-
 
                   // ✅ 4. NAVIGATE
                   navigate(

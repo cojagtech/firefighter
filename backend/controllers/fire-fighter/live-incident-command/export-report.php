@@ -259,7 +259,7 @@ body {
 
             <div style="flex-shrink:0;display:flex;align-items:center;justify-content:center;">
                 <div style="background:#ffffff;border-radius:6px;padding:3px 6px;display:flex;align-items:center;">
-                    <img src="../../../public/innoverlogo.png" alt="Logo" style="height:24px;width:auto;"/>
+                    <img src="/innoverlogo.png" alt="Logo" style="height:24px;width:auto;"/>
                 </div>
             </div>
         </div>
