@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 17, 2026 at 09:16 AM
+-- Generation Time: Apr 23, 2026 at 12:12 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -55,7 +55,29 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `user_name`, `role`, `action`, `mo
 (31, 1, 'Rahul Sharma', 'Admin', 'DELETE_STATION', 'STATION', 'Deleted station Kasba Peth Fire Station (STN-007)', NULL, '::1', '2026-04-04 13:04:51'),
 (33, 1, 'Rahul Sharma', 'Admin', 'DELETE_VEHICLE', 'VEHICLE', 'Deleted vehicle Rescue Van (MH-12-YD-7781) from station Yerwada Fire Station', NULL, '::1', '2026-04-04 13:08:50'),
 (34, 1, 'Rahul Sharma', 'Admin', 'ASSIGN_PILOT', 'DRONE', 'Assigned pilot (Amit Verma) to drone DRN-001', 2, '::1', '2026-04-08 17:37:38'),
-(35, 2, 'Amit Verma', 'Pilot', 'SCHEDULE_MAINTENANCE', 'MAINTENANCE', 'Scheduled maintenance for drone SkyGuard-02 (DRN-002) at station Katraj Fire Station. Issue: battery replacement. Scheduled date: 2026-04-10', 0, '::1', '2026-04-10 12:44:06');
+(35, 2, 'Amit Verma', 'Pilot', 'SCHEDULE_MAINTENANCE', 'MAINTENANCE', 'Scheduled maintenance for drone SkyGuard-02 (DRN-002) at station Katraj Fire Station. Issue: battery replacement. Scheduled date: 2026-04-10', 0, '::1', '2026-04-10 12:44:06'),
+(38, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-18 09:22:42'),
+(39, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-18 09:22:46'),
+(40, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-18 09:52:41'),
+(41, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-18 11:07:13'),
+(42, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-18 11:07:27'),
+(43, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-02', NULL, '::1', '2026-04-18 12:38:05'),
+(44, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGOUT', 'AUTH', 'User logged out successfully', NULL, '::1', '2026-04-18 12:41:29'),
+(45, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-18 12:44:38'),
+(46, 4, 'Suresh Yadav', 'Fire Station Command Control', 'VIEW', 'INCIDENT', 'Viewed Incident ID: INC-20260115-003', NULL, '::1', '2026-04-18 12:45:05'),
+(47, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-18 12:45:12'),
+(48, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-02', NULL, '::1', '2026-04-18 12:46:30'),
+(49, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGOUT', 'AUTH', 'User logged out successfully', NULL, '::1', '2026-04-18 12:50:32'),
+(50, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-18 12:50:41'),
+(51, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-18 12:51:12'),
+(52, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-18 13:30:21'),
+(53, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-18 13:31:27'),
+(54, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-02', NULL, '::1', '2026-04-18 13:32:28'),
+(55, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-20 12:35:25'),
+(56, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-20 12:35:56'),
+(57, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-01', NULL, '::1', '2026-04-20 12:36:33'),
+(58, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-02', NULL, '::1', '2026-04-20 12:37:19'),
+(59, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGOUT', 'AUTH', 'User logged out successfully', NULL, '::1', '2026-04-20 12:37:39');
 
 -- --------------------------------------------------------
 
@@ -177,7 +199,10 @@ CREATE TABLE `drone_missions` (
 --
 
 INSERT INTO `drone_missions` (`id`, `drone_id`, `incident_id`, `start_time`, `end_time`, `status`, `path_data`, `created_at`) VALUES
-(2, 1, 'INC-20260115-003', '2026-04-14 12:23:31', '2026-04-14 12:24:01', 'completed', NULL, '2026-04-14 06:53:31');
+(5, 2, 'INC-20260115-003', '2026-04-18 18:16:30', NULL, 'started', NULL, '2026-04-18 12:46:30'),
+(6, 2, 'INC-20260115-003', '2026-04-18 19:02:28', NULL, 'started', NULL, '2026-04-18 13:32:28'),
+(7, 1, 'INC-20260115-003', '2026-04-20 18:06:33', NULL, 'started', NULL, '2026-04-20 12:36:33'),
+(8, 2, 'INC-20260115-003', '2026-04-20 18:07:19', NULL, 'started', NULL, '2026-04-20 12:37:19');
 
 -- --------------------------------------------------------
 
@@ -195,6 +220,20 @@ CREATE TABLE `fire_detections` (
   `intensity_level` varchar(50) DEFAULT NULL,
   `location` varchar(100) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `fire_images`
+--
+
+CREATE TABLE `fire_images` (
+  `id` int(11) NOT NULL,
+  `incident_id` varchar(100) DEFAULT NULL,
+  `image_url` text DEFAULT NULL,
+  `confidence` float DEFAULT NULL,
+  `timestamp` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -255,7 +294,7 @@ CREATE TABLE `incidents` (
 INSERT INTO `incidents` (`id`, `name`, `location`, `latitude`, `longitude`, `stationName`, `timeReported`, `status`, `isNewAlert`) VALUES
 ('INC-20251122-001', 'Vehicle Accident & Fire', 'Paud Road, Near Signal, Kothrud', 18.5074, 73.8077, 'Sinhgad Road Fire Station', '2026-04-09 15:25:00', 'new', 1),
 ('INC-20251122-002', 'Warehouse Fire - Industrial Zone', 'Plot No. 45, Industrial Area, Katraj', 18.4445, 73.8521, 'Katraj Fire Station', '2026-04-09 14:10:00', 'completed', 0),
-('INC-20260115-003', 'Residential Building Fire', 'Near Katraj Bus Depot, Pune', 18.454224, 73.858513, 'Katraj Fire Station', '2026-04-10 18:40:00', 'new', 1);
+('INC-20260115-003', 'Residential Building Fire', 'Near Katraj Bus Depot, Pune', 18.454224, 73.858513, 'Katraj Fire Station', '2026-04-10 18:40:00', 'in_progress', 0);
 
 -- --------------------------------------------------------
 
@@ -418,6 +457,12 @@ ALTER TABLE `fire_detections`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `fire_images`
+--
+ALTER TABLE `fire_images`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `fire_station`
 --
 ALTER TABLE `fire_station`
@@ -458,7 +503,7 @@ ALTER TABLE `vehicles`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT for table `drones`
@@ -482,13 +527,19 @@ ALTER TABLE `drone_gps_logs`
 -- AUTO_INCREMENT for table `drone_missions`
 --
 ALTER TABLE `drone_missions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `fire_detections`
 --
 ALTER TABLE `fire_detections`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+
+--
+-- AUTO_INCREMENT for table `fire_images`
+--
+ALTER TABLE `fire_images`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `fire_station`
