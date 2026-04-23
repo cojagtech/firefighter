@@ -9,12 +9,10 @@ $image_url = $data['image_url'];
 $confidence = $data['confidence'];
 $timestamp = $data['timestamp'];
 
-// DB connection
-$conn = new mysqli("localhost", "DB_USER", "DB_PASS", "DB_NAME");
+require_once realpath(__DIR__ . "/../../../config/db.php");
 
 if ($conn->connect_error) {
-    echo json_encode(["status" => "db_error"]);
-    exit;
+    die(json_encode(["success" => false, "error" => "DB Connection Failed"]));
 }
 
 // Insert query
