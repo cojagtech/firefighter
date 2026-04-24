@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import ConfirmDeleteDialog from "@/components/common/ConfirmDeleteDialog";
+import { Button } from "@/components/ui/button";
+import SafeIcon from "@/components/common/SafeIcon";
 import toast from "react-hot-toast";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -83,31 +85,49 @@ export default function UsersTable({ isDark, users, toggleUserStatus, onEdit, on
                 <td className="p-2">{u.station}</td>
 
                 <td className="p-2">
-                                    <button
+                  <Button
+                    variant="view"
+                    size="sm"
                     onClick={() => toggleUserStatus(u)}
-                    className="px-3 py-1 rounded text-xs border border-green-500/50 text-green-500 hover:bg-green-500/10 transition-all duration-200 active:scale-[0.95] disabled:opacity-50"
+                    className={isDark
+                      ? "border-[#14532D] text-[#4ADE80] hover:bg-[#052E16]"
+                      : "border-[#BBF7D0] text-[#16A34A] hover:bg-[#F0FDF4]"
+                    }
                   >
                     {u.active ? "Active" : "Inactive"}
-                  </button>
+                  </Button>
                 </td>
 
                 <td className="p-2">
                   <div className="flex gap-2">
-                                        <button
+                    <Button
+                      variant="edit"
+                      size="sm"
                       onClick={() => onEdit(u.id)}
-                       className="px-3 py-1 rounded text-xs border border-blue-500/50 text-blue-500 hover:bg-blue-500/10 transition-all duration-200 active:scale-[0.95] disabled:opacity-50"
+                      className={isDark
+                        ? "border-[#2E2E2E] text-[#60A5FA] hover:bg-[#1E293B]"
+                        : "border-[#e5e7eb] text-[#2563EB] hover:bg-[#EFF6FF]"
+                      }
                     >
+                      <SafeIcon name="Pencil" size={14} />
                       Edit
-                    </button>
+                    </Button>
 
 
-                    <button
+
+                    <Button
+                      variant="delete"
+                      size="sm"
                       disabled={deletingId === u.id}
                       onClick={() => setConfirmUser(u)}
-                      className="px-3 py-1 rounded text-xs border border-red-500/50 text-red-500 hover:bg-red-500/10 transition-all duration-200 active:scale-[0.95] disabled:opacity-50"
+                      className={isDark
+                        ? "border-[#7F1D1D] text-[#F87171] hover:bg-[#2A0E0E]"
+                        : "border-[#FECACA] text-[#DC2626] hover:bg-[#FEF2F2]"
+                      }
                     >
+                      <SafeIcon name="Trash2" size={14} />
                       {deletingId === u.id ? "Deleting..." : "Delete"}
-                    </button>
+                    </Button>
                   </div>
                 </td>
               </tr>

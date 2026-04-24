@@ -267,7 +267,7 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
                         variant="outline"
                         disabled={!selectedPilot}
                         onClick={reassignPilot}
-                        className="w-full mt-4"
+                        className="w-full mt-4 active:scale-98"
                       >
                         Assign Pilot
                       </Button>
@@ -295,7 +295,9 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
                 {/* Assign Dialog */}
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full">Assign Pilot</Button>
+                    <Button variant="outline" className="w-full active:scale-98">
+                      Assign Pilot
+                    </Button>
                   </DialogTrigger>
                   <DialogContent
                     className="border [&_*]:text-inherit"
@@ -312,7 +314,8 @@ export default function OverviewTab({ selectedDrone, refreshDrone }) {
                       setSelectedPilot={setSelectedPilot}
                     />
                     <Button
-                      className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white"
+                      variant="outline"
+                      className="w-full active:scale-98"
                       disabled={!selectedPilot}
                       onClick={assignPilot}
                     >

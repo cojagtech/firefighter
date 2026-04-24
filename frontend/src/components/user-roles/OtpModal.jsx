@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import SafeIcon from "@/components/common/SafeIcon";
 import toast from "react-hot-toast";
 import { X } from "lucide-react";
 
@@ -65,60 +67,65 @@ export default function OtpModal({ isDark, otpModal, setOtpModal, updateStatus }
       className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-black/50 z-50"
     >
       <div
-  className="p-6 rounded-xl w-[400px] relative"
-  style={{
-    backgroundColor: isDark ? "#1a1d21" : "#ffffff",
-    color: isDark ? "white" : "black",
-  }}
->
-  <button
-    onClick={closeModal}
-    className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-600/30"
-  >
-    <X size={20} className="text-gray-300 hover:text-white" />
-  </button>
+        className="p-6 rounded-xl w-[400px] relative"
+        style={{
+          backgroundColor: isDark ? "#1a1d21" : "#ffffff",
+          color: isDark ? "white" : "black",
+        }}
+      >
+        <button
+          onClick={closeModal}
+          className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-600/30"
+        >
+          <X size={20} className="text-gray-300 hover:text-white" />
+        </button>
 
-  <h2 className="text-xl font-bold mb-4">Deactivate User</h2>
+        <h2 className="text-xl font-bold mb-4">Deactivate User</h2>
 
-  <p className="text-sm mb-2">
-    User: <strong>{otpModal.user?.name}</strong>
-  </p>
+        <p className="text-sm mb-2">
+          User: <strong>{otpModal.user?.name}</strong>
+        </p>
 
-  <label className="text-sm font-medium">Enter Deactivation Reason</label>
-  <textarea
-    className="w-full mt-1 p-2 rounded-lg border border-gray-400 bg-transparent"
-    rows={3}
-    value={reason}
-    onChange={(e) => setReason(e.target.value)}
-  ></textarea>
+        <label className="text-sm font-medium">Enter Deactivation Reason</label>
+        <textarea
+          className="w-full mt-1 p-2 rounded-lg border border-gray-400 bg-transparent"
+          rows={3}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        ></textarea>
 
-  <label className="mt-4 block text-sm font-medium">Enter OTP</label>
-  <input
-    type="text"
-    className="w-full mt-1 p-2 rounded-lg border border-gray-400 bg-transparent"
-    maxLength={6}
-    value={otp}
-    onChange={(e) => setOtp(e.target.value)}
-    placeholder="Enter 6-digit OTP"
-  />
+        <label className="mt-4 block text-sm font-medium">Enter OTP</label>
+        <input
+          type="text"
+          className="w-full mt-1 p-2 rounded-lg border border-gray-400 bg-transparent"
+          maxLength={6}
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+          placeholder="Enter 6-digit OTP"
+        />
 
-  <div className="flex justify-between mt-5">
-    <button
-      onClick={closeModal}
-      className="px-4 py-2 rounded-lg bg-gray-500 hover:bg-gray-600 text-white"
-    >
-      Cancel
-    </button>
+        <div className="flex justify-between mt-5">
+          <Button
+            onClick={closeModal}
+            className="gap-2 border border-[#2E2E2E] hover:bg-[#2c2c2c] active:scale-95"
+            style={{
+              backgroundColor: isDark ? "none" : "#e5e7eb",
+              color: isDark ? "#FAFAFA" : "#111827",
+            }}
+          >
+            Cancel
+          </Button>
 
-    <button
-      onClick={handleDeactivateUser}
-      disabled={loading}
-      className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white"
-    >
-      {loading ? "Processing..." : "Confirm Deactivate"}
-    </button>
-  </div>
-</div>
+          <Button
+            variant="outline"
+            onClick={handleDeactivateUser}
+            disabled={loading}
+            className="bg-[#dc2626]"
+          >
+            {loading ? "Processing..." : "Confirm Deactivate"}
+          </Button>
+        </div>
+      </div>
 
     </div>
   );

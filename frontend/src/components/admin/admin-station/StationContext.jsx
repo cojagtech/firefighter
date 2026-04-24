@@ -4,6 +4,8 @@ import StationsMap from "./StationsMap";
 import AddStationModal from "./AddStationModal";
 import StationFilters from "./StationFilters";
 import StationList from "./StationList";
+import { Button } from "@/components/ui/button";
+import SafeIcon from "@/components/common/SafeIcon";
 
 export default function StationManagement() {
   const [open, setOpen] = useState(false);
@@ -63,17 +65,14 @@ export default function StationManagement() {
           </p>
         </div>
 
-        <button
+        <Button
           onClick={() => setOpen(true)}
-          style={{
-            border: `1px solid ${isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)"}`,
-            color: isDark ? "#ffffff" : "#000000",
-            backgroundColor: "transparent",
-          }}
-          className="px-5 py-2 rounded-lg hover:bg-red-600 hover:!text-white hover:!border-red-600 transition"
+          variant="outline"
+          className="gap-2 active:scale-98"
         >
-          + Add New Station
-        </button>
+          <SafeIcon name="Plus" size={18} /> Add New Station
+        </Button>
+
       </div>
 
       <div ref={mapRef} className="mt-6">

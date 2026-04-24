@@ -268,6 +268,7 @@ export default function VehicleManagement() {
         onUpdated={loadVehicles}
         onView={handleViewVehicle}
         stations={stations}
+        isDark={isDark}
       />
 
       <AddVehicleModal

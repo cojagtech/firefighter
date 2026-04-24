@@ -1,9 +1,6 @@
 <?php
 session_start();
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Headers: Content-Type");
@@ -14,10 +11,12 @@ require_once realpath(__DIR__ . "/../../../config/db.php");
 require_once realpath(__DIR__ . "/../../../helpers/logActivity.php");
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["success" => false, "message" => "Invalid request"]);
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid request"
+    ]);
     exit;
 }
-
 
 $drone_code       = $_POST['drone_code'] ?? '';
 $flight_hours     = $_POST['flight_hours'] ?? null;
@@ -25,8 +24,21 @@ $health_status    = $_POST['health_status'] ?? '';
 $firmware_version = $_POST['firmware_version'] ?? '';
 $status           = $_POST['status'] ?? '';
 
+/* ---------- REQUIRED ---------- */
 if (!$drone_code) {
-    echo json_encode(["success" => false, "message" => "Drone code missing"]);
+    echo json_encode([
+        "success" => false,
+        "message" => "Drone code required"
+    ]);
+    exit;
+}
+
+/* ---------- VALIDATION ---------- */
+if ($flight_hours !== null && $flight_hours < 0) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid flight hours"
+    ]);
     exit;
 }
 
@@ -39,8 +51,9 @@ $logUser = $_SESSION["user"] ?? [
 try {
     $conn->begin_transaction();
 
+    /* ---------- FETCH OLD DATA ---------- */
     $oldStmt = $conn->prepare("
-        SELECT flight_hours, health_status, firmware_version, status
+        SELECT drone_name, flight_hours, health_status, firmware_version, status
         FROM drones
         WHERE drone_code = ?
     ");
@@ -49,6 +62,11 @@ try {
     $oldData = $oldStmt->get_result()->fetch_assoc();
     $oldStmt->close();
 
+    if (!$oldData) {
+        throw new Exception("Drone not found");
+    }
+
+    /* ---------- UPDATE ---------- */
     $stmt = $conn->prepare("
         UPDATE drones 
         SET 
@@ -69,45 +87,54 @@ try {
     );
 
     if (!$stmt->execute()) {
-        throw new Exception("Update failed");
+        throw new Exception($stmt->error);
     }
 
     $stmt->close();
 
+    /* ---------- CHANGE LOG (DETAILED) ---------- */
     $descParts = [];
 
-    if ($oldData) {
-        if ($oldData['flight_hours'] != $flight_hours) {
-            $descParts[] = "flight_hours: {$oldData['flight_hours']} → $flight_hours";
-        }
-        if ($oldData['health_status'] !== $health_status) {
-            $descParts[] = "health_status: {$oldData['health_status']} → $health_status";
-        }
-        if ($oldData['firmware_version'] !== $firmware_version) {
-            $descParts[] = "firmware_version: {$oldData['firmware_version']} → $firmware_version";
-        }
-        if ($oldData['status'] !== $status) {
-            $descParts[] = "status: {$oldData['status']} → $status";
-        }
+    if ($oldData['flight_hours'] != $flight_hours) {
+        $descParts[] = "flight_hours: {$oldData['flight_hours']} → {$flight_hours}";
     }
 
-    $description = "Updated drone $drone_code";
+    if ($oldData['health_status'] !== $health_status) {
+        $descParts[] = "health_status: {$oldData['health_status']} → {$health_status}";
+    }
+
+    if ($oldData['firmware_version'] !== $firmware_version) {
+        $descParts[] = "firmware_version: {$oldData['firmware_version']} → {$firmware_version}";
+    }
+
+    if ($oldData['status'] !== $status) {
+        $descParts[] = "status: {$oldData['status']} → {$status}";
+    }
+
+    /* ---------- BUILD DESCRIPTION ---------- */
     if (!empty($descParts)) {
-        $description .= " (" . implode(", ", $descParts) . ")";
-    }
 
-    logActivity(
-        $conn,
-        $logUser,
-        "UPDATE_DRONE",
-        "DRONE",
-        $description,
-        null
-    );
+        $drone_name = $oldData['drone_name'] ?? '';
+
+        $description = "Updated drone {$drone_name} ({$drone_code}):\n"
+            . implode("\n", $descParts);
+
+        logActivity(
+            $conn,
+            $logUser,
+            "UPDATE_DRONE",
+            "DRONE",
+            $description,
+            null
+        );
+    }
 
     $conn->commit();
 
-    echo json_encode(["success" => true]);
+    echo json_encode([
+        "success" => true,
+        "message" => "Drone updated successfully"
+    ]);
 
 } catch (Exception $e) {
 
@@ -116,6 +143,7 @@ try {
     echo json_encode([
         "success" => false,
         "message" => "Server error"
+        // for debugging: $e->getMessage()
     ]);
 }
 

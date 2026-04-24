@@ -181,6 +181,13 @@ body {
 .val.mono { font-family: 'Courier New', Courier, monospace; font-size: 10.5px; color: #003366; }
 .val.accent { color: #FF6200; }
 
+.info-tbl td .val,
+.info-tbl td .val.mono {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
 /* Firefighter list */
 .ff-list { padding: 5px 8px 7px; font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #111827; line-height: 1.8; }
 .ff-item { display: inline-block; margin-right: 20px; }
@@ -468,24 +475,29 @@ body {
         <div class="no-gps">NO GPS DATA LOGGED FOR THIS MISSION YET</div>
         <?php endif; ?>
 
-        <!-- F. Drone Action Logs -->
+<!-- F. Drone Action Logs -->
 <div class="sec-hdr">F. &nbsp; Drone Action Logs</div>
 
 <?php if (!empty($actionLogs)): ?>
-<table class="info-tbl">
+<table class="info-tbl" style="table-layout:fixed; width:100%;">
+    <colgroup>
+        <col style="width:20%">
+        <col style="width:15%">
+        <col style="width:20%">
+        <col style="width:45%">
+    </colgroup>
     <tr>
-        <td style="width:20%"><span class="lbl">Time</span></td>
-        <td style="width:15%"><span class="lbl">IP</span></td>
-        <td style="width:25%"><span class="lbl">Action</span></td>
-        <td style="width:40%"><span class="lbl">Response</span></td>
+        <td><span class="lbl">Time</span></td>
+        <td><span class="lbl">IP</span></td>
+        <td><span class="lbl">Action</span></td>
+        <td><span class="lbl">Response</span></td>
     </tr>
-
     <?php foreach ($actionLogs as $log): ?>
     <tr>
-        <td><span class="val mono"><?= htmlspecialchars($log['timestamp']) ?></span></td>
-        <td><span class="val mono"><?= htmlspecialchars($log['ip']) ?></span></td>
-        <td><span class="val"><?= htmlspecialchars($log['action']) ?></span></td>
-        <td><span class="val"><?= htmlspecialchars($log['response']) ?></span></td>
+        <td><span class="val mono" style="word-break:break-all;"><?= htmlspecialchars($log['timestamp']) ?></span></td>
+        <td><span class="val mono" style="word-break:break-all;"><?= htmlspecialchars($log['ip']) ?></span></td>
+        <td><span class="val" style="word-break:break-word;"><?= htmlspecialchars($log['action']) ?></span></td>
+        <td><span class="val" style="word-break:break-word; overflow-wrap:break-word;"><?= htmlspecialchars($log['response']) ?></span></td>
     </tr>
     <?php endforeach; ?>
 </table>

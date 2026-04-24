@@ -10,6 +10,7 @@ import {
   Stack,
   Chip,
 } from "@mui/material";
+import toast, { Toaster } from "react-hot-toast";
 
 import CheckIcon from "@mui/icons-material/Check";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -66,27 +67,35 @@ export default function ConfirmForwardIncidence() {
   const handleFinalConfirm = async () => {
     const decodedStation = decodeURIComponent(stationName);
 
-    await fetch(`${API}/forward_incident.php`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        incidentId,
-        stationName: decodedStation,
+    try {
+      const res = await fetch(`${API}/forward_incident.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          incidentId,
+          stationName: decodedStation,
+        }),
+      });
 
-      }),
-    });
+      if (!res.ok) throw new Error("Failed to forward incident");
 
-    await logActivity(
-      "CONFIRM_FORWARD",
-      `Confirmed and shared incident to ${decodedStation}`,
-      incidentId
-    );
+      await logActivity(
+        "CONFIRM_FORWARD",
+        `Confirmed and shared incident to ${decodedStation}`,
+        incidentId
+      );
 
+      toast.success("Incident forwarded successfully");
 
-    alert("Incident forwarded successfully");
-    navigate("/fire-fighter-dashboard");
+      setTimeout(() => {
+        navigate("/fire-fighter-dashboard");
+      }, 1500);
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong while forwarding");
+    }
   };
-
   return (
     <Box
       sx={{

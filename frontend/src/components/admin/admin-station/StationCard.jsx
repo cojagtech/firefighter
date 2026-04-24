@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import SafeIcon from "@/components/common/SafeIcon";
 
 export default function StationCard({ station, onViewMap, onEditStation, onDeleteStation }) {
   const [isDark, setIsDark] = useState(
@@ -52,41 +54,44 @@ export default function StationCard({ station, onViewMap, onEditStation, onDelet
         </span>
 
         <div className="flex gap-2">
-          <button
+          <Button
             onClick={() => onViewMap && onViewMap(station)}
-            style={{
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.2)" : "#e2e8f0"}`,
-              color: isDark ? "#ffffff" : "#000000",
-              backgroundColor: "transparent",
-            }}
-            className="px-4 py-2 rounded-lg hover:bg-red-600 hover:!text-white hover:!border-red-600 transition"
+            variant="edit"
+            size="sm"
+            className={isDark
+              ? "border-[#14532D] text-[#4ADE80] hover:bg-[#052E16]"
+              : "border-[#BBF7D0] text-[#16A34A] hover:bg-[#F0FDF4]"
+            }
           >
+            <SafeIcon name="Eye" size={14} />
             View on Map
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="edit"
+            size="sm"
             onClick={() => onEditStation && onEditStation(station)}
-            style={{
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.2)" : "#e2e8f0"}`,
-              color: isDark ? "#ffffff" : "#000000",
-              backgroundColor: "transparent",
-            }}
-            className="px-4 py-2 rounded-lg hover:bg-red-600 hover:!text-white hover:!border-red-600 transition"
+            className={isDark
+              ? "border-[#2E2E2E] text-[#60A5FA] hover:bg-[#1E293B]"
+              : "border-[#e5e7eb] text-[#2563EB] hover:bg-[#EFF6FF]"
+            }
           >
+            <SafeIcon name="Pencil" size={14} />
             Edit
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="delete"
+            size="sm"
             onClick={() => onDeleteStation && onDeleteStation(station)}
-            style={{
-              border: `1px solid rgba(239,68,68,0.4)`,
-              color: "#ef4444",
-              backgroundColor: "transparent",
-            }}
-            className="px-4 py-2 rounded-lg hover:bg-red-600 hover:!text-white hover:!border-red-600 transition"
+            className={isDark
+              ? "border-[#7F1D1D] text-[#F87171] hover:bg-[#2A0E0E]"
+              : "border-[#FECACA] text-[#DC2626] hover:bg-[#FEF2F2]"
+            }
           >
+            <SafeIcon name="Trash2" size={14} />
             Delete
-          </button>
+          </Button>
         </div>
       </div>
     </div>

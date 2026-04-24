@@ -16,6 +16,7 @@ export default function VehicleList({
   onUpdated,
   onView,
   stations = [],
+  isDark,
 }) {
   const [vehicles, setVehicles] = useState(initialVehicles);
   const [editVehicle, setEditVehicle] = useState(null);
@@ -146,9 +147,12 @@ export default function VehicleList({
                   <div className="flex gap-2 mt-2">
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="view"
                       onClick={() => onView(vehicle)}
-                      className="gap-1"
+                      className={isDark
+                        ? "border-[#14532D] text-[#4ADE80] hover:bg-[#052E16]"
+                        : "border-[#BBF7D0] text-[#16A34A] hover:bg-[#F0FDF4]"
+                      }
                     >
                       <SafeIcon name="Eye" size={14} />
                       View
@@ -156,18 +160,27 @@ export default function VehicleList({
 
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="edit"
                       onClick={() => setEditVehicle(vehicle)}
+                      className={isDark
+                        ? "border-[#2E2E2E] text-[#60A5FA] hover:bg-[#1E293B]"
+                        : "border-[#e5e7eb] text-[#2563EB] hover:bg-[#EFF6FF]"
+                      }
                     >
+                      <SafeIcon name="Pencil" size={14} />
                       Edit
                     </Button>
 
+
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="delete"
                       disabled={deletingId === vehicle.id}
                       onClick={() => setConfirmVehicle(vehicle)}
-                      className="gap-1 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500"
+                      className={isDark
+                        ? "border-[#7F1D1D] text-[#F87171] hover:bg-[#2A0E0E]"
+                        : "border-[#FECACA] text-[#DC2626] hover:bg-[#FEF2F2]"
+                      }
                     >
                       <SafeIcon name="Trash2" size={14} />
                       {deletingId === vehicle.id ? "Deleting..." : "Delete"}

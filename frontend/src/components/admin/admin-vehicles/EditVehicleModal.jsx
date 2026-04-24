@@ -1,56 +1,80 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  MenuItem,
-  Button,
-  Autocomplete,
-} from "@mui/material";
+import { FormModal, FormField, FormSelect, FormAutocomplete } from "../../ui/Form";
 import toast from "react-hot-toast";
+
+const DEVICE_PREFIX = "VTS-";
+
+const STATUS_OPTIONS = [
+  { value: "available", label: "Available" },
+  { value: "busy", label: "Busy" },
+  { value: "on-mission", label: "On Mission" },
+  { value: "maintenance", label: "Maintenance" },
+];
 
 export default function EditVehicleModal({
   open,
   onClose,
   vehicle,
   onUpdate,
-  stations = [],
+  stations = []
 }) {
   const [formData, setFormData] = useState(null);
+  const [initialData, setInitialData] = useState(null);
   const [isDirty, setIsDirty] = useState(false);
-
+  const [error, setError] = useState("");
   const originalRef = useRef(null);
-
-  // Theme observer
-  const [isDark, setIsDark] = useState(
-    document.documentElement.classList.contains("dark")
-  );
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDark(document.documentElement.classList.contains("dark"));
-    });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     if (!vehicle) return;
-    const safeVehicle = { ...vehicle, station: vehicle.station || "" };
-    setFormData(safeVehicle);
-    originalRef.current = JSON.stringify(safeVehicle);
+
+    const safe = {
+      ...vehicle,
+      device_id: vehicle.device_id || DEVICE_PREFIX,
+      station: vehicle.station || "",
+    };
+
+    setFormData(safe);
+    setInitialData(safe);
+    originalRef.current = JSON.stringify(safe);
     setIsDirty(false);
+    setError("");
   }, [vehicle]);
 
   if (!formData) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setError("");
+
+    // ✅ DEVICE ID LOGIC
+    if (name === "device_id") {
+      let val = value.toUpperCase();
+
+      if (!val.startsWith(DEVICE_PREFIX)) {
+        val = DEVICE_PREFIX + val.replace(DEVICE_PREFIX, "");
+      }
+
+      if (val.length < DEVICE_PREFIX.length) {
+        val = DEVICE_PREFIX;
+      }
+
+      const suffix = val.slice(DEVICE_PREFIX.length);
+
+      if (!/^[A-Z0-9\-]*$/.test(suffix)) {
+        setError("Only letters, numbers and '-' allowed");
+        return;
+      }
+
+      const updated = {
+        ...formData,
+        device_id: DEVICE_PREFIX + suffix,
+      };
+
+      setFormData(updated);
+      setIsDirty(JSON.stringify(updated) !== originalRef.current);
+      return;
+    }
+
     const updated = { ...formData, [name]: value };
     setFormData(updated);
     setIsDirty(JSON.stringify(updated) !== originalRef.current);
@@ -59,225 +83,91 @@ export default function EditVehicleModal({
   const saveChanges = async () => {
     if (!isDirty) return;
 
-    const res = await onUpdate(formData);
+    const suffix = formData.device_id.replace(DEVICE_PREFIX, "");
 
-    if (!res?.success) {
-      toast.error(res?.message || "Vehicle update failed");
+    if (!suffix) {
+      setError("Device ID cannot be empty");
       return;
     }
 
-    toast.success("Vehicle updated successfully 🚗");
-    onClose();
+    if (!/^(?=.*[0-9])[A-Z0-9\-]+$/.test(suffix)) {
+      setError("Device ID must contain at least one number");
+      return;
+    }
+
+    try {
+      const res = await onUpdate(formData);
+
+      if (!res?.success) {
+        setError(res?.message || "Vehicle update failed");
+        return;
+      }
+
+      toast.success("Vehicle updated successfully");
+      onClose();
+    } catch {
+      setError("Server error");
+    }
   };
-
-  // Theme-aware MUI styles
-  const inputBg = isDark ? "#151619" : "#ffffff";
-  const inputColor = isDark ? "#e3e3e3" : "#111827";
-  const borderColor = isDark ? "#2a2b2e" : "#e2e8f0";
-  const labelColor = isDark ? "#9ea2a7" : "#6b7280";
-  const disabledBg = isDark ? "#101114" : "#f3f4f6";
-  const disabledColor = isDark ? "#777" : "#9ca3af";
-
-  const inputStyle = {
-    "& .MuiOutlinedInput-root": {
-      background: inputBg,
-      color: inputColor,
-      borderRadius: "10px",
-      "& fieldset": { borderColor: borderColor },
-      "&:hover fieldset": { borderColor: "#ef4444" },
-      "&.Mui-focused fieldset": {
-        borderColor: "#ef4444",
-        boxShadow: "0 0 6px rgba(239,68,68,.6)",
-      },
-      "&.Mui-disabled": {
-        background: disabledBg,
-        color: disabledColor,
-      },
-    },
-    "& label": { color: labelColor },
-    "& label.Mui-focused": { color: "#ef4444" },
-    "& .MuiInputBase-input.Mui-disabled": {
-      WebkitTextFillColor: disabledColor,
-    },
-  };
-
-  const stationOptions = Array.isArray(stations) ? stations : [];
 
   return (
-    <Dialog
+    <FormModal
       open={open}
       onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      PaperProps={{
-        sx: {
-          background: isDark ? "#111214" : "#ffffff",
-          color: isDark ? "#ffffff" : "#000000",
-          borderRadius: "14px",
-          border: `1px solid ${isDark ? "#1d1e21" : "#e2e8f0"}`,
-          boxShadow: isDark
-            ? "0 0 18px rgba(0,0,0,.6)"
-            : "0 0 18px rgba(0,0,0,.1)",
-        },
-      }}
+      title={`Edit Vehicle | ${formData.name}`}
+      onSubmit={saveChanges}
+      submitLabel="Update"
+      loadingLabel="Updating..."
+      disabled={!isDirty || !!error}
+      error={error}
     >
-      <DialogTitle
-        sx={{
-          borderBottom: `1px solid ${isDark ? "#25262a" : "#e2e8f0"}`,
-          pb: 2,
-          fontWeight: 600,
-          color: isDark ? "#ffffff" : "#000000",
+      <FormField
+        label="Vehicle Name"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+      />
+
+      <FormField
+        label="Type"
+        name="type"
+        value={formData.type}
+        onChange={handleChange}
+      />
+
+      <FormField
+        label="Registration No"
+        name="registration"
+        value={formData.registration}
+        disabled
+      />
+
+      <FormField
+        label="Device ID"
+        name="device_id"
+        value={formData.device_id}
+        disabled
+      />
+
+      <FormAutocomplete
+        label="Search Station"
+        options={Array.isArray(stations) ? stations : []}
+        value={formData.station}
+        onChange={(val) => {
+          setError("");
+          const updated = { ...formData, station: val };
+          setFormData(updated);
+          setIsDirty(JSON.stringify(updated) !== originalRef.current);
         }}
-      >
-        ✏ Edit Vehicle -{" "}
-        <span style={{ color: "#ef4444" }}>{formData.name}</span>
-      </DialogTitle>
+      />
 
-      <DialogContent sx={{ py: 2 }}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-          <TextField
-            label="Vehicle Name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            sx={inputStyle}
-            fullWidth
-          />
-
-          <TextField
-            label="Type"
-            name="type"
-            value={formData.type}
-            onChange={handleChange}
-            sx={inputStyle}
-            fullWidth
-          />
-
-          <TextField
-            label="Registration No"
-            name="registration"
-            value={formData.registration}
-            sx={inputStyle}
-            fullWidth
-            disabled
-          />
-
-          <TextField
-            label="Device ID"
-            name="device_id"
-            value={formData.device_id}
-            onChange={handleChange}
-            sx={inputStyle}
-            fullWidth
-          />
-
-          <Autocomplete
-            options={stationOptions}
-            getOptionLabel={(option) =>
-              typeof option === "string" ? option : option.name
-            }
-            value={
-              stationOptions.find(
-                (st) =>
-                  (typeof st === "string" ? st : st.name) === formData.station
-              ) || null
-            }
-            onChange={(event, newValue) => {
-              const selected =
-                typeof newValue === "string" ? newValue : newValue?.name || "";
-              const updated = { ...formData, station: selected };
-              setFormData(updated);
-              setIsDirty(JSON.stringify(updated) !== originalRef.current);
-            }}
-            disableClearable
-            ListboxProps={{
-              sx: {
-                maxHeight: 48 * 3,
-                background: isDark ? "#1a1b1f" : "#ffffff",
-                color: isDark ? "#ffffff" : "#000000",
-                "& .MuiAutocomplete-option": {
-                  "&:hover": {
-                    background: isDark ? "#2a2b2e" : "#f3f4f6",
-                  },
-                  "&.Mui-focused": {
-                    background: isDark ? "#2a2b2e" : "#f3f4f6",
-                  },
-                },
-              },
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Search Station"
-                placeholder="Type to search..."
-                sx={inputStyle}
-                fullWidth
-              />
-            )}
-          />
-
-          <TextField
-            select
-            label="Status"
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            sx={inputStyle}
-            SelectProps={{
-              MenuProps: {
-                PaperProps: {
-                  sx: {
-                    background: isDark ? "#1a1b1f" : "#ffffff",
-                    color: isDark ? "#ffffff" : "#000000",
-                    border: `1px solid ${isDark ? "#2a2b2e" : "#e2e8f0"}`,
-                    "& .MuiMenuItem-root": {
-                      "&:hover": {
-                        background: isDark ? "#2a2b2e" : "#f3f4f6",
-                      },
-                    },
-                  },
-                },
-              },
-            }}
-          >
-            <MenuItem value="available">Available</MenuItem>
-            <MenuItem value="busy">Busy</MenuItem>
-            <MenuItem value="on-mission">On Mission</MenuItem>
-            <MenuItem value="maintenance">Maintenance</MenuItem>
-          </TextField>
-        </div>
-      </DialogContent>
-
-      <DialogActions
-        sx={{
-          borderTop: `1px solid ${isDark ? "#25262a" : "#e2e8f0"}`,
-          p: 2,
-        }}
-      >
-        <Button
-          onClick={onClose}
-          sx={{ color: isDark ? "#a1a1a1" : "#6b7280" }}
-        >
-          Cancel
-        </Button>
-
-        <Button
-          variant="contained"
-          onClick={saveChanges}
-          disabled={!isDirty}
-          sx={{
-            background: isDirty ? "#ef4444" : isDark ? "#444" : "#e5e7eb",
-            color: isDirty ? "#ffffff" : isDark ? "#ffffff" : "#9ca3af",
-            px: 4,
-            cursor: isDirty ? "pointer" : "not-allowed",
-            "&:hover": {
-              background: isDirty ? "#dc2626" : isDark ? "#444" : "#e5e7eb",
-            },
-          }}
-        >
-          Update
-        </Button>
-      </DialogActions>
-    </Dialog>
+      <FormSelect
+        label="Status"
+        name="status"
+        value={formData.status}
+        onChange={handleChange}
+        options={STATUS_OPTIONS}
+      />
+    </FormModal>
   );
 }

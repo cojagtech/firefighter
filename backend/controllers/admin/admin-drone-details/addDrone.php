@@ -12,23 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(["success" => false]);
-    exit;
-}
-
 require_once realpath(__DIR__ . "/../../../config/db.php");
 require_once realpath(__DIR__ . "/../../../helpers/logActivity.php");
 
-function fail(int $code = 400): void {
-    http_response_code($code);
-    echo json_encode(["success" => false]);
-    exit;
-}
-
 $data = $_POST;
 
+/* ---------- REQUIRED FIELDS ---------- */
 $required = [
     'drone_code',
     'drone_name',
@@ -42,17 +31,38 @@ $required = [
 
 foreach ($required as $field) {
     if (!isset($data[$field]) || $data[$field] === '') {
-        fail(422);
+        echo json_encode([
+            "success" => false,
+            "message" => "Please fill all required fields"
+        ]);
+        exit;
     }
 }
 
-$flightHours = (float) $data['flight_hours'];
+/* ---------- VALIDATION ---------- */
+
+// Drone code must be alphanumeric
+if (!preg_match("/^DRN-?\d+$/", $data['drone_code'])) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Drone code must be alphanumeric"
+    ]);
+    exit;
+}
+
+// Flight hours
+$flightHours = (float)$data['flight_hours'];
 if ($flightHours < 0) {
-    fail(422);
+    echo json_encode([
+        "success" => false,
+        "message" => "Flight hours cannot be negative"
+    ]);
+    exit;
 }
 
 $isReady = ((string)$data['is_ready'] === "1") ? 1 : 0;
 
+/* ---------- USER ---------- */
 $logUser = $_SESSION["user"] ?? [
     "id" => null,
     "fullName" => "SYSTEM",
@@ -62,6 +72,7 @@ $logUser = $_SESSION["user"] ?? [
 try {
     $conn->begin_transaction();
 
+    /* ---------- DUPLICATE CHECK ---------- */
     $check = $conn->prepare(
         "SELECT id FROM drones WHERE drone_code = ? LIMIT 1"
     );
@@ -70,10 +81,15 @@ try {
     $check->store_result();
 
     if ($check->num_rows > 0) {
-        fail(409);
+        echo json_encode([
+            "success" => false,
+            "message" => "Drone code already exists"
+        ]);
+        exit;
     }
     $check->close();
 
+    /* ---------- INSERT ---------- */
     $stmt = $conn->prepare(
         "INSERT INTO drones
         (drone_code, drone_name, status, flight_hours, health_status, firmware_version, is_ready, station)
@@ -98,28 +114,28 @@ try {
 
     $stmt->close();
 
+    /* ---------- LOG ---------- */
     logActivity(
         $conn,
         $logUser,
         "ADD_DRONE",
         "DRONE",
-        "Added new drone {$data['drone_name']} ({$data['drone_code']}) at station {$data['station']}",
+        "Added drone {$data['drone_name']} ({$data['drone_code']}) at {$data['station']} .",
         null
     );
 
-
     $conn->commit();
 
-    echo json_encode(["success" => true]);
+    echo json_encode([
+        "success" => true,
+        "message" => "Drone added successfully"
+    ]);
 
 } catch (Throwable $e) {
     $conn->rollback();
 
-    http_response_code(500);
     echo json_encode([
         "success" => false,
-        "error" => $e->getMessage(),
-        "file" => $e->getFile(),
-        "line" => $e->getLine()
+        "message" => "Server error"
     ]);
 }

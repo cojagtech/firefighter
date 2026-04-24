@@ -110,10 +110,11 @@ export default function SOPManagementPage() {
           </p>
         </div>
 
-        <Button onClick={() => (window.location.href = './create-sop.html')} className="gap-2">
+        <Button variant="outline" onClick={() => (window.location.href = './create-sop.html')} className="gap-2 active:scale-98">
           <SafeIcon name="Plus" size={18} />
           Create New SOP
         </Button>
+
       </div>
 
       {/* Filters */}

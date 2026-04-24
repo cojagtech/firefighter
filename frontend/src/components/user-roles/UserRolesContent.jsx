@@ -5,6 +5,8 @@ import UserFilters from "./UserFilters";
 import UsersTable from "./UsersTable";
 import OtpModal from "./OtpModal";
 import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
+import SafeIcon from "@/components/common/SafeIcon";
 
 export default function UserRoleManagementPage() {
   const { isDark } = useTheme();
@@ -216,15 +218,10 @@ export default function UserRoleManagementPage() {
           User Management
         </h1>
 
-        <button
-          onClick={handleAddUser}
-          className={`px-8 py-2 text-white rounded-md border border-gray-700 ${isDark
-              ? "bg-black-800 hover:bg-red-600"
-              : "bg-black hover:bg-red-600"
-            }`}
-        >
-          Add User
-        </button>
+        <Button variant="outline" onClick={handleAddUser} className="gap-2 active:scale-98">
+          <SafeIcon name="Plus" size={18} /> Add New User
+        </Button>
+
       </div>
 
       <UserFilters
@@ -240,7 +237,7 @@ export default function UserRoleManagementPage() {
         loading={loading}
         toggleUserStatus={toggleUserStatus}
         onEdit={handleEditUser}
-        onDeleted={fetchUsers} 
+        onDeleted={fetchUsers}
       />
 
       {totalPages > 1 && (
@@ -260,8 +257,8 @@ export default function UserRoleManagementPage() {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`px-3 py-1 rounded text-sm border ${currentPage === page
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-black"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-black"
                   }`}
               >
                 {page}

@@ -4,6 +4,8 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import AddDroneDialog from "@/components/admin/drone-details/AddDroneDialog";
 import EditDroneDialog from "@/components/admin/drone-details/EditDroneDialog";
+import { Button } from "@/components/ui/button";
+import SafeIcon from "@/components/common/SafeIcon";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -122,14 +124,14 @@ export default function DronesList() {
     const q = search.toLowerCase();
 
     return (
-        !q ||
-        d.drone_name?.toLowerCase().includes(q) ||
-        d.drone_code?.toLowerCase().includes(q) ||
-        d.status?.toLowerCase().includes(q) ||
-        d.station?.toLowerCase().includes(q) ||
-        d.station_name?.toLowerCase().includes(q)
+      !q ||
+      d.drone_name?.toLowerCase().includes(q) ||
+      d.drone_code?.toLowerCase().includes(q) ||
+      d.status?.toLowerCase().includes(q) ||
+      d.station?.toLowerCase().includes(q) ||
+      d.station_name?.toLowerCase().includes(q)
     );
-    });
+  });
 
   const inputStyle = {
     backgroundColor: isDark ? "#141414" : "#ffffff",
@@ -151,24 +153,26 @@ export default function DronesList() {
 
         <div className="flex gap-3">
           {/* Add Drone Button */}
-          <button
+          <Button
+            variant="outline"
             onClick={() => setIsAddDialogOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#dc2626] text-white"
+            className="gap-2 active:scale-98"
           >
             <Plus size={16} />
             Add Drone
-          </button>
+          </Button>
           {/* Back Button */}
-          <button
+          <Button
             onClick={() => navigate("/drones")}
-            className="px-4 py-2 rounded-lg border border-[#2E2E2E] text-sm font- hover:bg-[#2c2c2c] active:scale-95"
+            className="gap-2 border border-[#2E2E2E] hover:bg-[#2c2c2c] active:scale-95"
             style={{
               backgroundColor: isDark ? "none" : "#e5e7eb",
               color: isDark ? "#FAFAFA" : "#111827",
             }}
           >
-            ← Back
-          </button>
+            <SafeIcon name="ArrowLeft" size={16} /> Back
+          </Button>
+
         </div>
       </div>
 
@@ -237,9 +241,8 @@ export default function DronesList() {
                 key={drone.drone_code}
                 className="transition-colors"
                 style={{
-                  borderTop: `1px solid ${
-                    isDark ? "#2E2E2E" : "#e5e7eb"
-                  }`,
+                  borderTop: `1px solid ${isDark ? "#2E2E2E" : "#e5e7eb"
+                    }`,
                 }}
               >
                 <td className="px-4 py-3">{drone.drone_name}</td>
@@ -251,77 +254,35 @@ export default function DronesList() {
                 <td>
                   <div className="px-4 py-3 flex gap-2 justify-end">
                     {/* Edit Button */}
-                    <button
-                        onClick={() => {
+                    <Button
+                      variant="edit"
+                      size="sm"
+                      className={isDark
+                        ? "border-[#2E2E2E] text-[#60A5FA] hover:bg-[#1E293B]"
+                        : "border-[#e5e7eb] text-[#2563EB] hover:bg-[#EFF6FF]"
+                      }
+                      onClick={() => {
                         setEditingDrone(drone);
                         setIsEditDialogOpen(true);
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200"
-                        style={{
-                        borderColor: isDark ? "#2E2E2E" : "#e5e7eb",
-                        color: isDark ? "#60A5FA" : "#2563EB",
-                        backgroundColor: "transparent",
-                        }}
-                        onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = isDark
-                            ? "#1E293B"
-                            : "#EFF6FF";
-                        }}
-                        onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                        }}
+                      }}
                     >
-                        {/* Icon */}
-                        <svg
-                        className="w-3.5 h-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                        </svg>
-                        Edit
-                    </button>
+                      <SafeIcon name="Pencil" size={14} />
+                      Edit
+                    </Button>
 
                     {/* Delete Button */}
-                    <button
-                        onClick={() => handleDelete(drone)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200"
-                        style={{
-                        borderColor: isDark ? "#7F1D1D" : "#FECACA",
-                        color: isDark ? "#F87171" : "#DC2626",
-                        backgroundColor: "transparent",
-                        }}
-                        onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = isDark
-                            ? "#2A0E0E"
-                            : "#FEF2F2";
-                        }}
-                        onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                        }}
+                    <Button
+                      variant="delete"
+                      size="sm"
+                      className={isDark
+                        ? "border-[#7F1D1D] text-[#F87171] hover:bg-[#2A0E0E]"
+                        : "border-[#FECACA] text-[#DC2626] hover:bg-[#FEF2F2]"
+                      }
+                      onClick={() => handleDelete(drone)}
                     >
-                        {/* Icon */}
-                        <svg
-                        className="w-3.5 h-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6"
-                        />
-                        </svg>
-                        Delete
-                    </button>
+                      <SafeIcon name="Trash2" size={14} />
+                      Delete
+                    </Button>
                   </div>
                 </td>
               </tr>

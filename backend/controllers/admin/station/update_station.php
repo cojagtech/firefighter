@@ -14,71 +14,151 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 require_once realpath(__DIR__ . "/../../../config/db.php");
 require_once realpath(__DIR__ . "/../../../helpers/logActivity.php");
 
-$data = json_decode(file_get_contents("php://input"), true);
+$raw  = file_get_contents("php://input");
+$data = json_decode($raw, true);
 
-$id   = intval($data['id'] ?? 0);
-$name = trim($data['stationName'] ?? '');
-$lat  = isset($data['lat']) ? floatval($data['lat']) : 0;
-$lng  = isset($data['lng']) ? floatval($data['lng']) : 0;
-
-if (!$id || !$name || !$lat || !$lng) {
-    echo json_encode(["status" => false, "message" => "Missing fields"]);
+if (!$data) {
+    echo json_encode(["status" => false, "message" => "Invalid request"]);
     exit;
 }
 
-/* ================= GET OLD DATA FOR LOG ================= */
-$oldStmt = $conn->prepare("SELECT station_name, latitude, longitude FROM fire_station WHERE id=?");
+$id   = intval($data['id'] ?? 0);
+$name = trim($data['stationName'] ?? '');
+$lat  = $data['lat'] ?? null;
+$lng  = $data['lng'] ?? null;
+
+/* ---------- VALIDATION ---------- */
+if (!$id) {
+    echo json_encode(["status" => false, "message" => "Station ID is required"]);
+    exit;
+}
+
+if (!$name) {
+    echo json_encode(["status" => false, "message" => "Station name is required"]);
+    exit;
+}
+
+if ($lat === null || $lng === null || !is_numeric($lat) || !is_numeric($lng)) {
+    echo json_encode(["status" => false, "message" => "Valid coordinates are required"]);
+    exit;
+}
+
+$lat = floatval($lat);
+$lng = floatval($lng);
+
+/* ---------- FETCH OLD DATA ---------- */
+$oldStmt = $conn->prepare("
+    SELECT station_name, station_code, latitude, longitude 
+    FROM fire_station 
+    WHERE id = ?
+");
 $oldStmt->bind_param("i", $id);
 $oldStmt->execute();
-$oldResult = $oldStmt->get_result()->fetch_assoc();
+$oldData = $oldStmt->get_result()->fetch_assoc();
 $oldStmt->close();
 
-$stmt = $conn->prepare("UPDATE fire_station SET station_name=?, latitude=?, longitude=? WHERE id=?");
+if (!$oldData) {
+    echo json_encode(["status" => false, "message" => "Station not found"]);
+    exit;
+}
+
+/* ---------- NO CHANGE CHECK ---------- */
+if (
+    $oldData['station_name'] === $name &&
+    floatval($oldData['latitude']) === $lat &&
+    floatval($oldData['longitude']) === $lng
+) {
+    echo json_encode([
+        "status" => false,
+        "message" => "No changes detected"
+    ]);
+    exit;
+}
+
+/* ---------- DUPLICATE NAME CHECK ---------- */
+$stmt = $conn->prepare("
+    SELECT id FROM fire_station 
+    WHERE station_name = ? AND id != ?
+");
+$stmt->bind_param("si", $name, $id);
+$stmt->execute();
+
+if ($stmt->get_result()->num_rows > 0) {
+    echo json_encode(["status" => false, "message" => "Station name already exists"]);
+    $stmt->close();
+    exit;
+}
+$stmt->close();
+
+/* ---------- UPDATE ---------- */
+$stmt = $conn->prepare("
+    UPDATE fire_station 
+    SET station_name=?, latitude=?, longitude=? 
+    WHERE id=?
+");
 
 if (!$stmt) {
-    echo json_encode(["status" => false, "message" => "Prepare failed"]);
+    echo json_encode(["status" => false, "message" => "Database prepare error"]);
     exit;
 }
 
 $stmt->bind_param("sddi", $name, $lat, $lng, $id);
 
-if ($stmt->execute()) {
+if (!$stmt->execute()) {
+    echo json_encode(["status" => false, "message" => "Update failed"]);
+    exit;
+}
 
-    /* ================= AUDIT LOG ================= */
+/* ---------- FORMAT VALUES ---------- */
+$oldLat = round($oldData['latitude'], 6);
+$newLat = round($lat, 6);
+
+$oldLng = round($oldData['longitude'], 6);
+$newLng = round($lng, 6);
+
+/* ---------- CHANGE LOG ---------- */
+$changes = [];
+
+if ($oldData['station_name'] !== $name) {
+    $changes[] = "name: {$oldData['station_name']} → {$name}";
+}
+
+if ($oldLat !== $newLat) {
+    $changes[] = "latitude: {$oldLat} → {$newLat}";
+}
+
+if ($oldLng !== $newLng) {
+    $changes[] = "longitude: {$oldLng} → {$newLng}";
+}
+
+/* ---------- LOG ACTIVITY ---------- */
+if (!empty($changes)) {
+
     $logUser = $_SESSION["user"] ?? [
-        "id"   => null,
-        "name" => "SYSTEM",
+        "id" => null,
+        "fullName" => "SYSTEM",
         "role" => "SYSTEM"
     ];
 
-    $changes = "Updated station ID $id: ";
+    $oldName = $oldData['station_name'];
+    $code    = $oldData['station_code'];
 
-    if ($oldResult) {
-        if ($oldResult['station_name'] !== $name) {
-            $changes .= "Name '{$oldResult['station_name']}' → '$name', ";
-        }
-        if ($oldResult['latitude'] != $lat || $oldResult['longitude'] != $lng) {
-            $changes .= "Location [{$oldResult['latitude']}, {$oldResult['longitude']}] → [$lat, $lng]";
-        }
-    }
+    $description = "Updated {$oldData['station_name']} ({$code}):\n" . implode("\n", $changes);
 
-    if (function_exists("logActivity")) {
-        logActivity(
-            $conn,
-            $logUser,
-            "UPDATE_STATION",
-            "FIRE_STATION",
-            rtrim($changes, ", "),
-            $id
-        );
-    }
-
-    echo json_encode(["status" => true]);
-
-} else {
-    echo json_encode(["status" => false, "message" => "Update failed"]);
+    logActivity(
+        $conn,
+        $logUser,
+        "UPDATE_STATION",
+        "STATION",
+        $description,
+        $id
+    );
 }
+
+echo json_encode([
+    "status" => true,
+    "message" => "Station updated successfully"
+]);
 
 $stmt->close();
 $conn->close();
-?>
