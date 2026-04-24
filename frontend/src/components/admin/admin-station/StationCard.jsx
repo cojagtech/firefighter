@@ -72,8 +72,8 @@ export default function StationCard({ station, onViewMap, onEditStation, onDelet
             size="sm"
             onClick={() => onEditStation && onEditStation(station)}
             className={isDark
-              ? "border-[#2E2E2E] text-[#60A5FA] hover:bg-[#1E293B]"
-              : "border-[#e5e7eb] text-[#2563EB] hover:bg-[#EFF6FF]"
+              ? "border-[#1D4ED8] text-[#60A5FA] hover:bg-[#1E293B]"
+              : "border-[#2563EB] text-[#2563EB] hover:bg-[#EFF6FF]"
             }
           >
             <SafeIcon name="Pencil" size={14} />
