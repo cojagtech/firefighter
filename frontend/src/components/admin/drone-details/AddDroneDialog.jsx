@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FormModal, FormField, FormSelect, FormAutocomplete } from "../../ui/Form";
+import { FormModal, FormField, FormSelect, FormAutocomplete } from "../../ui/form";
 import { toast } from "react-hot-toast";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;

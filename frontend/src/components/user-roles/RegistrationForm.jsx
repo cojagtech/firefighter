@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FormModal, FormField, FormSelect, FormAutocomplete } from "../ui/Form";
+import { FormModal, FormField, FormSelect, FormAutocomplete } from "../ui/form";
 import toast from "react-hot-toast";
 
 export default function RegistrationForm({
