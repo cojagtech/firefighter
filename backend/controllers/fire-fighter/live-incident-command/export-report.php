@@ -73,7 +73,7 @@ $docRef = 'MH/UAS/' . date('Y') . '/' . strtoupper(substr(md5(date('Y-m-d')), 0,
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <style>
 
-@page { size: A4; margin: 10mm 12mm; }
+@page { size: A4; margin: 16mm 8mm ; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -84,8 +84,9 @@ body {
 }
 
 .paper {
-    width: 210mm;
-    min-height: 297mm;
+    width: 250mm;
+    min-height: auto;
+    height: auto;
     margin: 0 auto;
     background: #ffffff;
     border: 2px solid #003366;
@@ -131,8 +132,8 @@ body {
 }
 .gov-sub {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 7.5px;
-    color: #A8C4E0;
+    font-size: 9px;
+    color: #ffffff;
     letter-spacing: 1.5px;
     text-align: center;
     margin-top: 3px;
@@ -167,16 +168,16 @@ body {
     justify-content: space-between;
     gap: 8px;
 }
-.m-ref { font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #FFD580; white-space: nowrap; }
+.m-ref { font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #d1fae5; white-space: nowrap; }
 .m-name { font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: bold; color: #ffffff; letter-spacing: 1.5px; text-transform: uppercase; flex: 1; text-align: center; }
 .status-badge { font-family: Arial, sans-serif; font-size: 8px; font-weight: bold; letter-spacing: 0.8px; padding: 3px 9px; text-transform: uppercase; white-space: nowrap; border-radius: 2px; }
 
-.sec-hdr { background: #003366; color: #ffffff; font-family: Arial, Helvetica, sans-serif; font-size: 8.5px; font-weight: bold; letter-spacing: 1.8px; text-transform: uppercase; padding: 4px 10px; }
+.sec-hdr { background: #003366; color: #ffffff; font-family: Arial, Helvetica, sans-serif; font-size: 9.5px; font-weight: bold; letter-spacing: 1.8px; text-transform: uppercase; padding: 4px 10px; }
 
 .info-tbl { width: 100%; border-collapse: collapse; border-left: 1px solid #CBD5E1; border-top: 1px solid #CBD5E1; table-layout: fixed; }
 .info-tbl td { border-right: 1px solid #CBD5E1; border-bottom: 1px solid #CBD5E1; vertical-align: top; padding: 0; }
 
-.lbl { display: block; background: #F0F4F8; font-family: 'Courier New', Courier, monospace; font-size: 6.8px; color: #003366; letter-spacing: 1.2px; text-transform: uppercase; padding: 3px 8px 2px; border-bottom: 1px solid #CBD5E1; }
+.lbl { display: block; background: #F0F4F8; font-family: 'Courier New', Courier, monospace; font-size: 8.5px; font-weight: 900; color: #003366; letter-spacing: 1.2px; text-transform: uppercase; padding: 3px 8px 2px; border-bottom: 1px solid #CBD5E1; }
 .val { display: block; font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: bold; color: #111827; padding: 3px 8px 5px; line-height: 1.3; }
 .val.mono { font-family: 'Courier New', Courier, monospace; font-size: 10.5px; color: #003366; }
 .val.accent { color: #FF6200; }
@@ -207,7 +208,7 @@ body {
 .map-legend {
     display: flex; gap: 16px; padding: 6px 10px;
     background: #F0F4F8; border-top: 1px solid #CBD5E1;
-    font-family: 'Courier New', Courier, monospace; font-size: 7.5px; color: #003366; letter-spacing: 0.8px;
+    font-family: 'Courier New', Courier, monospace; font-size: 8px; color: #003366; letter-spacing: 0.8px;
 }
 .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,0.4); vertical-align: middle; margin-right: 5px; }
 
@@ -224,13 +225,17 @@ body {
     .print-bar { display: none !important; }
     .paper { border: none; outline: none; margin: 0; width: 100%; }
     .map-box { height: 200px !important; }
-    .mission-block { page-break-inside: avoid; }
+    .mission-block { page-break-inside: auto; break-inside: auto; }
     .gov-header, .gov-footer, .mission-title-bar, .sec-hdr,
     .lbl, .meta-bar, .tc-bar, .tc-s, .tc-w, .tc-g,
     .status-badge, .meta-class, .map-legend {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         color-adjust: exact !important;
+    },
+    .mission-title-bar,
+    .sec-hdr {
+        page-break-after: avoid;
     }
 }
 </style>
@@ -327,6 +332,27 @@ body {
                 $gpsLogs[] = [(float)$g['latitude'], (float)$g['longitude']];
             }
             $gpsStmt->close();
+
+         // ── Fire Images (NEW) ──
+            $fireImages = [];
+
+            $imgStmt = $conn->prepare("
+                SELECT image_url, confidence, timestamp
+                FROM fire_images
+                WHERE incident_id = ?
+                ORDER BY confidence DESC
+                LIMIT 6
+            ");
+
+            $imgStmt->bind_param("s", $row['incident_id']);
+            $imgStmt->execute();
+            $imgResult = $imgStmt->get_result();
+
+            while ($img = $imgResult->fetch_assoc()) {
+                $fireImages[] = $img;
+            }
+
+            $imgStmt->close();
 
             // ── Firefighters: same station, role = Fire Station Command Control ──
             $firefighters = [];
@@ -432,7 +458,7 @@ body {
         <div class="map-legend">
             <span><span class="legend-dot" style="background:#003366;"></span>START POINT</span>
             <span><span class="legend-dot" style="background:#FF6200;"></span>LAST KNOWN POSITION</span>
-            <span style="margin-left:auto;">DRONE: <?= htmlspecialchars($row['drone_code']) ?></span>
+            <span style="margin-left:auto">DRONE: <?= htmlspecialchars($row['drone_code']) ?></span>
         </div>
         <script>
         (function () {
@@ -511,6 +537,57 @@ body {
     else: ?>
     <div class="no-data">NO MISSION RECORDS FOUND</div>
     <?php endif; ?>
+    
+    <!-- G. Fire Detection Images -->
+<div class="sec-hdr">G. &nbsp; Fire Detection Images</div>
+
+<?php if (!empty($fireImages)): ?>
+
+<style>
+.fire-img-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.fire-img-box {
+    width: 48%;
+}
+
+.fire-img-box img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border: 1px solid #CBD5E1;
+}
+
+.fire-img-meta {
+    font-size: 9px;
+    font-family: Courier;
+    margin-top: 4px;
+}
+</style>
+
+<div class="fire-img-grid">
+
+    <?php foreach ($fireImages as $img): ?>
+        <div class="fire-img-box">
+
+            <img src="<?= htmlspecialchars($img['image_url']) ?>">
+
+            <div class="fire-img-meta">
+                <strong>Confidence:</strong> <?= round($img['confidence'] * 100, 2) ?>%<br>
+                <strong>Time:</strong> <?= date('d M Y H:i:s', $img['timestamp']/1000) ?>
+            </div>
+
+        </div>
+    <?php endforeach; ?>
+
+</div>
+
+<?php else: ?>
+<div class="no-gps">NO FIRE IMAGES FOUND</div>
+<?php endif; ?>
     </div><!-- /missions-wrap -->
         
     <!-- FOOTER -->

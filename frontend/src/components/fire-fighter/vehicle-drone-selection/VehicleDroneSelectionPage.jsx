@@ -387,25 +387,23 @@ export default function VehicleDroneSelectionPage() {
                     latitude: lat,
                     longitude: lng,
                     altitude: altitude,
+                    drone_code: droneCode
                   };
 
                   // 🔥 Drone → Port Mapping
-                  const DRONE_PORT_MAP = {
-                    "DRN-001": 8081,
-                    "DRN-002": 8082,
-                  };
+                  const port = 8081;
 
-                  const normalizedCode = droneCode?.toUpperCase();
-                  const port = DRONE_PORT_MAP[normalizedCode];
+                  // const normalizedCode = droneCode?.toUpperCase();
+                  // const port = DRONE_PORT_MAP[normalizedCode];
 
-                  if (!port) {
-                    setSnack({
-                      open: true,
-                      severity: "error",
-                      message: `No server mapped for ${normalizedCode}`,
-                    });
-                    return;
-                  }
+                  // if (!port) {
+                  //   setSnack({
+                  //     open: true,
+                  //     severity: "error",
+                  //     message: `No server mapped for ${normalizedCode}`,
+                  //   });
+                  //   return;
+                  // }
 
                   const apiUrl = `http://43.205.31.167:${port}/api/incident_location`;
 
