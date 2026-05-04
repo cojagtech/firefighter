@@ -22,6 +22,7 @@ if (!$data) {
 }
 
 // ✅ 2. Safely extract values
+$drone_id         = $data["drone_id"] ?? "";
 $timestamp        = $data["event_timestamp"] ?? null;
 $alert_type       = $data["alert_type"] ?? "";
 $confidence       = $data["confidence"] ?? 0;
@@ -42,9 +43,8 @@ if ($timestamp === null) {
 
 // ✅ 4. Prepare statement
 $stmt = $conn->prepare("
-    INSERT INTO fire_detections 
-    (event_timestamp, alert_type, confidence, fire_count, intensity_score, intensity_level, location)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO fire_detections (drone_id, event_timestamp, alert_type, confidence, fire_count, intensity_score, intensity_level, location)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
 if (!$stmt) {
@@ -60,6 +60,7 @@ if (!$stmt) {
 // ✅ 5. Bind parameters
 $stmt->bind_param(
     "isddiss",
+    $drone_id,      
     $timestamp,
     $alert_type,
     $confidence,

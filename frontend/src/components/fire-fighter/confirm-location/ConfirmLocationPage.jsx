@@ -306,7 +306,7 @@ export default function ConfirmLocationPage() {
 
               {flyingHeight !== null && (
                 <Typography color="primary" fontWeight={600}>
-                  🚁 Flying Height: {flyingHeight} meters
+                  Flying Height: {Math.round(flyingHeight)} meters
                 </Typography>
               )}
             </CardContent>
