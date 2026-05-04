@@ -2,8 +2,17 @@ import React from "react";
 import SafeIcon from "@/components/common/SafeIcon";
 import { Button, Chip } from "@mui/material";
 
-export default function DroneCameraPanel({ onMaximize, isMaximized = false, onExit }) {
-  const liveUrl = "http://43.205.31.167:4005/watch.html"; 
+export default function DroneCameraPanel({ onMaximize, isMaximized = false, onExit, droneId,}) {
+
+  const liveUrl = droneId ? `http://43.205.31.167:4005/?stream=${droneId}` : null;
+
+  if (!droneId) {
+    return (
+      <div className="flex items-center justify-center h-full text-gray-500">
+        Select a drone to view stream
+      </div>
+    );
+  }
 
   return (
     <div className={`flex flex-col h-full ${isMaximized ? "p-6" : "p-4"}`}>
@@ -44,13 +53,14 @@ export default function DroneCameraPanel({ onMaximize, isMaximized = false, onEx
 
       <div
         className={`rounded-lg overflow-hidden border-2 border-dashed border border-[#2E2E2E] flex items-center justify-center`}
-        style={{ height: isMaximized ? "120vh" : "125vh" }}
+        style={{ height: isMaximiszed ? "120vh" : "125vh" }}
       >
         <iframe
+          key={droneId}   
           src={liveUrl}
           className="w-full h-full"
           allow="autoplay"
-          title="Drone Camera"
+          title={`Drone Camera ${droneId}`}
         ></iframe>
       </div>
     </div>

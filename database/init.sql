@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 23, 2026 at 12:12 PM
+-- Generation Time: May 04, 2026 at 12:21 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -77,7 +77,54 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `user_name`, `role`, `action`, `mo
 (56, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-20 12:35:56'),
 (57, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-01', NULL, '::1', '2026-04-20 12:36:33'),
 (58, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-02', NULL, '::1', '2026-04-20 12:37:19'),
-(59, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGOUT', 'AUTH', 'User logged out successfully', NULL, '::1', '2026-04-20 12:37:39');
+(59, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGOUT', 'AUTH', 'User logged out successfully', NULL, '::1', '2026-04-20 12:37:39'),
+(60, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-23 11:57:15'),
+(61, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGOUT', 'AUTH', 'User logged out successfully', NULL, '::1', '2026-04-23 11:58:46'),
+(62, NULL, NULL, NULL, 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-23 11:58:55'),
+(63, NULL, NULL, NULL, 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-23 11:58:57'),
+(64, 1, 'Rahul Sharma', 'Admin', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-23 11:59:02'),
+(65, NULL, NULL, NULL, 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-24 04:56:39'),
+(66, NULL, NULL, NULL, 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-24 04:56:42'),
+(67, 1, 'Rahul Sharma', 'Admin', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-24 04:56:51'),
+(68, 1, 'Rahul Sharma', 'Admin', 'ADD_VEHICLE', 'VEHICLE', 'Added vehicle Quick Response Vehicle (MH31BG0001) at Aundh Fire Station', 387, '::1', '2026-04-24 04:58:59'),
+(69, NULL, 'SYSTEM', 'SYSTEM', 'UPDATE_VEHICLE', 'VEHICLE', 'Updated vehicle Quick Response Vehicle (MH31BG0001): \nstation: Aundh Fire Station → Central Fire Brigade (Lohiya Nagar)', 387, '::1', '2026-04-24 04:59:36'),
+(70, 1, 'Rahul Sharma', 'Admin', 'DELETE_VEHICLE', 'VEHICLE', 'Deleted vehicle Quick Response Vehicle (MH31BG0001) from station Central Fire Brigade (Lohiya Nagar)', NULL, '::1', '2026-04-24 04:59:41'),
+(71, 1, 'Rahul Sharma', 'Admin', 'ADD_DRONE', 'DRONE', 'Added drone SkyGuard-17 (DRN-012) at Aundh Fire Station .', NULL, '::1', '2026-04-24 05:03:42'),
+(72, 1, 'Rahul Sharma', 'Admin', 'UPDATE_DRONE', 'DRONE', 'Updated drone SkyGuard-17 (DRN-012):\nflight_hours: 3 → 7', NULL, '::1', '2026-04-24 05:04:02'),
+(73, 1, 'Rahul Sharma', 'Admin', 'DELETE_DRONE', 'DRONE', 'Deleted drone (SkyGuard-17) with code DRN-012', NULL, '::1', '2026-04-24 05:04:05'),
+(74, NULL, 'SYSTEM', 'SYSTEM', 'ADD_STATION', 'STATION', 'Added new station Kothrud (STN-123)', NULL, '::1', '2026-04-24 05:04:46'),
+(75, NULL, 'SYSTEM', 'SYSTEM', 'UPDATE_STATION', 'STATION', 'Updated Kothrud (STN-123):\nname: Kothrud → Fire station\nlatitude: 18.499063 → 18.560692\nlongitude: 73.813491 → 73.814279', 13, '::1', '2026-04-24 05:05:36'),
+(76, 1, 'Rahul Sharma', 'Admin', 'DELETE_STATION', 'STATION', 'Deleted station Fire station (STN-123)', NULL, '::1', '2026-04-24 05:05:40'),
+(77, 1, 'Rahul Sharma', 'Admin', 'ADD_USER', 'USER', 'Added user HARSH BANDU MESHRAM (1234567890):\nrole: Fire Station Command Control\nstation: Aundh Fire Station', 28, '::1', '2026-04-24 05:07:21'),
+(78, 1, 'Rahul Sharma', 'Admin', 'UPDATE_USER', 'USER', 'Updated user HARSH BANDU MESHRAM (1234567891):\nphone: 1234567890 → 1234567891', 28, '::1', '2026-04-24 05:07:33'),
+(79, 1, 'Rahul Sharma', 'Admin', 'UPDATE_USER', 'USER', 'Updated user HARSH BANDU MESHRAM (1234567891):\nrole: Fire Station Command Control → Pilot', 28, '::1', '2026-04-24 05:07:48'),
+(80, NULL, 'SYSTEM', 'SYSTEM', 'DELETE_USER', 'USER', 'Deleted user HARSH BANDU MESHRAM (Role: Pilot) from station Aundh Fire Station', NULL, '::1', '2026-04-24 05:07:52'),
+(81, 1, 'Rahul Sharma', 'Admin', 'REMOVE_PILOT', 'DRONE', 'Removed pilot (Amit Verma) from drone DRN-001', 1, '::1', '2026-04-24 08:25:11'),
+(82, 1, 'Rahul Sharma', 'Admin', 'ASSIGN_PILOT', 'DRONE', 'Assigned pilot (Amit Verma) to drone DRN-001', 2, '::1', '2026-04-24 08:25:14'),
+(83, 1, 'Rahul Sharma', 'Admin', 'LOGOUT', 'AUTH', 'User logged out successfully', NULL, '::1', '2026-04-24 08:36:15'),
+(84, 7, 'Arjun Singh', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-24 08:36:29'),
+(85, 7, 'Arjun Singh', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20251122-001 acknowledged', NULL, '::1', '2026-04-24 08:36:32'),
+(86, 7, 'Arjun Singh', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20251122-001 acknowledged', NULL, '::1', '2026-04-24 08:38:59'),
+(87, 7, 'Arjun Singh', 'Fire Station Command Control', 'CONFIRM_FORWARD', 'INCIDENT', 'Confirmed and shared incident to Kothrud Fire Station', NULL, '::1', '2026-04-24 08:39:06'),
+(88, 7, 'Arjun Singh', 'Fire Station Command Control', 'LOGOUT', 'AUTH', 'User logged out successfully', NULL, '::1', '2026-04-24 08:40:42'),
+(89, 1, 'Rahul Sharma', 'Admin', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-24 08:40:56'),
+(90, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-24 12:04:44'),
+(91, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-24 12:04:48'),
+(92, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-01', NULL, '::1', '2026-04-24 12:05:02'),
+(93, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-01', NULL, '::1', '2026-04-24 12:07:48'),
+(94, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGOUT', 'AUTH', 'User logged out successfully', NULL, '::1', '2026-04-24 12:09:15'),
+(95, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-24 12:09:23'),
+(96, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-24 12:10:20'),
+(97, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-01', NULL, '::1', '2026-04-24 12:10:36'),
+(98, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGOUT', 'AUTH', 'User logged out successfully', NULL, '::1', '2026-04-24 12:19:58'),
+(99, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-24 12:20:05'),
+(100, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-24 12:20:08'),
+(101, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-01', NULL, '::1', '2026-04-24 12:20:21'),
+(102, 4, 'Suresh Yadav', 'Fire Station Command Control', 'LOGIN', 'AUTH', 'User logged in successfully', NULL, '::1', '2026-04-27 10:12:16'),
+(103, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACKNOWLEDGE', 'INCIDENT', 'Incident ID: INC-20260115-003 acknowledged', NULL, '::1', '2026-04-27 10:12:19'),
+(104, 4, 'Suresh Yadav', 'Fire Station Command Control', 'ACTIVATE_DRONE_MISSION', 'INCIDENT', 'Activated with Vehicles: Quick Response Vehicle | Drones: SkyGuard-01', NULL, '::1', '2026-04-27 10:13:45'),
+(105, 4, 'Suresh Yadav', 'Fire Station Command Control', 'END_MISSION', 'INCIDENT', 'Mission ended for Incident INC-20260115-003', NULL, '::1', '2026-04-27 10:13:56'),
+(106, 4, 'Suresh Yadav', 'Fire Station Command Control', 'EXPORT_REPORT', 'INCIDENT', 'Exported report for Incident INC-20260115-003', NULL, '::1', '2026-04-27 10:13:58');
 
 -- --------------------------------------------------------
 
@@ -110,7 +157,7 @@ CREATE TABLE `drones` (
 --
 
 INSERT INTO `drones` (`id`, `drone_code`, `drone_name`, `ward`, `status`, `battery`, `flight_hours`, `health_status`, `firmware_version`, `is_ready`, `station`, `pilot_id`, `pilot_name`, `pilot_email`, `pilot_phone`, `pilot_role`, `pilot_status`) VALUES
-(1, 'DRN-001', 'SkyGuard-01', NULL, 'Active', 100, 20, 'Optimal', 'V3.4.5', 1, 'Katraj Fire Station', 1, 'Amit Verma', 'amit.verma@example.com', '9876501234', 'Pilot', 'assigned'),
+(1, 'DRN-001', 'SkyGuard-01', NULL, 'Active', 100, 20, 'Optimal', 'V3.4.5', 1, 'Katraj Fire Station', 2, 'Amit Verma', 'amit.verma@example.com', '9876501234', 'Pilot', 'assigned'),
 (2, 'DRN-002', 'SkyGuard-02', NULL, 'Active', 100, 13, 'Optimal', 'v1.0.0', 1, 'Katraj Fire Station', NULL, NULL, NULL, NULL, NULL, 'available'),
 (3, 'DRN-003', 'SkyGuard-03', NULL, 'Active', 100, 37, 'Optimal', 'v3.6.3', 1, 'Central Fire Brigade (Lohiya Nagar)', NULL, NULL, NULL, NULL, NULL, 'available'),
 (4, 'DRN-004', 'SkyGuard-04', NULL, 'StandBy', 100, 10, 'Optimal', 'v4.2.3', 1, 'Central Fire Brigade (Lohiya Nagar)', NULL, NULL, NULL, NULL, NULL, 'available'),
@@ -142,7 +189,14 @@ CREATE TABLE `drone_action_logs` (
 --
 
 INSERT INTO `drone_action_logs` (`id`, `timestamp`, `ip`, `incident_id`, `action`, `response`, `created_at`) VALUES
-(1, '2026-04-16 13:01:13 IST', '152.58.31.143', 'INC-20260115-003', 'Command: /land', 'Connection error: HTTPConnectionPool(host=\'100.64.14.44\', port=5000): Max retries exceeded with url: /land (Caused by ConnectTimeoutError)', '2026-04-16 09:41:02');
+(1, '2026-04-16 13:01:13 IST', '152.58.31.143', 'INC-20260115-003', 'Command: /land', 'Connection error: HTTPConnectionPool(host=\'100.64.14.44\', port=5000): Max retries exceeded with url: /land (Caused by ConnectTimeoutError)', '2026-04-16 09:41:02'),
+(2, '2026-04-24 15:01:36 IST', '117.222.126.169', 'INC-20260115-003', 'Command: /land', 'Connection error: HTTPConnectionPool(host:\'100.109.223.45\', port=5000): Max retries exceeded with url: /land (Caused by ConnectTimeoutError)', '2026-04-24 04:01:36'),
+(3, '2026-04-24 15:01:42 IST', '117.222.126.169', 'INC-20260115-003', 'Command: /loiter', 'Connection error: HTTPConnectionPool(host:\'100.109.223.45\', port=5000): Max retries exceeded with url: /loiter (Caused by ConnectTimeoutError)', '2026-04-24 04:01:42'),
+(4, '2026-04-24 15:01:47 IST', '117.222.126.169', 'INC-20260115-003', 'Command: /land', 'Connection error: HTTPConnectionPool(host:\'100.109.223.45\', port=5000): Max retries exceeded with url: /land (Caused by ConnectTimeoutError)', '2026-04-24 04:01:47'),
+(5, '2026-04-24 15:01:49 IST', '117.222.126.169', 'INC-20260115-003', 'Command: /loiter', 'Connection error: HTTPConnectionPool(host:\'100.109.223.45\', port=5000): Max retries exceeded with url: /loiter (Caused by ConnectTimeoutError)', '2026-04-24 04:01:49'),
+(6, '2026-04-24 15:01:56 IST', '117.222.126.169', 'INC-20260115-003', 'Command: /rtl', 'Connection error: HTTPConnectionPool(host:\'100.109.223.45\', port=5000): Max retries exceeded with url: /rtl (Caused by ConnectTimeoutError)', '2026-04-24 04:01:56'),
+(7, '2026-04-24 15:02:00 IST', '117.222.126.169', 'INC-20260115-003', 'Command: /land', 'Connection error: HTTPConnectionPool(host:\'100.109.223.45\', port=5000): Max retries exceeded with url: /land (Caused by ConnectTimeoutError)', '2026-04-24 04:02:00'),
+(8, '2026-04-16 13:01:13 IST', '152.58.31.143', 'INC-20260115-003', 'Command: /land', 'Connection error: HTTPConnectionPool(host:\'100.64.14.44\', port=5000): Max retries exceeded with url: /land (Caused by ConnectTimeoutError)', '2026-04-16 04:11:02');
 
 -- --------------------------------------------------------
 
@@ -199,10 +253,7 @@ CREATE TABLE `drone_missions` (
 --
 
 INSERT INTO `drone_missions` (`id`, `drone_id`, `incident_id`, `start_time`, `end_time`, `status`, `path_data`, `created_at`) VALUES
-(5, 2, 'INC-20260115-003', '2026-04-18 18:16:30', NULL, 'started', NULL, '2026-04-18 12:46:30'),
-(6, 2, 'INC-20260115-003', '2026-04-18 19:02:28', NULL, 'started', NULL, '2026-04-18 13:32:28'),
-(7, 1, 'INC-20260115-003', '2026-04-20 18:06:33', NULL, 'started', NULL, '2026-04-20 12:36:33'),
-(8, 2, 'INC-20260115-003', '2026-04-20 18:07:19', NULL, 'started', NULL, '2026-04-20 12:37:19');
+(13, 1, 'INC-20260115-003', '2026-04-27 15:43:45', '2026-04-27 15:43:56', 'completed', NULL, '2026-04-27 10:13:45');
 
 -- --------------------------------------------------------
 
@@ -212,6 +263,7 @@ INSERT INTO `drone_missions` (`id`, `drone_id`, `incident_id`, `start_time`, `en
 
 CREATE TABLE `fire_detections` (
   `id` int(11) NOT NULL,
+  `drone_id` varchar(50) DEFAULT NULL,
   `event_timestamp` bigint(20) DEFAULT NULL,
   `alert_type` varchar(50) DEFAULT NULL,
   `confidence` float DEFAULT NULL,
@@ -235,6 +287,17 @@ CREATE TABLE `fire_images` (
   `confidence` float DEFAULT NULL,
   `timestamp` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `fire_images`
+--
+
+INSERT INTO `fire_images` (`id`, `incident_id`, `image_url`, `confidence`, `timestamp`) VALUES
+(1, 'INC-20260115-003', 'http://65.2.23.154/fire_captures/INC-20260115-003/fire_1_89.jpg', 0.898296, 1777029059699),
+(2, 'INC-20260115-003', 'http://65.2.23.154/fire_captures/INC-20260115-003/fire_2_84.jpg', 0.845515, 1777029059710),
+(3, 'INC-20260115-003', 'http://65.2.23.154/fire_captures/INC-20260115-003/fire_3_84.jpg', 0.843289, 1777029059720),
+(4, 'INC-20260115-003', 'http://65.2.23.154/fire_captures/INC-20260115-003/fire_4_82.jpg', 0.824084, 1777029059729),
+(5, 'INC-20260115-002', 'http://65.2.23.154/fire_captures/INC-20260115-003/fire_5_81.jpg', 0.817819, 1777029059738);
 
 -- --------------------------------------------------------
 
@@ -292,9 +355,9 @@ CREATE TABLE `incidents` (
 --
 
 INSERT INTO `incidents` (`id`, `name`, `location`, `latitude`, `longitude`, `stationName`, `timeReported`, `status`, `isNewAlert`) VALUES
-('INC-20251122-001', 'Vehicle Accident & Fire', 'Paud Road, Near Signal, Kothrud', 18.5074, 73.8077, 'Sinhgad Road Fire Station', '2026-04-09 15:25:00', 'new', 1),
+('INC-20251122-001', 'Vehicle Accident & Fire', 'Paud Road, Near Signal, Kothrud', 18.5074, 73.8077, 'Kothrud Fire Station', '2026-04-09 15:25:00', 'new', 1),
 ('INC-20251122-002', 'Warehouse Fire - Industrial Zone', 'Plot No. 45, Industrial Area, Katraj', 18.4445, 73.8521, 'Katraj Fire Station', '2026-04-09 14:10:00', 'completed', 0),
-('INC-20260115-003', 'Residential Building Fire', 'Near Katraj Bus Depot, Pune', 18.454224, 73.858513, 'Katraj Fire Station', '2026-04-10 18:40:00', 'in_progress', 0);
+('INC-20260115-003', 'Residential Building Fire', 'Near Katraj Bus Depot, Pune', 18.454224, 73.858513, 'Katraj Fire Station', '2026-04-10 18:40:00', 'completed', 0);
 
 -- --------------------------------------------------------
 
@@ -503,19 +566,19 @@ ALTER TABLE `vehicles`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
 
 --
 -- AUTO_INCREMENT for table `drones`
 --
 ALTER TABLE `drones`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `drone_action_logs`
 --
 ALTER TABLE `drone_action_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `drone_gps_logs`
@@ -527,7 +590,7 @@ ALTER TABLE `drone_gps_logs`
 -- AUTO_INCREMENT for table `drone_missions`
 --
 ALTER TABLE `drone_missions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `fire_detections`
@@ -539,13 +602,13 @@ ALTER TABLE `fire_detections`
 -- AUTO_INCREMENT for table `fire_images`
 --
 ALTER TABLE `fire_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `fire_station`
 --
 ALTER TABLE `fire_station`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -557,13 +620,13 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
 --
 ALTER TABLE `vehicles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=387;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=388;
 
 --
 -- Constraints for dumped tables
