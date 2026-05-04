@@ -59,7 +59,7 @@ if (!$stmt) {
 
 // ✅ 5. Bind parameters
 $stmt->bind_param(
-    "isddiss",
+    "sisddiss",
     $drone_id,      
     $timestamp,
     $alert_type,
