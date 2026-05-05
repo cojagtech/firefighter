@@ -10,9 +10,9 @@ const ALERT_API =
   `${API_BASE}/fire-fighter/live-incident-command/get_latest_detection.php`;
 
 const FETCH_INTERVAL = 1000;
-const FIRE_TIMEOUT = 12000; 
+const FIRE_TIMEOUT = 12000;
 
-export default function DetectionAlert({ isMaximized = false }) {
+export default function DetectionAlert({ selectedDrone, isMaximized = false }) {
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -30,9 +30,13 @@ export default function DetectionAlert({ isMaximized = false }) {
 
   const fetchAlert = async () => {
     try {
-      const res = await fetch(ALERT_API + "?t=" + Date.now());
-      const json = await res.json();
+      if (!selectedDrone) return;
 
+      const res = await fetch(
+        `${ALERT_API}?drone_code=${selectedDrone}&t=${Date.now()}`
+      );
+
+      const json = await res.json();
       const now = Date.now();
 
       if (json?.status?.trim() === "fire" && json?.data) {
@@ -41,9 +45,7 @@ export default function DetectionAlert({ isMaximized = false }) {
         setAlert(normalized);
         lastFireTimeRef.current = now;
 
-      }
-      else if (json?.status?.trim() === "no_fire") {
-        // 🔥 IMMEDIATE CLEAR (IMPORTANT FIX)
+      } else if (json?.status?.trim() === "no_fire") {
         setAlert(null);
         lastFireTimeRef.current = 0;
       }
@@ -51,7 +53,6 @@ export default function DetectionAlert({ isMaximized = false }) {
     } catch (err) {
       console.log("❌ Fetch error:", err);
 
-      // fallback safety
       const now = Date.now();
       if (now - lastFireTimeRef.current > FIRE_TIMEOUT) {
         setAlert(null);
@@ -62,12 +63,15 @@ export default function DetectionAlert({ isMaximized = false }) {
   };
 
   useEffect(() => {
+    if (!selectedDrone) return;
+
     fetchAlert();
+
     const interval = setInterval(fetchAlert, FETCH_INTERVAL);
 
     return () => clearInterval(interval);
-  }, []);
-
+  }, [selectedDrone]);
+  
   return (
     <div className={`flex flex-col h-full ${isMaximized ? "p-6" : "p-4"}`}>
 

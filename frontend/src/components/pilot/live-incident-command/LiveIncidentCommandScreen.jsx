@@ -98,6 +98,7 @@ export default function LiveIncidentCommandScreen() {
       onClick={clickable ? () => handleFocusChange(key) : undefined}
     >
       <Component
+        selectedDrone={selectedDrone}
         selectedVehicles={selectedVehicles}
         selectedDrone={selectedDrone}
         onMaximize={() => maximizePanel(key)}
