@@ -28,50 +28,73 @@ export default function DetectionAlert({ selectedDrone, isMaximized = false }) {
     created_at: data.created_at ?? data.CREATED_AT,
   });
 
-  const fetchAlert = async () => {
-    try {
-      if (!selectedDrone) return;
-
-      const res = await fetch(
-        `${ALERT_API}?drone_code=${selectedDrone}&t=${Date.now()}`
-      );
-
-      const json = await res.json();
-      const now = Date.now();
-
-      if (json?.status?.trim() === "fire" && json?.data) {
-        const normalized = normalizeData(json.data);
-
-        setAlert(normalized);
-        lastFireTimeRef.current = now;
-
-      } else if (json?.status?.trim() === "no_fire") {
-        setAlert(null);
-        lastFireTimeRef.current = 0;
-      }
-
-    } catch (err) {
-      console.log("❌ Fetch error:", err);
-
-      const now = Date.now();
-      if (now - lastFireTimeRef.current > FIRE_TIMEOUT) {
-        setAlert(null);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
+ const fetchAlert = async () => {
+  try {
     if (!selectedDrone) return;
 
-    fetchAlert();
+    const res = await fetch(
+      `${ALERT_API}?drone_code=${selectedDrone}&t=${Date.now()}`
+    );
 
-    const interval = setInterval(fetchAlert, FETCH_INTERVAL);
+    // 🔒 Read as text first (prevents crash)
+    const text = await res.text();
 
-    return () => clearInterval(interval);
-  }, [selectedDrone]);
-  
+    if (!text) {
+      console.warn("⚠️ Empty API response");
+      return;
+    }
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      console.error("❌ Invalid JSON:", text);
+      return;
+    }
+
+    const now = Date.now();
+
+    if (json?.status?.trim() === "fire" && json?.data) {
+      const normalized = normalizeData(json.data);
+
+      setAlert(normalized);
+      lastFireTimeRef.current = now;
+
+    } else if (json?.status?.trim() === "no_fire") {
+      setAlert(null);
+      lastFireTimeRef.current = 0;
+
+    } else if (json?.status === "error") {
+      console.error("❌ API Error:", json.message);
+    }
+
+  } catch (err) {
+    console.log("❌ Fetch error:", err);
+
+    const now = Date.now();
+    if (now - lastFireTimeRef.current > FIRE_TIMEOUT) {
+      setAlert(null);
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  if (!selectedDrone) return;
+
+  // 🔄 Reset state when switching drone
+  setAlert(null);
+  setLoading(true);
+  lastFireTimeRef.current = 0;
+
+  fetchAlert();
+
+  const interval = setInterval(fetchAlert, FETCH_INTERVAL);
+
+  return () => clearInterval(interval);
+}, [selectedDrone]);
+
   return (
     <div className={`flex flex-col h-full ${isMaximized ? "p-6" : "p-4"}`}>
 
