@@ -127,9 +127,8 @@ export default function CommandToolbar({
             <Select
               value={selectedDrone || ""}
               onChange={(e) => {
-                onDroneChange(e.target.value);
                 navigate(`/pilot-live-incident-command/${e.target.value}`);
-              }}
+              }}  
               displayEmpty
               sx={{
                 color: C.selectColor,
