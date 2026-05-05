@@ -22,7 +22,7 @@ try {
     $stmt = $conn->prepare("
         SELECT *
         FROM fire_detections
-        WHERE drone_code = ?
+        WHERE drone_id = ?
         AND created_at >= NOW() - INTERVAL 10 SECOND
         ORDER BY id DESC
         LIMIT 1
