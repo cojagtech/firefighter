@@ -345,11 +345,11 @@ export default function VehicleDroneSelectionPage() {
                 const selectedVehicle = selectedVehicleObjects[0];
 
                 const vehicleNames = selectedVehicleObjects
-                  .map(v => v.name)
+                  .map((v) => v.name)
                   .join(", ");
 
                 const droneNames = selectedDroneObjects
-                  .map(d => d.name || d.drone_id)
+                  .map((d) => d.name || d.drone_id)
                   .join(", ");
 
                 const droneDbId = selectedDrone?.id;
@@ -387,29 +387,17 @@ export default function VehicleDroneSelectionPage() {
                     latitude: lat,
                     longitude: lng,
                     altitude: altitude,
-                    drone_code: droneCode
+                    drone_code: droneCode,
                   };
 
                   // 🔥 Drone → Port Mapping
                   const port = 8081;
 
-                  // const normalizedCode = droneCode?.toUpperCase();
-                  // const port = DRONE_PORT_MAP[normalizedCode];
-
-                  // if (!port) {
-                  //   setSnack({
-                  //     open: true,
-                  //     severity: "error",
-                  //     message: `No server mapped for ${normalizedCode}`,
-                  //   });
-                  //   return;
-                  // }
-
                   const apiUrl = `http://43.205.31.167:${port}/api/incident_location`;
 
                   console.log("🚁 Sending to:", apiUrl);
 
-                  // ✅ 1. SEND ONLY SELECTED DRONE
+                  // ✅ 1. SEND INCIDENT LOCATION
                   await fetch(apiUrl, {
                     method: "POST",
                     headers: {
@@ -418,7 +406,33 @@ export default function VehicleDroneSelectionPage() {
                     body: JSON.stringify(payload),
                   });
 
-                  // ✅ 2. START DRONE MISSION
+                  // ✅ 2. SEND INCIDENT TO NODE SERVER
+                  await fetch("http://65.2.23.154:4005/incident", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      drone_id: droneCode,
+                      incident_id: incidentId,
+                    }),
+                  });
+
+                  // ✅ 3. START DRONE STREAM SERVER
+                  await fetch("http://65.2.23.154:4005/start-drone", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      drone_id: droneCode,
+                      rtmp_url: `rtmp://43.205.31.167:4002/live/${droneCode}`,
+                      api_urls:
+                        "http://13.126.10.117/api/fire-fighter/live-incident-command/fire_detection.php",
+                    }),
+                  });
+
+                  // ✅ 4. START DRONE MISSION
                   await fetch(`${API}/start_drone_mission.php`, {
                     method: "POST",
                     headers: {
@@ -430,7 +444,7 @@ export default function VehicleDroneSelectionPage() {
                     }),
                   });
 
-                  // ✅ 3. UPDATE INCIDENT STATUS
+                  // ✅ 5. UPDATE INCIDENT STATUS
                   const res = await fetch(`${API}/update_incident_status.php`, {
                     method: "POST",
                     headers: {
@@ -444,7 +458,10 @@ export default function VehicleDroneSelectionPage() {
                   });
 
                   const data = await res.json();
-                  if (!data.success) throw new Error(data.message);
+
+                  if (!data.success) {
+                    throw new Error(data.message);
+                  }
 
                   await logActivity(
                     "ACTIVATE_DRONE_MISSION",
@@ -452,7 +469,7 @@ export default function VehicleDroneSelectionPage() {
                     incidentId
                   );
 
-                  // ✅ 4. NAVIGATE
+                  // ✅ 6. NAVIGATE
                   navigate(
                     `/live-incident-command/${incidentId}/${droneCode}/${vehicleDeviceId}`,
                     {
@@ -471,7 +488,8 @@ export default function VehicleDroneSelectionPage() {
                   );
 
                 } catch (err) {
-                  console.error(err);
+                  console.error("Activation Error:", err);
+
                   setSnack({
                     open: true,
                     severity: "error",

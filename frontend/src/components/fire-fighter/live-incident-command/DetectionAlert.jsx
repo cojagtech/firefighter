@@ -6,13 +6,12 @@ import { Chip } from "@mui/material";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-const ALERT_API =
-  `${API_BASE}/fire-fighter/live-incident-command/get_latest_detection.php`;
+// const ALERT_API =`${API_BASE}/fire-fighter/live-incident-command/get_latest_detection.php`;
 
 const FETCH_INTERVAL = 1000; // 1 sec
 const FIRE_TIMEOUT = 5000; // 5 sec
 
-export default function DetectionAlert({ isMaximized = false }) {
+export default function DetectionAlert({ isMaximized = false,  droneId, }) {
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +30,10 @@ export default function DetectionAlert({ isMaximized = false }) {
 
   const fetchAlert = async () => {
     try {
-      const res = await fetch(ALERT_API + "?t=" + Date.now());
+      const res = await fetch(
+        `${API_BASE}/fire-fighter/live-incident-command/get_latest_detection.php?droneId=${droneId}&t=${Date.now()}`
+      );
+
       const json = await res.json();
 
       if (!json || !json.data) {
@@ -41,14 +43,13 @@ export default function DetectionAlert({ isMaximized = false }) {
 
       const normalized = normalizeData(json.data);
 
-      // only show if new detection
       if (lastIdRef.current !== Number(normalized.id)) {
         lastIdRef.current = Number(normalized.id);
 
         setAlert(normalized);
 
-        // auto remove fire after timeout
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
         timeoutRef.current = setTimeout(() => {
           setAlert(null);
         }, FIRE_TIMEOUT);

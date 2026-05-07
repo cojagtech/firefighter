@@ -4,69 +4,99 @@ header('Content-Type: application/json');
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 
-// 🔒 NEVER output HTML errors
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
-
 require_once realpath(__DIR__ . "/../../../config/db.php");
 
-try {
+// ==============================
+// GET DRONE ID
+// ==============================
+$droneId = $_GET['droneId'] ?? '';
 
-    $drone_code = $_GET['drone_code'] ?? null;
-
-    if (!$drone_code) {
-        echo json_encode(["status" => "no_fire"]);
-        exit;
-    }
-
-    $stmt = $conn->prepare("
-        SELECT *
-        FROM fire_detections
-        WHERE drone_id = ?
-        AND created_at >= NOW() - INTERVAL 10 SECOND
-        ORDER BY id DESC
-        LIMIT 1
-    ");
-
-    if (!$stmt) {
-        throw new Exception($conn->error);
-    }
-
-    $stmt->bind_param("s", $drone_code);
-
-    if (!$stmt->execute()) {
-        throw new Exception($stmt->error);
-    }
-
-    $result = $stmt->get_result();
-
-    if (!$result) {
-        throw new Exception("Result fetch failed");
-    }
-
-    $row = $result->fetch_assoc();
-
-    if (!$row) {
-        echo json_encode(["status" => "no_fire"]);
-        exit;
-    }
-
-    $diff = time() - strtotime($row['created_at']);
-
-    if ($diff <= 10) {
-        echo json_encode([
-            "status" => "fire",
-            "data" => $row
-        ]);
-    } else {
-        echo json_encode(["status" => "no_fire"]);
-    }
-
-} catch (Exception $e) {
-
-    // ✅ ALWAYS return JSON, never empty
+// ❌ droneId missing
+if (empty($droneId)) {
     echo json_encode([
         "status" => "error",
-        "message" => $e->getMessage()
+        "message" => "droneId is required"
+    ]);
+    exit;
+}
+
+// ==============================
+// FETCH LATEST DETECTION
+// ONLY FOR SELECTED DRONE
+// ==============================
+$query = "
+    SELECT *
+    FROM fire_detections
+    WHERE drone_id = ?
+    AND created_at >= NOW() - INTERVAL 10 SECOND
+    ORDER BY id DESC
+    LIMIT 1
+";
+
+$stmt = $conn->prepare($query);
+
+if (!$stmt) {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Prepare failed",
+        "error" => $conn->error
+    ]);
+    exit;
+}
+
+$stmt->bind_param("s", $droneId);
+
+if (!$stmt->execute()) {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Execute failed",
+        "error" => $stmt->error
+    ]);
+    exit;
+}
+
+$result = $stmt->get_result();
+
+$row = $result->fetch_assoc();
+
+// ==============================
+// NO FIRE FOUND
+// ==============================
+if (!$row) {
+    echo json_encode([
+        "status" => "no_fire"
+    ]);
+    exit;
+}
+
+// ==============================
+// FINAL SAFETY CHECK
+// ==============================
+$currentTime = time();
+$createdTime = strtotime($row['created_at']);
+
+$diff = $currentTime - $createdTime;
+
+// ==============================
+// RETURN RESPONSE
+// ==============================
+if ($diff <= 10) {
+
+    echo json_encode([
+        "status" => "fire",
+        "data" => $row
+    ]);
+
+} else {
+
+    echo json_encode([
+        "status" => "no_fire"
     ]);
 }
+
+// ==============================
+// CLEANUP
+// ==============================
+$stmt->close();
+$conn->close();
+?>
