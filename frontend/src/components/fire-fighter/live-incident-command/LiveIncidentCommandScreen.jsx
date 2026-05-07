@@ -102,6 +102,7 @@ export default function LiveIncidentCommandScreen() {
         incident={incident}
         selectedVehicles={selectedVehicles}
         selectedDrones={selectedDrones}
+        droneId={droneId} 
         onMaximize={() => maximizePanel(key)}
         isMaximized={layout === "full" && activePanel === key}
         onExit={minimizePanel}
