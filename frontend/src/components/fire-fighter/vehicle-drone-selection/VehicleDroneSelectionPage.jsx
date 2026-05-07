@@ -407,18 +407,7 @@ export default function VehicleDroneSelectionPage() {
                   });
 
                   // ✅ 2. SEND INCIDENT TO NODE SERVER
-                  await fetch("http://65.2.23.154:4005/incident", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      drone_id: droneCode,
-                      incident_id: incidentId,
-                    }),
-                  });
-
-                  // ✅ 3. START DRONE STREAM SERVER
+                  // 1. START DRONE FIRST
                   await fetch("http://65.2.23.154:4005/start-drone", {
                     method: "POST",
                     headers: {
@@ -432,6 +421,17 @@ export default function VehicleDroneSelectionPage() {
                     }),
                   });
 
+                  // 2. THEN SET INCIDENT
+                  await fetch("http://65.2.23.154:4005/incident", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      drone_id: droneCode,
+                      incident_id: incidentId,
+                    }),
+                  });
                   // ✅ 4. START DRONE MISSION
                   await fetch(`${API}/start_drone_mission.php`, {
                     method: "POST",
