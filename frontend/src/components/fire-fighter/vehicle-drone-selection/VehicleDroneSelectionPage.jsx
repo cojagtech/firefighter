@@ -395,15 +395,15 @@ export default function VehicleDroneSelectionPage() {
 
                   console.log("🚁 Sending to:", apiUrl);
 
-                  // ✅ 1. INCIDENT LOCATION (non-blocking)
-                  await fetch(apiUrl, {
+                  // 🚀 FIRE-AND-FORGET (NO await)
+
+                  fetch(apiUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
                   }).catch(() => { });
 
-                  // ✅ 2. START DRONE (non-blocking)
-                  await fetch("http://65.2.23.154:4005/start-drone", {
+                  fetch("http://65.2.23.154:4005/start-drone", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -414,8 +414,7 @@ export default function VehicleDroneSelectionPage() {
                     }),
                   }).catch(() => { });
 
-                  // ✅ 3. INCIDENT SET (non-blocking)
-                  await fetch("http://65.2.23.154:4005/incident", {
+                  fetch("http://65.2.23.154:4005/incident", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -424,8 +423,7 @@ export default function VehicleDroneSelectionPage() {
                     }),
                   }).catch(() => { });
 
-                  // ✅ 4. START DRONE MISSION (non-blocking)
-                  await fetch(`${API}/start_drone_mission.php`, {
+                  fetch(`${API}/start_drone_mission.php`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -434,7 +432,7 @@ export default function VehicleDroneSelectionPage() {
                     }),
                   }).catch(() => { });
 
-                  // ✅ 5. UPDATE INCIDENT STATUS (only critical one kept safe check)
+                  // ⚠️ only this stays awaited (optional)
                   const res = await fetch(`${API}/update_incident_status.php`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -457,7 +455,7 @@ export default function VehicleDroneSelectionPage() {
                     incidentId
                   ).catch(() => { });
 
-                  // ✅ 6. ALWAYS NAVIGATE (even if everything fails)
+                  // 🚀 INSTANT NAVIGATION (no delay)
                   navigate(
                     `/live-incident-command/${incidentId}/${droneCode}/${vehicleDeviceId}`,
                     {
@@ -474,6 +472,7 @@ export default function VehicleDroneSelectionPage() {
                       },
                     }
                   );
+
                 } catch (err) {
                   console.error("Activation Error:", err);
 
@@ -483,7 +482,6 @@ export default function VehicleDroneSelectionPage() {
                     message: "Activation failed",
                   });
 
-                  // still navigate if you want FULL bypass even on crash:
                   navigate(
                     `/live-incident-command/${incidentId}/${droneCode}/${vehicleDeviceId}`
                   );
