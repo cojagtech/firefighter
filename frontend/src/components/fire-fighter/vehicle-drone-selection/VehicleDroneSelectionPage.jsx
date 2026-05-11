@@ -340,7 +340,7 @@ export default function VehicleDroneSelectionPage() {
                   });
                   return;
                 }
-
+               // For simplicity, we take the first selected drone and vehicle for activation
                 const selectedDrone = selectedDroneObjects[0];
                 const selectedVehicle = selectedVehicleObjects[0];
 
