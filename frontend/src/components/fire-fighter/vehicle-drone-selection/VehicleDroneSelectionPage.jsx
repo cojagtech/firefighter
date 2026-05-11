@@ -378,82 +378,98 @@ export default function VehicleDroneSelectionPage() {
                 }
 
                 try {
+                  console.log("Sending location:", { incidentId, lat, lng });
+
                   const altitude = Math.round(flyingHeight ?? 50);
 
                   const payload = {
                     incident_id: incidentId,
                     latitude: lat,
                     longitude: lng,
-                    altitude,
+                    altitude: altitude,
                     drone_code: droneCode,
                   };
 
+                  // 🔥 Drone → Port Mapping
                   const port = 8081;
+
                   const apiUrl = `http://43.205.31.167:${port}/api/incident_location`;
 
                   console.log("🚁 Sending to:", apiUrl);
 
-                  // 🚀 FIRE-AND-FORGET (NO WAIT)
-
-                  fetch(apiUrl, {
+                  // ✅ 1. SEND INCIDENT LOCATION
+                  await fetch(apiUrl, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
                     body: JSON.stringify(payload),
-                  }).catch(() => { });
+                  });
 
-                  fetch("http://65.2.23.154:4005/start-drone", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      drone_id: droneCode,
-                      rtmp_url: `rtmp://43.205.31.167:4002/live/${droneCode}`,
-                      api_urls:
-                        "http://13.126.10.117/api/fire-fighter/live-incident-command/fire_detection.php",
-                    }),
-                  }).catch(() => { });
+                  // ✅ 2. SEND INCIDENT TO NODE SERVER
+                  // 1. START DRONE FIRST
+                  // await fetch("http://65.2.23.154:4005/start-drone", {
+                  //   method: "POST",
+                  //   headers: {
+                  //     "Content-Type": "application/json",
+                  //   },
+                  //   body: JSON.stringify({
+                  //     drone_id: droneCode,
+                  //     rtmp_url: `rtmp://43.205.31.167:4002/live/${droneCode}`,
+                  //     api_urls:
+                  //       "http://13.126.10.117/api/fire-fighter/live-incident-command/fire_detection.php",
+                  //   }),
+                  // });
 
-                  fetch("http://65.2.23.154:4005/incident", {
+                  // 2. THEN SET INCIDENT
+                  // await fetch("http://65.2.23.154:4005/incident", {
+                  //   method: "POST",
+                  //   headers: {
+                  //     "Content-Type": "application/json",
+                  //   },
+                  //   body: JSON.stringify({
+                  //     drone_id: droneCode,
+                  //     incident_id: incidentId,
+                  //   }),
+                  // });
+                  // ✅ 4. START DRONE MISSION
+                  await fetch(`${API}/start_drone_mission.php`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      drone_id: droneCode,
-                      incident_id: incidentId,
-                    }),
-                  }).catch(() => { });
-
-                  fetch(`${API}/start_drone_mission.php`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
                     body: JSON.stringify({
                       incident_id: incidentId,
                       drone_id: droneDbId,
                     }),
-                  }).catch(() => { });
+                  });
 
-                  // ⚠️ ONLY IMPORTANT ONE (still non-blocking safe)
+                  // ✅ 5. UPDATE INCIDENT STATUS
                   const res = await fetch(`${API}/update_incident_status.php`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
                     body: JSON.stringify({
                       incidentId,
                       droneId: droneCode,
                       vehicleDeviceId,
                     }),
-                  }).catch(() => null);
+                  });
 
-                  const data = await res?.json?.().catch(() => ({}));
+                  const data = await res.json();
 
-                  if (!data?.success) {
-                    console.log("Status update failed but continuing");
+                  if (!data.success) {
+                    throw new Error(data.message);
                   }
 
                   await logActivity(
                     "ACTIVATE_DRONE_MISSION",
                     `Activated with Vehicles: ${vehicleNames} | Drones: ${droneNames}`,
                     incidentId
-                  ).catch(() => { });
+                  );
 
-                  // 🚀 INSTANT NAVIGATION (never blocked)
+                  // ✅ 6. NAVIGATE
                   navigate(
                     `/live-incident-command/${incidentId}/${droneCode}/${vehicleDeviceId}`,
                     {
@@ -479,13 +495,9 @@ export default function VehicleDroneSelectionPage() {
                     severity: "error",
                     message: "Activation failed",
                   });
-
-                  // fallback navigation (still go next page)
-                  navigate(
-                    `/live-incident-command/${incidentId}/${droneCode}/${vehicleDeviceId}`
-                  );
                 }
               }}
+              onBack={() => navigate(-1)}
             />
           </Box>
         </Box>
