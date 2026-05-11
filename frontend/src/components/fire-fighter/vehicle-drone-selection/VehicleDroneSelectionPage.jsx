@@ -406,32 +406,41 @@ export default function VehicleDroneSelectionPage() {
                     body: JSON.stringify(payload),
                   });
 
-                  // ✅ 2. SEND INCIDENT TO NODE SERVER
-                  // 1. START DRONE FIRST
-                  await fetch("http://65.2.23.154:4005/start-drone", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      drone_id: droneCode,
-                      rtmp_url: `rtmp://43.205.31.167:4002/live/${droneCode}`,
-                      api_urls:
-                        "http://13.126.10.117/api/fire-fighter/live-incident-command/fire_detection.php",
-                    }),
-                  });
+                  // ✅ 2. SEND INCIDENT 
+                  // 1. START DRONE
+                  try {
+                    await fetch("http://65.2.23.154:4005/start-drone", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        drone_id: droneCode,
+                        rtmp_url: `rtmp://43.205.31.167:4002/live/${droneCode}`,
+                        api_urls:
+                          "http://13.126.10.117/api/fire-fighter/live-incident-command/fire_detection.php",
+                      }),
+                    });
+                  } catch (err) {
+                    console.log("start-drone failed, continuing anyway:", err.message);
+                  }
 
-                  // 2. THEN SET INCIDENT
-                  await fetch("http://65.2.23.154:4005/incident", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      drone_id: droneCode,
-                      incident_id: incidentId,
-                    }),
-                  });
+                  // 2. SET INCIDENT (always runs even if above fails)
+                  try {
+                    await fetch("http://65.2.23.154:4005/incident", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        drone_id: droneCode,
+                        incident_id: incidentId,
+                      }),
+                    });
+                  } catch (err) {
+                    console.log("incident API failed, continuing anyway:", err.message);
+                  }
+
                   // ✅ 4. START DRONE MISSION
                   await fetch(`${API}/start_drone_mission.php`, {
                     method: "POST",
