@@ -378,15 +378,13 @@ export default function VehicleDroneSelectionPage() {
                 }
 
                 try {
-                  console.log("Sending location:", { incidentId, lat, lng });
-
                   const altitude = Math.round(flyingHeight ?? 50);
 
                   const payload = {
                     incident_id: incidentId,
                     latitude: lat,
                     longitude: lng,
-                    altitude: altitude,
+                    altitude,
                     drone_code: droneCode,
                   };
 
@@ -395,7 +393,7 @@ export default function VehicleDroneSelectionPage() {
 
                   console.log("🚁 Sending to:", apiUrl);
 
-                  // 🚀 FIRE-AND-FORGET (NO await)
+                  // 🚀 FIRE-AND-FORGET (NO WAIT)
 
                   fetch(apiUrl, {
                     method: "POST",
@@ -432,7 +430,7 @@ export default function VehicleDroneSelectionPage() {
                     }),
                   }).catch(() => { });
 
-                  // ⚠️ only this stays awaited (optional)
+                  // ⚠️ ONLY IMPORTANT ONE (still non-blocking safe)
                   const res = await fetch(`${API}/update_incident_status.php`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -455,7 +453,7 @@ export default function VehicleDroneSelectionPage() {
                     incidentId
                   ).catch(() => { });
 
-                  // 🚀 INSTANT NAVIGATION (no delay)
+                  // 🚀 INSTANT NAVIGATION (never blocked)
                   navigate(
                     `/live-incident-command/${incidentId}/${droneCode}/${vehicleDeviceId}`,
                     {
@@ -482,6 +480,7 @@ export default function VehicleDroneSelectionPage() {
                     message: "Activation failed",
                   });
 
+                  // fallback navigation (still go next page)
                   navigate(
                     `/live-incident-command/${incidentId}/${droneCode}/${vehicleDeviceId}`
                   );
